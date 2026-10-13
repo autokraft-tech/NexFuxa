@@ -166,6 +166,48 @@ test('CLI refuses existing outputs, and explicit overwrite publishes complete fi
     assert.ok(fs.readdirSync(directory).every(name => !name.endsWith('.tmp')));
 });
 
+test('successful output is published from staging without a direct destination write', t => {
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'nexfuxa-phase3a-publish-'));
+    t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+    const output = path.join(directory, 'devices.json');
+    const report = path.join(directory, 'changes.md');
+    const args = [
+        '--input', path.join(__dirname, 'fixtures/devices.sanitized.json'),
+        '--config', path.join(__dirname, '../examples/valves.csv'),
+        '--output', output, '--report', report
+    ];
+    const destinations = new Set([output, report]);
+    const directWrites = [];
+    const published = [];
+    const writeFileSync = fs.writeFileSync;
+    const linkSync = fs.linkSync;
+    const renameSync = fs.renameSync;
+    fs.writeFileSync = function (file, ...rest) {
+        if (typeof file === 'string' && destinations.has(path.resolve(file))) directWrites.push(file);
+        return writeFileSync.call(fs, file, ...rest);
+    };
+    fs.linkSync = function (temporary, file) {
+        published.push(file);
+        return linkSync.call(fs, temporary, file);
+    };
+    fs.renameSync = function (temporary, file) {
+        published.push(file);
+        return renameSync.call(fs, temporary, file);
+    };
+    try {
+        run(args);
+        run([...args, '--overwrite']);
+    } finally {
+        fs.writeFileSync = writeFileSync;
+        fs.linkSync = linkSync;
+        fs.renameSync = renameSync;
+    }
+    assert.deepEqual(directWrites, []);
+    assert.deepEqual(published, [report, output, report, output]);
+    assert.equal(Object.keys(JSON.parse(fs.readFileSync(output, 'utf8')).find(device => device.id === deviceId).tags).length, 14);
+    assert.match(fs.readFileSync(report, 'utf8'), /Newly created Tags \(6\)/);
+});
+
 test('duplicate device IDs and ambiguous instances fail before tag generation', () => {
     assert.throws(() => mergeDevices([fixture[0], fixture[0]], [], newId), /Duplicate device ID 0/);
     const rows = parseCsv(config);

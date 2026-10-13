@@ -111,7 +111,6 @@ function run(args) {
     if (result.report.conflicts.length) {
         throw new Error(`${result.report.conflicts.length} conflict(s); see ${reportPath}. No devices JSON was written.`);
     }
-    if (!dryRun) fs.writeFileSync(output, JSON.stringify(result.devices, null, 2) + '\n');
     return result.report;
 }
 
