@@ -37,9 +37,11 @@ function expectedBindings() {
     return model.profiles.Status.map(memberPath => {
         const member = memberPath.split('.')[1];
         const address = `GVL.g_aValve_HMI[1,1].${memberPath}`;
-        const originalTag = Object.values(oldDevice.tags).find(tag => tag.address === address);
-        assert.ok(originalTag, `Original V101 tag missing: ${address}`);
-        return { originalName: parameters[member], name: parameters[member], type: 'boolean', variableId: originalTag.id };
+        const tag = Object.values(newDevice.tags).find(item => item.address === address);
+        assert.ok(tag, `Generated V101 tag missing: ${address}`);
+        const originalTag = Object.values(oldDevice.tags).find(item => item.address === address);
+        if (originalTag) assert.equal(tag.id, originalTag.id, `V101 widget tag ID changed: ${address}`);
+        return { originalName: parameters[member], name: parameters[member], type: 'boolean', variableId: tag.id };
     });
 }
 
@@ -48,9 +50,13 @@ function verify(devices, view) {
     assert.deepEqual(devices['0'], original.find(device => device.id === '0'));
     assert.deepEqual(devices[deviceId], newDevice);
     for (const [id, tag] of Object.entries(oldDevice.tags)) assert.deepEqual(devices[deviceId].tags[id], tag);
-    const v102 = Object.values(devices[deviceId].tags).filter(tag => tag.address?.startsWith('GVL.g_aValve_HMI[1,2].Sts.'));
-    assert.equal(v102.length, 6);
-    assert.ok(v102.every(tag => tag.type === 'boolean'));
+    for (const indices of ['1,1', '1,2']) {
+        const tags = Object.values(devices[deviceId].tags).filter(tag => tag.address?.startsWith(`GVL.g_aValve_HMI[${indices}].`));
+        assert.equal(tags.length, 20);
+        assert.equal(tags.filter(tag => tag.address.includes('.Cmd.')).length, 4);
+        assert.equal(tags.filter(tag => tag.address.includes('.Sts.')).length, 9);
+        assert.equal(tags.filter(tag => tag.address.includes('.Cfg.')).length, 7);
+    }
     assert.equal(view.id, 'v_phase3a_valve_binding');
     const bindings = view.items.widget_v101.property.varsToBind;
     assert.deepEqual(bindings, expectedBindings());
@@ -82,7 +88,7 @@ async function main() {
     const view = saved.hmi.views.find(item => item.id === 'v_phase3a_valve_binding');
     assert.ok(view, 'V101 binding view is missing');
     verify(saved.devices, view);
-    console.log(`${mode}: FUXA project storage verified, V101 IDs/bindings and six V102 tags intact`);
+    console.log(`${mode}: FUXA project storage verified, V101 IDs/bindings and 40 Valve tags intact`);
     storage.close();
 }
 

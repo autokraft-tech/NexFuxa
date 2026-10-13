@@ -18,7 +18,6 @@
   "profiles": {
     "Status": ["Sts.Extended", "Sts.Retracted", "Sts.Extending", "Sts.Retracting", "Sts.Error", "Sts.IsManualMode"],
     "Control": ["Cmd.Extend", "Cmd.Retract", "Cmd.Reset", "Cmd.LifetimeReset"],
-    "Engineering": ["Sts.Extended", "Sts.Retracted", "Sts.Extending", "Sts.Retracting", "Sts.Error", "Sts.IsManualMode", "Sts.ExtendTime", "Sts.RetractTime", "Sts.CurrentLifetimeCount", "Cfg.HaveExtendedSensor", "Cfg.HaveRetractedSensor", "Cfg.ExtendTimeOut", "Cfg.RetractTimeOut", "Cfg.SimExtendTime", "Cfg.SimRetractTime", "Cfg.MaxLifeTimeCount"],
-    "Full": ["Cmd.Extend", "Cmd.Retract", "Cmd.Reset", "Cmd.LifetimeReset", "Sts.Extended", "Sts.Retracted", "Sts.Extending", "Sts.Retracting", "Sts.Error", "Sts.IsManualMode", "Sts.ExtendTime", "Sts.RetractTime", "Sts.CurrentLifetimeCount", "Cfg.HaveExtendedSensor", "Cfg.HaveRetractedSensor", "Cfg.ExtendTimeOut", "Cfg.RetractTimeOut", "Cfg.SimExtendTime", "Cfg.SimRetractTime", "Cfg.MaxLifeTimeCount"]
+    "Engineering": ["Sts.Extended", "Sts.Retracted", "Sts.Extending", "Sts.Retracting", "Sts.Error", "Sts.IsManualMode", "Sts.ExtendTime", "Sts.RetractTime", "Sts.CurrentLifetimeCount", "Cfg.HaveExtendedSensor", "Cfg.HaveRetractedSensor", "Cfg.ExtendTimeOut", "Cfg.RetractTimeOut", "Cfg.SimExtendTime", "Cfg.SimRetractTime", "Cfg.MaxLifeTimeCount"]
   }
 }

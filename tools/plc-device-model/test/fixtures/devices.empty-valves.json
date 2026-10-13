@@ -1,0 +1,49 @@
+[
+  {
+    "id": "0",
+    "name": "FUXA Server",
+    "type": "FuxaServer",
+    "property": {},
+    "polling": 1000,
+    "enabled": true,
+    "tags": {
+      "t_da3452b7-4f9542e8": {
+        "id": "t_da3452b7-4f9542e8",
+        "name": "TC-VM Connection Status",
+        "label": "TC-VM Connection Status",
+        "type": "number",
+        "memaddress": "d_b6ba9d1c-2b054dc3",
+        "daq": {
+          "enabled": false,
+          "interval": 60,
+          "changed": false,
+          "restored": false
+        },
+        "init": "",
+        "sysType": 1
+      }
+    }
+  },
+  {
+    "id": "d_b6ba9d1c-2b054dc3",
+    "name": "TC-VM",
+    "enabled": true,
+    "property": {
+      "address": "192.0.2.10.1.1",
+      "port": null,
+      "slot": null,
+      "rack": null,
+      "baudrate": 9600,
+      "databits": 8,
+      "stopbits": 1,
+      "parity": "None",
+      "delay": 10,
+      "forceFC16": false,
+      "timeout": 2000,
+      "router": "192.0.2.20"
+    },
+    "type": "ADSclient",
+    "polling": 1000,
+    "tags": {}
+  }
+]
