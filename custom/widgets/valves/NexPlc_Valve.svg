@@ -1,11 +1,49 @@
 <svg xmlns="http://www.w3.org/2000/svg" id="nexplcValve" width="280" height="160" viewBox="0 0 280 160">
+  <!--
+  Source: frangoteam/FUXA-SVG-Widgets
+  Asset: Proc. Engineering/Proc. Eng. Valves/25_Gate Valve (Double Acting Cylinder).svg
+  Source SHA-256: 3706a8b63f5481af2f983f526da2cae297f62ba46b78370627aec8e6554f1e82
+  Adapted equipment geometry; retained under the following license:
+
+  MIT License
+
+  Copyright (c) 2019-2025 frangoteam info@frangoteam.org
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+  -->
   <rect x="2" y="2" width="276" height="156" rx="12" fill="#f8fafc" stroke="#94a3b8" stroke-width="2"/>
   <text id="valveLabel" x="16" y="27" fill="#0f172a" font-family="Arial, sans-serif" font-size="18" font-weight="bold">Valve</text>
   <rect id="manualBadge" x="204" y="10" width="62" height="23" rx="11" fill="#e2e8f0"/>
   <text id="manualText" x="235" y="26" text-anchor="middle" fill="#475569" font-family="Arial, sans-serif" font-size="12">AUTO</text>
-  <path d="M42 73 H238" stroke="#475569" stroke-width="8"/>
-  <path id="valveBody" d="M95 51 L140 82 L95 113 Z M185 51 L140 82 L185 113 Z" fill="#94a3b8" stroke="#334155" stroke-width="2"/>
-  <circle cx="140" cy="82" r="8" fill="#334155"/>
+  <g id="valveSymbol" transform="translate(99.6 39) scale(0.8)">
+    <defs id="defs1"/>
+    <g data-cell-id="b54Z_1cSVq9n6jkFMYGL-26" id="g71" style="fill:none" transform="translate(0,-30)">
+      <g id="cell-b54Z_1cSVq9n6jkFMYGL-26" style="fill:none">
+        <g transform="translate(0.5,0.5)" id="g70" style="fill:none">
+          <rect x="35" y="30" width="29.9" height="32.200001" fill="#ffffff" stroke="#000000" pointer-events="all" style="fill:none" id="rect68"/>
+          <path d="M 49.95,62.2 V 100 M 64.9,38.05 H 100 m -14.95,-5.6 -5.2,11.2 m 8.45,-11.2 -5.2,11.2 M 64.9,54.15 H 100 m -14.95,-5.6 -5.2,11.2 m 8.45,-11.2 -5.2,11.2" fill="none" stroke="#000000" stroke-linejoin="round" stroke-miterlimit="10" pointer-events="all" style="fill:none" id="path68"/>
+          <path d="m 0,70 50,30 -50,30 z m 100,0 -50,30 50,30 z" fill="#ffffff" stroke="#000000" stroke-linejoin="round" stroke-miterlimit="10" pointer-events="all" id="valveBody"/>
+          <path d="M 49.95,46.1 V 62.2 M 35,46.1 h 29.9" fill="none" stroke="#000000" stroke-linejoin="round" stroke-miterlimit="10" pointer-events="all" style="fill:none" id="path70"/>
+        </g>
+      </g>
+    </g>
+  </g>
   <rect id="statusBand" x="16" y="124" width="248" height="25" rx="6" fill="#64748b"/>
   <text id="statusText" x="140" y="141" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="13" font-weight="bold">WAITING FOR DATA</text>
   <script><![CDATA[

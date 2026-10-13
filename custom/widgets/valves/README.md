@@ -19,6 +19,18 @@ Place another copy for each additional valve and bind its six parameters to that
 
 Run the focused tests with `node --test custom/widgets/valves/NexPlc_Valve.test.cjs` and validate Compose with `docker compose -f compose.dev.yml config`.
 
+## SVG source and adaptation
+
+The equipment graphic is reused from `D:\Will\Documents\source\repos\FUXA-SVG-Widgets\Proc. Engineering\Proc. Eng. Valves\25_Gate Valve (Double Acting Cylinder).svg` in `frangoteam/FUXA-SVG-Widgets`. The local library HEAD at inspection was `70e7c4a656d111c0428c77eb4b0409fc3670b8d5`; the actual source file SHA-256 was `3706a8b63f5481af2f983f526da2cae297f62ba46b78370627aec8e6554f1e82`.
+
+Four existing candidates were compared: `01_Gate Valve.svg` has a plain gate body, `03_Ball Valve.svg` adds a ball enclosure, `24_Gate Valve (Single Acting Cylinder).svg` shows a single actuator port, and the selected `25_Gate Valve (Double Acting Cylinder).svg` shows two actuator ports. The selected drawing provides a recognizable actuated valve for the widget's bidirectional extend/retract status display.
+
+The three source paths, actuator rectangle, and internal group transforms are retained unchanged. The copied equipment group is translated and uniformly scaled to fit the existing widget layout. Its outer ID becomes `valveSymbol`, and the valve-body path ID becomes `valveBody`; that path's `fill:none` style is removed so the existing status colors can fill the body. Black equipment outlines and actuator details are retained. The earlier hand-drawn equipment paths and circle are removed; the existing label, status band, and Manual/Auto badge remain.
+
+The library's generic state/write script is replaced by the existing read-only NexPlc script. The six BOOL parameters, fault priority, conflict detection, independent-instance behavior, and V101 ADS paths remain defined by `NexPlc.Valve.v1`. The original library is not modified.
+
+The library's MIT license permits copying, modification, and redistribution with its copyright and permission notice retained. The complete `Copyright (c) 2019-2025 frangoteam info@frangoteam.org` MIT notice is embedded in `NexPlc_Valve.svg` so it accompanies standalone downloads. Future widgets must follow [the SVG reuse policy](../../../docs/SVG_REUSE_POLICY.md).
+
 ## Backup and restoration
 
 Run these PowerShell commands from the checkout root. Stop FUXA before copying projects and databases so the snapshot is consistent. Keep an additional copy of important snapshots outside the checkout for protection against host disk loss or checkout deletion.

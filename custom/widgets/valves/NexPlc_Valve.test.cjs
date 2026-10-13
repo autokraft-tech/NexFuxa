@@ -55,22 +55,43 @@ test('FUXA exports the expected parameters and exposes no write API', () => {
   assert.doesNotMatch(script, /postValue|\bCmd\b|_pb_state|_ps_state/);
 });
 
+test('equipment preserves the reused double-acting valve geometry and license', () => {
+  const equipment = svg.split('<g id="valveSymbol"')[1]?.split('<rect id="statusBand"')[0];
+  assert.ok(equipment);
+  assert.match(equipment, /transform="translate\(99\.6 39\) scale\(0\.8\)"/);
+  assert.match(equipment, /transform="translate\(0,-30\)"/);
+  assert.match(equipment, /transform="translate\(0\.5,0\.5\)"/);
+  assert.match(equipment, /<rect x="35" y="30" width="29\.9" height="32\.200001"/);
+  const paths = [...equipment.matchAll(/<path[^>]*\bd="([^"]+)"/g)].map(match => match[1]);
+  assert.deepEqual(paths, [
+    'M 49.95,62.2 V 100 M 64.9,38.05 H 100 m -14.95,-5.6 -5.2,11.2 m 8.45,-11.2 -5.2,11.2 M 64.9,54.15 H 100 m -14.95,-5.6 -5.2,11.2 m 8.45,-11.2 -5.2,11.2',
+    'm 0,70 50,30 -50,30 z m 100,0 -50,30 50,30 z',
+    'M 49.95,46.1 V 62.2 M 35,46.1 h 29.9',
+  ]);
+  assert.doesNotMatch(equipment.match(/<path[^>]*id="valveBody"[^>]*>/)[0], /style="fill:none"/);
+  assert.match(svg, /25_Gate Valve \(Double Acting Cylinder\)\.svg/);
+  assert.match(svg, /Copyright \(c\) 2019-2025 frangoteam info@frangoteam\.org/);
+  assert.match(svg, /Permission is hereby granted/);
+});
+
 test('state priority and feedback conflicts', () => {
   const cases = [
-    [{}, 'UNKNOWN'],
-    [{ extended: true }, 'EXTENDED'],
-    [{ retracted: true }, 'RETRACTED'],
-    [{ extending: true }, 'EXTENDING'],
-    [{ retracting: true }, 'RETRACTING'],
-    [{ extended: true, extending: true }, 'EXTENDING'],
-    [{ extended: true, retracted: true }, 'CONFLICT'],
-    [{ extending: true, retracting: true }, 'CONFLICT'],
-    [{ error: true, extended: true, retracted: true }, 'FAULT'],
+    [{}, 'UNKNOWN', '#64748b'],
+    [{ extended: true }, 'EXTENDED', '#15803d'],
+    [{ retracted: true }, 'RETRACTED', '#2563eb'],
+    [{ extending: true }, 'EXTENDING', '#d97706'],
+    [{ retracting: true }, 'RETRACTING', '#d97706'],
+    [{ extended: true, extending: true }, 'EXTENDING', '#d97706'],
+    [{ extended: true, retracted: true }, 'CONFLICT', '#b91c1c'],
+    [{ extending: true, retracting: true }, 'CONFLICT', '#b91c1c'],
+    [{ error: true, extended: true, retracted: true }, 'FAULT', '#b91c1c'],
   ];
-  for (const [values, expected] of cases) {
+  for (const [values, expected, color] of cases) {
     const widget = makeHarness().addWidget();
     feed(widget, values);
     assert.equal(widget.parts.statusText.textContent, expected, JSON.stringify(values));
+    assert.equal(widget.parts.valveBody.attributes.fill, color);
+    assert.equal(widget.parts.statusBand.attributes.fill, color);
   }
 });
 
@@ -103,6 +124,8 @@ test('two FUXA-style instances keep their elements and values separate', () => {
   first.putValue('_pb_error', true);
   assert.equal(first.parts.statusText.textContent, 'FAULT');
   assert.equal(second.parts.statusText.textContent, 'RETRACTED');
+  assert.equal(first.parts.valveBody.attributes.fill, '#b91c1c');
+  assert.equal(second.parts.valveBody.attributes.fill, '#2563eb');
 });
 
 test('development mount follows FUXA widget discovery and binding paths', () => {
@@ -114,4 +137,8 @@ test('development mount follows FUXA widget discovery and binding paths', () => 
   assert.match(resources, /runtime\.settings\.widgetsFileDir/);
   assert.match(image, /SvgUtils\.processWidget/);
   assert.match(image, /\['putValue'\]\(widgetVar\.name, sig\.value\)/);
+  const readme = fs.readFileSync(path.join(__dirname, 'README.md'), 'utf8');
+  for (const member of ['Extended', 'Retracted', 'Extending', 'Retracting', 'Error', 'IsManualMode']) {
+    assert.ok(readme.includes(`GVL.g_aValve_HMI[1,1].Sts.${member}`));
+  }
 });
