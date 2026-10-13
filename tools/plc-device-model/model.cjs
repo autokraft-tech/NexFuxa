@@ -14,6 +14,7 @@ function leafType(model, path) {
 
 function expand(model, rows) {
     if (model.schemaVersion !== 1) throw new Error(`Unsupported model schema version ${model.schemaVersion}`);
+    const instances = new Set();
     return rows.flatMap(row => {
         const name = row['Device Name'];
         const deviceId = row['PLC Device ID'];
@@ -21,9 +22,14 @@ function expand(model, rows) {
         const indices = row['Array Indices'].split(',').map(value => value.trim());
         const profile = row.Profile || 'Status';
         if (row['Device Model'] !== model.name && row['Device Model'] !== `${model.name}@${model.version}`) throw new Error(`Unknown device model ${row['Device Model']}`);
-        if (!/^[A-Za-z_][\w]*$/.test(name) || !/^[A-Za-z_][\w]*(?:\.[A-Za-z_][\w]*)*$/.test(symbol) || !deviceId) throw new Error(`Invalid instance, device ID, or array symbol for ${name}`);
+        if (!/^[A-Za-z_][\w]*$/.test(name)) throw new Error(`Invalid Device Name: ${name}`);
+        if (!/^[A-Za-z_][\w]*(?:\.[A-Za-z_][\w]*)*$/.test(symbol)) throw new Error(`Invalid Array Symbol: ${symbol}`);
+        if (!deviceId || deviceId.trim() !== deviceId) throw new Error(`Invalid PLC Device ID for ${name}`);
         if (!indices.length || indices.some(value => !/^(0|[1-9]\d*)$/.test(value))) throw new Error(`Invalid array indices for ${name}`);
         if (!model.profiles[profile]) throw new Error(`Unknown profile ${profile}`);
+        if (instances.has(name)) throw new Error(`Duplicate or ambiguous Device Name: ${name}`);
+        instances.add(name);
+        if (new Set(model.profiles[profile]).size !== model.profiles[profile].length) throw new Error(`Duplicate member in profile ${profile}`);
         return model.profiles[profile].map(path => {
             const plcType = leafType(model, path);
             const type = plcToAds[plcType];

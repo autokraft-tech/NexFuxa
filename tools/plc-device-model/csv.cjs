@@ -31,7 +31,7 @@ function parseCsv(input) {
     }
     return records.map((values, index) => {
         if (values.length !== columns.length) throw new Error(`CSV row ${index + 2} has ${values.length} columns; expected ${columns.length}`);
-        return Object.fromEntries(columns.map((name, i) => [name, values[i].trim()]));
+        return Object.fromEntries(columns.map((name, i) => [name, values[i]]));
     });
 }
 

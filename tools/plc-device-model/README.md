@@ -14,6 +14,8 @@ node tools/plc-device-model/cli.cjs --input "D:\Will\下载\fuxa-devices.json" -
 
 Pass `--dry-run` instead of `--output` to write only the report. Conflicts always produce a nonzero exit and prevent writing the devices JSON. The JSON is the same complete device array used by `exportDevices` and `importDevices`; the tool does not connect to FUXA or a PLC. Import only into an isolated test project made from the same export snapshot. If that project's devices changed after export, re-export before generating again because FUXA's `importDevices` replaces devices with matching IDs.
 
+The CLI rejects file aliases among both inputs and both outputs, including hard links, so an output cannot replace a source file. Existing output or report files are refused unless you explicitly pass `--overwrite`. Each output is fully written to a temporary file in its destination directory before it is published; new files use exclusive creation, and `--overwrite` replaces a complete file. A dry run never writes the devices JSON. CSV field values are preserved as entered: an array symbol with leading/trailing whitespace or invalid characters is rejected. Instance names must be unique in a batch, and duplicate device IDs in the input export are rejected.
+
 Existing tags are matched within the exact device ID by exact ADS `address`. Their IDs, names, types, DAQ settings and any other fields remain untouched. A new tag gets a unique `t_` ID, a descriptive name such as `V102_sts_extended`, the actual ADS `address`, the current lowercase ADS type and the same disabled DAQ defaults as `TagDaq(false, false, 60, false)`. New tags omit `value` and `timestamp`. The report lists reused, created, conflicting and unchanged tags. No tag or device is removed. The pure `expand` function in [model.cjs](model.cjs) and pure `mergeDevices` function in [fuxa.cjs](fuxa.cjs) take plain objects and can be called later from an Angular management UI or widget binding flow; the CLI handles files and ID creation separately.
 
 ## Model synchronization
@@ -21,3 +23,14 @@ Existing tags are matched within the exact device ID by exact ADS `address`. The
 For a future NexPlc revision, fetch a specific reviewed commit and compare each of the four `.TcDUT` declarations with the model's `types`. Record the new commit, review changes in member names, nesting and primitive types, then publish a new model version and update profiles deliberately. Test the updated model against a current FUXA export before use. This is a one-way, controlled copy from reviewed PLC definitions to HMI metadata. The tool never writes PLC source or changes live PLC symbols.
 
 Run tests with `node --test tools/plc-device-model/test/phase3a.test.cjs`. The committed fixture is derived from the supplied export: it retains V101 tag IDs and addresses and the FUXA system tag, with network connection values replaced and transient `value`/`timestamp` fields removed.
+
+## Offline FUXA project import check
+
+The [integration check](test/offline-fuxa-project.cjs) uses FUXA's actual `set-device` and `set-view` project storage operations against an isolated SQLite `workDir`. Run it twice in separate processes with `import` and then `reopen`, setting `PHASE3A_SERVER_ROOT`, `PHASE3A_WORK_DIR`, `PHASE3A_ORIGINAL_JSON`, `PHASE3A_MERGED_JSON`, and `PHASE3A_WIDGET_SVG` to the corresponding absolute paths. The server environment needs its usual `sqlite3` and `async` dependencies. Keep `PHASE3A_WORK_DIR` in a newly created temporary directory, outside `.local/fuxa-dev` and production volumes.
+
+```powershell
+node tools/plc-device-model/test/offline-fuxa-project.cjs import
+node tools/plc-device-model/test/offline-fuxa-project.cjs reopen
+```
+
+The check imports the complete generated devices array, saves a small synthetic view with the V101 widget's six `varsToBind` references, then reopens the project database in a new process. It compares every V101 tag object and the FUXA system device with the original export, checks all six V102 status tags, and confirms that each saved binding ID still resolves to the same V101 tag and SVG parameter. This is **offline import and persistence verification**. It does not establish PLC connectivity, live ADS read/write behavior, or browser rendering of an existing deployed view.

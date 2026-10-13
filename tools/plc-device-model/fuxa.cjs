@@ -9,8 +9,11 @@ function mergeDevices(devices, candidates, newId) {
     const merged = JSON.parse(JSON.stringify(devices));
     const report = { reused: [], created: [], conflicts: [], unchanged: [] };
     const allIds = new Set();
+    const deviceIds = new Set();
     for (const device of merged) {
         if (!device || !device.id || !device.tags || typeof device.tags !== 'object' || Array.isArray(device.tags)) throw new Error('Invalid FUXA device or tag dictionary');
+        if (deviceIds.has(device.id)) throw new Error(`Duplicate device ID ${device.id}`);
+        deviceIds.add(device.id);
         for (const [key, tag] of Object.entries(device.tags)) {
             if (key !== tag.id || allIds.has(key)) throw new Error(`Duplicate or inconsistent tag ID ${key}`);
             allIds.add(key);
