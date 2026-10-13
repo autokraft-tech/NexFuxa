@@ -8,6 +8,11 @@ yarn-debug.log*
 yarn-error.log*
 
 # Runtime data
+/.local/fuxa-dev/
+/appdata/
+/db/
+/logs/
+/images/
 pids
 *.pid
 *.seed
