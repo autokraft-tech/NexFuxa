@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "name": "Valve",
+  "version": "1.0.0",
+  "rootType": "ST_Valve_HMI",
+  "source": {
+    "repository": "https://github.com/autokraft-tech/NexPlc",
+    "commit": "04b27f25dce1b1be335c5f51f539496f195e3708",
+    "directory": "MySPT_Machine/MainPLC/03_POUs/02_Components/Valves/01_DUT/ST_Valve_HMI",
+    "files": ["ST_Valve_HMI.TcDUT", "ST_Valve_Command.TcDUT", "ST_Valve_Status.TcDUT", "ST_Valve_Config.TcDUT"]
+  },
+  "types": {
+    "ST_Valve_HMI": { "Cmd": "ST_Valve_Command", "Sts": "ST_Valve_Status", "Cfg": "ST_Valve_Config" },
+    "ST_Valve_Command": { "Extend": "BOOL", "Retract": "BOOL", "Reset": "BOOL", "LifetimeReset": "BOOL" },
+    "ST_Valve_Status": { "Extended": "BOOL", "Retracted": "BOOL", "Extending": "BOOL", "Retracting": "BOOL", "Error": "BOOL", "IsManualMode": "BOOL", "ExtendTime": "LREAL", "RetractTime": "LREAL", "CurrentLifetimeCount": "UDINT" },
+    "ST_Valve_Config": { "HaveExtendedSensor": "BOOL", "HaveRetractedSensor": "BOOL", "ExtendTimeOut": "LREAL", "RetractTimeOut": "LREAL", "SimExtendTime": "LREAL", "SimRetractTime": "LREAL", "MaxLifeTimeCount": "UDINT" }
+  },
+  "profiles": {
+    "Status": ["Sts.Extended", "Sts.Retracted", "Sts.Extending", "Sts.Retracting", "Sts.Error", "Sts.IsManualMode"],
+    "Control": ["Cmd.Extend", "Cmd.Retract", "Cmd.Reset", "Cmd.LifetimeReset"],
+    "Engineering": ["Sts.Extended", "Sts.Retracted", "Sts.Extending", "Sts.Retracting", "Sts.Error", "Sts.IsManualMode", "Sts.ExtendTime", "Sts.RetractTime", "Sts.CurrentLifetimeCount", "Cfg.HaveExtendedSensor", "Cfg.HaveRetractedSensor", "Cfg.ExtendTimeOut", "Cfg.RetractTimeOut", "Cfg.SimExtendTime", "Cfg.SimRetractTime", "Cfg.MaxLifeTimeCount"],
+    "Full": ["Cmd.Extend", "Cmd.Retract", "Cmd.Reset", "Cmd.LifetimeReset", "Sts.Extended", "Sts.Retracted", "Sts.Extending", "Sts.Retracting", "Sts.Error", "Sts.IsManualMode", "Sts.ExtendTime", "Sts.RetractTime", "Sts.CurrentLifetimeCount", "Cfg.HaveExtendedSensor", "Cfg.HaveRetractedSensor", "Cfg.ExtendTimeOut", "Cfg.RetractTimeOut", "Cfg.SimExtendTime", "Cfg.SimRetractTime", "Cfg.MaxLifeTimeCount"]
+  }
+}

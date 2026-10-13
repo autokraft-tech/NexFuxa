@@ -1,0 +1,154 @@
+[
+  {
+    "id": "0",
+    "name": "FUXA Server",
+    "type": "FuxaServer",
+    "property": {},
+    "polling": 1000,
+    "enabled": true,
+    "tags": {
+      "t_da3452b7-4f9542e8": {
+        "id": "t_da3452b7-4f9542e8",
+        "name": "TC-VM Connection Status",
+        "label": "TC-VM Connection Status",
+        "type": "number",
+        "memaddress": "d_b6ba9d1c-2b054dc3",
+        "daq": {
+          "enabled": false,
+          "interval": 60,
+          "changed": false,
+          "restored": false
+        },
+        "init": "",
+        "sysType": 1
+      }
+    }
+  },
+  {
+    "id": "d_b6ba9d1c-2b054dc3",
+    "name": "TC-VM",
+    "enabled": true,
+    "property": {
+      "address": "192.0.2.10.1.1",
+      "port": null,
+      "slot": null,
+      "rack": null,
+      "baudrate": 9600,
+      "databits": 8,
+      "stopbits": 1,
+      "parity": "None",
+      "delay": 10,
+      "forceFC16": false,
+      "timeout": 2000,
+      "router": "192.0.2.20"
+    },
+    "type": "ADSclient",
+    "polling": 1000,
+    "tags": {
+      "t_217bc2df-f5cd457b": {
+        "id": "t_217bc2df-f5cd457b",
+        "name": "V101_extended",
+        "type": "Boolean",
+        "address": "GVL.g_aValve_HMI[1,1].Sts.Extended",
+        "daq": {
+          "enabled": false,
+          "interval": 60,
+          "changed": false,
+          "restored": false
+        },
+        "description": null
+      },
+      "t_1212df9f-d47b4ef3": {
+        "id": "t_1212df9f-d47b4ef3",
+        "name": "V101_retracted",
+        "type": "Boolean",
+        "address": "GVL.g_aValve_HMI[1,1].Sts.Retracted",
+        "daq": {
+          "enabled": false,
+          "interval": 60,
+          "changed": false,
+          "restored": false
+        },
+        "description": null
+      },
+      "t_73e28fdd-dcea4046": {
+        "id": "t_73e28fdd-dcea4046",
+        "name": "V101_error",
+        "type": "Boolean",
+        "address": "GVL.g_aValve_HMI[1,1].Sts.Error",
+        "daq": {
+          "enabled": false,
+          "interval": 60,
+          "changed": false,
+          "restored": false
+        },
+        "description": null
+      },
+      "t_fc321666-ce7f4e9a": {
+        "id": "t_fc321666-ce7f4e9a",
+        "name": "V101_isManualMode",
+        "type": "Boolean",
+        "address": "GVL.g_aValve_HMI[1,1].Sts.IsManualMode",
+        "daq": {
+          "enabled": false,
+          "interval": 60,
+          "changed": false,
+          "restored": false
+        },
+        "description": null
+      },
+      "t_1b2e2696-32854a42": {
+        "id": "t_1b2e2696-32854a42",
+        "name": "V101_cmd_extend",
+        "type": "Boolean",
+        "address": "GVL.g_aValve_HMI[1,1].Cmd.Extend",
+        "daq": {
+          "enabled": false,
+          "interval": 60,
+          "changed": false,
+          "restored": false
+        },
+        "description": null
+      },
+      "t_8e8cbcc8-82cc4342": {
+        "id": "t_8e8cbcc8-82cc4342",
+        "name": "V101_cmd_retract",
+        "type": "Boolean",
+        "address": "GVL.g_aValve_HMI[1,1].Cmd.Retract",
+        "daq": {
+          "enabled": false,
+          "interval": 60,
+          "changed": false,
+          "restored": false
+        },
+        "description": null
+      },
+      "t_c341e484-a033406f": {
+        "id": "t_c341e484-a033406f",
+        "name": "V101_sts_extending",
+        "type": "Boolean",
+        "address": "GVL.g_aValve_HMI[1,1].Sts.Extending",
+        "daq": {
+          "enabled": false,
+          "interval": 60,
+          "changed": false,
+          "restored": false
+        },
+        "description": null
+      },
+      "t_be12118f-bb744505": {
+        "id": "t_be12118f-bb744505",
+        "name": "V101_sts_retracting",
+        "type": "Boolean",
+        "address": "GVL.g_aValve_HMI[1,1].Sts.Retracting",
+        "daq": {
+          "enabled": false,
+          "interval": 60,
+          "changed": false,
+          "restored": false
+        },
+        "description": null
+      }
+    }
+  }
+]
