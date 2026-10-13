@@ -1,0 +1,16 @@
+name: nexfuxa-valve-dev
+
+services:
+  fuxa:
+    build:
+      context: .
+      args:
+        INSTALL_ODBC: "false"
+    ports:
+      - "1882:1881"
+    volumes:
+      - ./.local/fuxa-dev/appdata:/usr/src/app/FUXA/server/_appdata
+      - ./.local/fuxa-dev/db:/usr/src/app/FUXA/server/_db
+      - ./.local/fuxa-dev/logs:/usr/src/app/FUXA/server/_logs
+      - ./.local/fuxa-dev/images:/usr/src/app/FUXA/server/_images
+      - ./custom/widgets:/usr/src/app/FUXA/server/_widgets:ro

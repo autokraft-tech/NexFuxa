@@ -1,0 +1,128 @@
+<svg xmlns="http://www.w3.org/2000/svg" id="nexplcValve" width="280" height="160" viewBox="0 0 280 160">
+  <!--
+  Source: frangoteam/FUXA-SVG-Widgets
+  Asset: Proc. Engineering/Proc. Eng. Valves/25_Gate Valve (Double Acting Cylinder).svg
+  Source SHA-256: 3706a8b63f5481af2f983f526da2cae297f62ba46b78370627aec8e6554f1e82
+  Adapted equipment geometry; retained under the following license:
+
+  MIT License
+
+  Copyright (c) 2019-2025 frangoteam info@frangoteam.org
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+  -->
+  <rect x="2" y="2" width="276" height="156" rx="12" fill="#f8fafc" stroke="#94a3b8" stroke-width="2"/>
+  <text id="valveLabel" x="16" y="27" fill="#0f172a" font-family="Arial, sans-serif" font-size="18" font-weight="bold">Valve</text>
+  <rect id="manualBadge" x="204" y="10" width="62" height="23" rx="11" fill="#e2e8f0"/>
+  <text id="manualText" x="235" y="26" text-anchor="middle" fill="#475569" font-family="Arial, sans-serif" font-size="12">AUTO</text>
+  <g id="valveSymbol" transform="translate(99.6 39) scale(0.8)">
+    <defs id="defs1"/>
+    <g data-cell-id="b54Z_1cSVq9n6jkFMYGL-26" id="g71" style="fill:none" transform="translate(0,-30)">
+      <g id="cell-b54Z_1cSVq9n6jkFMYGL-26" style="fill:none">
+        <g transform="translate(0.5,0.5)" id="g70" style="fill:none">
+          <rect x="35" y="30" width="29.9" height="32.200001" fill="#ffffff" stroke="#000000" pointer-events="all" style="fill:none" id="rect68"/>
+          <path d="M 49.95,62.2 V 100 M 64.9,38.05 H 100 m -14.95,-5.6 -5.2,11.2 m 8.45,-11.2 -5.2,11.2 M 64.9,54.15 H 100 m -14.95,-5.6 -5.2,11.2 m 8.45,-11.2 -5.2,11.2" fill="none" stroke="#000000" stroke-linejoin="round" stroke-miterlimit="10" pointer-events="all" style="fill:none" id="path68"/>
+          <path d="m 0,70 50,30 -50,30 z m 100,0 -50,30 50,30 z" fill="#ffffff" stroke="#000000" stroke-linejoin="round" stroke-miterlimit="10" pointer-events="all" id="valveBody"/>
+          <path d="M 49.95,46.1 V 62.2 M 35,46.1 h 29.9" fill="none" stroke="#000000" stroke-linejoin="round" stroke-miterlimit="10" pointer-events="all" style="fill:none" id="path70"/>
+        </g>
+      </g>
+    </g>
+  </g>
+  <rect id="statusBand" x="16" y="124" width="248" height="25" rx="6" fill="#64748b"/>
+  <text id="statusText" x="140" y="141" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="13" font-weight="bold">WAITING FOR DATA</text>
+  <script><![CDATA[
+//!export-start
+let _ps_label = 'Valve';
+let _pb_extended = false;
+let _pb_retracted = false;
+let _pb_extending = false;
+let _pb_retracting = false;
+let _pb_error = false;
+let _pb_isManualMode = false;
+//!export-end
+
+const received = {};
+const signals = ['_pb_extended', '_pb_retracted', '_pb_extending', '_pb_retracting', '_pb_error', '_pb_isManualMode'];
+
+function render() {
+  const label = document.getElementById('valveLabel');
+  const body = document.getElementById('valveBody');
+  const band = document.getElementById('statusBand');
+  const status = document.getElementById('statusText');
+  const manualBadge = document.getElementById('manualBadge');
+  const manualText = document.getElementById('manualText');
+  if (!label || !body || !band || !status || !manualBadge || !manualText) return;
+
+  label.textContent = _ps_label;
+  manualBadge.setAttribute('fill', !received._pb_isManualMode ? '#e2e8f0' : (_pb_isManualMode ? '#dbeafe' : '#e2e8f0'));
+  manualText.textContent = !received._pb_isManualMode ? 'MODE ?' : (_pb_isManualMode ? 'MANUAL' : 'AUTO');
+
+  let text = 'WAITING FOR DATA';
+  let color = '#64748b';
+  if (_pb_error) {
+    text = 'FAULT';
+    color = '#b91c1c';
+  } else if ((_pb_extended && _pb_retracted) || (_pb_extending && _pb_retracting)) {
+    text = 'CONFLICT';
+    color = '#b91c1c';
+  } else if (signals.every(signal => received[signal])) {
+    if (_pb_extending) {
+      text = 'EXTENDING';
+      color = '#d97706';
+    } else if (_pb_retracting) {
+      text = 'RETRACTING';
+      color = '#d97706';
+    } else if (_pb_extended) {
+      text = 'EXTENDED';
+      color = '#15803d';
+    } else if (_pb_retracted) {
+      text = 'RETRACTED';
+      color = '#2563eb';
+    } else {
+      text = 'UNKNOWN';
+    }
+  }
+  status.textContent = text;
+  band.setAttribute('fill', color);
+  body.setAttribute('fill', color);
+}
+
+function putValue(id, value) {
+  if (id === '_ps_label') {
+    _ps_label = String(value);
+  } else if (signals.includes(id)) {
+    const normalized = String(value).toLowerCase();
+    if (normalized !== 'true' && normalized !== 'false' && normalized !== '1' && normalized !== '0') return;
+    const booleanValue = normalized === 'true' || normalized === '1';
+    if (id === '_pb_extended') _pb_extended = booleanValue;
+    else if (id === '_pb_retracted') _pb_retracted = booleanValue;
+    else if (id === '_pb_extending') _pb_extending = booleanValue;
+    else if (id === '_pb_retracting') _pb_retracting = booleanValue;
+    else if (id === '_pb_error') _pb_error = booleanValue;
+    else if (id === '_pb_isManualMode') _pb_isManualMode = booleanValue;
+    received[id] = true;
+  } else {
+    return;
+  }
+  render();
+}
+
+render();
+  ]]></script>
+</svg>
