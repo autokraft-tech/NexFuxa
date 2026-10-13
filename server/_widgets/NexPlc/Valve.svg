@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" id="nex_valve_root" width="240" height="108" viewBox="0 0 240 108">
+  <title>NexPlc valve extended feedback</title>
+  <g fill="#e2e8f0" stroke="#334155" stroke-width="3" stroke-linejoin="round">
+    <path d="M 32 21 L 78 48 L 32 75 Z M 124 21 L 78 48 L 124 75 Z"/>
+    <path d="M 78 48 V 12" fill="none"/>
+    <rect x="59" y="4" width="38" height="12" rx="3"/>
+  </g>
+  <circle id="nex_valve_indicator" cx="186" cy="48" r="16" fill="#f59e0b"/>
+  <text id="nex_valve_status" x="12" y="101" fill="#334155" font-family="sans-serif" font-size="13">UNKNOWN</text>
+  <script><![CDATA[
+    //!export-start
+    let _pb_extended = false;
+    //!export-end
+
+    function putValue(id, value) {
+      if (id === '_pb_extended') {
+        _pb_extended = value;
+        renderValve(value);
+      }
+    }
+
+    function renderValve(value) {
+      const indicator = document.getElementById('nex_valve_indicator');
+      const status = document.getElementById('nex_valve_status');
+      if (!indicator || !status) return;
+
+      const normalized = typeof value === 'string' ? value.toLowerCase() : value;
+      if (normalized === true || normalized === 1 || normalized === 'true' || normalized === '1') {
+        indicator.setAttribute('fill', '#38bdf8');
+        status.textContent = 'EXTENDED';
+      } else if (normalized === false || normalized === 0 || normalized === 'false' || normalized === '0') {
+        indicator.setAttribute('fill', '#94a3b8');
+        status.textContent = 'NOT EXTENDED';
+      } else {
+        indicator.setAttribute('fill', '#f59e0b');
+        status.textContent = 'UNKNOWN';
+      }
+    }
+
+    renderValve(null);
+  ]]></script>
+</svg>
