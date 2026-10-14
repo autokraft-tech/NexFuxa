@@ -1,0 +1,47 @@
+<h2 mat-dialog-title>PLC Device Models</h2>
+<div mat-dialog-content class="model-dialog">
+    <p>Generate ADS Tag definitions for existing ADSclient devices. One Apply batch may use one PLC device. Removing a configuration row never deletes existing Tags.</p>
+    <mat-tab-group>
+        <mat-tab label="Model Catalog">
+            <div *ngFor="let model of models">
+                <h3>{{model.name}} · {{model.version}} · {{model.rootType}}</h3>
+                <mat-accordion>
+                    <mat-expansion-panel *ngFor="let group of ['Cmd', 'Sts', 'Cfg']">
+                        <mat-expansion-panel-header>{{group}} — {{groupCount(model, group)}} Tags</mat-expansion-panel-header>
+                        <table class="model-table"><thead><tr><th>Member path</th><th>PLC type</th><th>FUXA type</th></tr></thead>
+                            <tbody><ng-container *ngFor="let leaf of model.leaves"><tr *ngIf="leaf.path.startsWith(group + '.')"><td>{{leaf.path}}</td><td>{{leaf.plcType}}</td><td>{{leaf.type}}</td></tr></ng-container></tbody>
+                        </table>
+                    </mat-expansion-panel>
+                </mat-accordion>
+            </div>
+        </mat-tab>
+        <mat-tab label="Device Instances">
+            <div class="actions"><button mat-button (click)="addRow()" [disabled]="busy">Add instance</button>
+                <label class="import-button">Import CSV<input type="file" accept=".csv,text/csv" (change)="importCsv($event)" [disabled]="busy" hidden></label>
+                <button mat-button (click)="exportCsv()" [disabled]="!rows.length">Export CSV</button>
+                <button mat-button (click)="save()" [disabled]="busy || saved">Save Configurations</button>
+                <span *ngIf="saved">Saved</span></div>
+            <div class="table-scroll"><table class="model-table"><thead><tr><th>Device Name</th><th>PLC Device</th><th>Device Model</th><th>Array Symbol</th><th>Array Indices</th><th>Profile</th><th></th></tr></thead>
+                <tbody><tr *ngFor="let row of rows; let i = index">
+                    <td><input matInput [(ngModel)]="row['Device Name']" (ngModelChange)="invalidate()" [disabled]="busy" aria-label="Device Name"></td>
+                    <td><select [(ngModel)]="row['PLC Device ID']" (ngModelChange)="invalidate()" [disabled]="busy" aria-label="PLC Device"><option *ngFor="let device of adsDevices" [value]="device.id">{{device.name}} ({{device.id}})</option></select></td>
+                    <td>{{row['Device Model']}}</td>
+                    <td><input matInput [(ngModel)]="row['Array Symbol']" (ngModelChange)="invalidate()" [disabled]="busy" aria-label="Array Symbol"></td>
+                    <td><input matInput [(ngModel)]="row['Array Indices']" (ngModelChange)="invalidate()" [disabled]="busy" placeholder="1,1" aria-label="Array Indices"></td>
+                    <td><select [(ngModel)]="row.Profile" (ngModelChange)="invalidate()" [disabled]="busy" aria-label="Profile"><option *ngFor="let profile of ['Full','Status','Control','Engineering']" [value]="profile">{{profile}}</option></select></td>
+                    <td><button mat-icon-button (click)="removeRow(i)" [disabled]="busy" aria-label="Remove instance"><mat-icon>delete</mat-icon></button></td>
+                </tr></tbody></table></div>
+            <label>Preview ADS device <select [(ngModel)]="previewDeviceId" (ngModelChange)="changePreviewDevice()" [disabled]="busy"><option *ngFor="let device of adsDevices" [value]="device.id">{{device.name}}</option></select></label>
+            <button mat-raised-button color="primary" (click)="preview()" [disabled]="busy || !rows.length || !saved" matTooltip="Save Configurations before Preview">Preview Tags</button>
+        </mat-tab>
+    </mat-tab-group>
+    <p class="error" *ngIf="error" role="alert">{{error}}</p>
+    <div *ngIf="previewResult">
+        <h3>Tag Preview</h3>
+        <p>Candidates {{previewResult.summary.candidates}} · Created {{previewResult.summary.created}} · Reused {{previewResult.summary.reused}} · Conflicts {{previewResult.summary.conflicts}} · Unchanged {{previewResult.summary.unchanged}}</p>
+        <div class="table-scroll preview-scroll"><table class="model-table"><thead><tr><th>Tag Name</th><th>ADS Address</th><th>PLC Type</th><th>FUXA Type</th><th>Device</th><th>Operation</th></tr></thead>
+            <tbody><tr *ngFor="let tag of previewResult.rows"><td>{{tag.name}} <small *ngIf="tag.existingName && tag.existingName !== tag.name">(existing: {{tag.existingName}})</small></td><td>{{tag.address}}</td><td>{{tag.plcType}}</td><td>{{tag.type}}</td><td>{{deviceName(tag.deviceId)}}</td><td>{{tag.operation}} {{tag.reason}}</td></tr></tbody></table></div>
+        <button mat-raised-button color="primary" (click)="apply()" [disabled]="busy || !saved || previewResult.summary.conflicts > 0">Apply to Project</button>
+    </div>
+</div>
+<div mat-dialog-actions align="end"><button mat-button mat-dialog-close>Close</button></div>

@@ -96,10 +96,8 @@ module.exports = {
                 res.status(401).json({error:"unauthorized_error", message: "Unauthorized!"});
                 runtime.logger.error("api post project: Unauthorized");
             } else {
-                runtime.project.setProject(req.body).then(function(data) {
-                    runtime.restart(true).then(function(result) {
-                        res.end();
-                    });
+                runtime.project.replaceProjectAndRestart(req.body).then(function() {
+                    res.end();
                 }).catch(function(err) {
                     if (err && err.code) {
                         res.status(400).json({error:err.code, message: err.message});

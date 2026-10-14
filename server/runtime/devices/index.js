@@ -10,6 +10,7 @@ var activeDevices = {};             // Actives Devices list
 var failedDevices = {};             // Configured devices that could not be created
 var runtime;                        // Access to application resource like logger/settings
 var wokingStatus;                   // Current status (start/stop) to know if is working
+var deviceUpdates = new Map();     // Serialize reloads of the same device
 
 const FuxaServerId = '0';
 /**
@@ -78,22 +79,22 @@ function update() {
  * @param {*} device
  */
 function updateDevice(device) {
-    if (!activeDevices[device.id]) {
-        if (devices.loadDevice(device) && device.enabled) {
-            activeDevices[device.id].start();
+    const previous = deviceUpdates.get(device.id) || Promise.resolve();
+    const pending = previous.catch(() => {}).then(async () => {
+        if (activeDevices[device.id]) await activeDevices[device.id].stop();
+        if (!device.enabled) {
+            delete activeDevices[device.id];
+            delete failedDevices[device.id];
+            return;
         }
-    } else {
-        activeDevices[device.id].stop().then(function () {
-            devices.loadDevice(device);
-            if (device.enabled) {
-                activeDevices[device.id].start();
-            } else {
-                delete activeDevices[device.id];
-            }
-        }).catch(function (err) {
-            runtime.logger.error('devices.update-device ' + device.name + ': ' + err);
-        });
-    }
+        if (!devices.loadDevice(device)) throw new Error(`Failed to load device ${device.name}`);
+        await activeDevices[device.id].start();
+    });
+    deviceUpdates.set(device.id, pending);
+    pending.finally(() => {
+        if (deviceUpdates.get(device.id) === pending) deviceUpdates.delete(device.id);
+    }).catch(() => {});
+    return pending;
 }
 
 /**
