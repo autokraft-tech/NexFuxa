@@ -72,6 +72,17 @@ jobs:
         run: node --test test/plc-device-models-race.test.cjs
       - name: Angular production build
         run: npm run build -- --configuration production
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install isolated UI test dependencies
+        run: |
+          sudo apt-get update && sudo apt-get install -y build-essential python3 libsqlite3-dev
+          npm ci --prefix ../server
+          python -m pip install playwright==1.55.0
+          python -m playwright install --with-deps chromium
+      - name: Actual Angular Dialog and API regression
+        run: python test/plc-generator-e2e.py
 
   docker-runtime-package:
     runs-on: ubuntu-24.04

@@ -51,16 +51,23 @@ function merge(project, target, candidates) {
     return mergeDevices([target], candidates, newId);
 }
 
-function reportRows(candidates, report) {
+function reportRows(candidates, report, target) {
     return candidates.map(candidate => {
         const match = item => item.name === candidate.name && item.address === candidate.address && item.deviceId === candidate.deviceId;
         const conflict = report.conflicts.find(match);
         const reused = report.reused.find(match);
+        const actual = reused ? target?.tags?.[reused.id] : candidate;
         const path = candidate.address.slice(candidate.address.lastIndexOf('].') + 2);
         return {
             name: candidate.name, address: candidate.address, plcType: candidate.plcType || plcTypes.get(path),
+            actualName: reused ? actual?.name : candidate.name,
+            actualType: reused ? actual?.type : candidate.type,
             type: candidate.type, deviceId: candidate.deviceId,
             sourceConfiguration: candidate.sourceConfiguration || null,
+            model: candidate.model || null,
+            propertiesScope: reused ? 'Existing properties preserved' : 'New Tag properties',
+            ...Object.fromEntries(['daq', 'description', 'format', 'scale', 'scaleReadFunction', 'scaleWriteFunction', 'unsPath']
+                .filter(key => Object.hasOwn(actual || {}, key)).map(key => [key, actual[key]])),
             operation: conflict ? 'Conflict' : reused ? 'Reused' : 'Created',
             existingName: reused?.existingName || null,
             reason: conflict?.reason || null
@@ -115,7 +122,7 @@ function createManager(project, update) {
     return {
         catalog() {
             return generatorModels(project).map(item => ({ name: item.name, version: item.version,
-                rootType: item.rootType, types: item.types, profileDefinitions: item.profiles,
+                rootType: item.rootType, types: item.types, profileDefinitions: item.profiles, memberDefaults: item.memberDefaults || {},
                 readOnly: item.schemaVersion === 1,
                 profiles: ['Full', ...Object.keys(item.profiles || {})],
                 leaves: item.schemaVersion === 1 ? leaves : generator.flattenGeneric(item) }));
@@ -135,20 +142,39 @@ function createManager(project, update) {
                 const saved = next.find(entry => entry.name === item.name && entry.version === item.version);
                 if (saved && JSON.stringify(saved) !== JSON.stringify(item)) throw invalid(`Model ${item.name}@${item.version} is immutable; save a new version`);
                 if (!saved && (project.getTagGeneratorConfigurations?.() || []).some(config => config.model === `${item.name}@${item.version}`)) {
-                    throw invalid(`Model ${item.name}@${item.version} is referenced by a saved configuration`);
+                    const references = project.getTagGeneratorConfigurations().filter(config => config.model === `${item.name}@${item.version}`).map(config => config.name);
+                    throw invalid(`Model ${item.name}@${item.version} is referenced by: ${references.join(', ')}`);
                 }
             }
             await project.saveTagGeneratorModels(next, hash);
             return this.models();
         },
         configurations() { return { schemaVersion: 2, configurations: project.getTagGeneratorConfigurations?.() || [], hash: project.getDevicesHash() }; },
+        legacyConfigurations() {
+            const rows = project.getModelInstances();
+            validateRows(rows, project, false);
+            const existing = project.getTagGeneratorConfigurations?.() || [];
+            const configurations = rows.map(row => {
+                const source = crypto.createHash('sha256').update(JSON.stringify(columns.map(key => row[key]))).digest('hex').slice(0, 24);
+                return { schemaVersion: 2, id: 'legacy_' + source, legacySource: source,
+                    name: row['Device Name'], deviceId: row['PLC Device ID'], tagPrefix: row['Device Name'],
+                    adsSymbol: row['Array Symbol'], valueKind: 'structure', model: 'Valve@1.0.0',
+                    profile: row.Profile || 'Full', array: { mode: 'element', indices: row['Array Indices'].split(',').map(Number) },
+                    namingTemplate: '{prefix}_{member}' };
+            }).filter(config => !existing.some(saved => saved.id === config.id || saved.legacySource === config.legacySource));
+            for (const configuration of configurations) {
+                try { generator.generate(configuration, generatorModels(project), project.getDevices()); }
+                catch (error) { throw invalid(error.message); }
+            }
+            return { schemaVersion: 2, configurations, hash: project.getDevicesHash() };
+        },
         async saveConfigurations(input, expectedHash) {
             if (!Array.isArray(input) || input.length > maxRows) throw invalid(`Provide at most ${maxRows} configurations`);
             const hash = project.getDevicesHash();
             if (expectedHash !== undefined && expectedHash !== hash) throw invalid('Generator configurations changed. Reload and save again.', 'stale_preview');
             const ids = new Set();
             for (const configuration of input) {
-                try { generator.validateConfiguration(configuration, generatorModels(project), project.getDevices()); }
+                try { generator.generate(configuration, generatorModels(project), project.getDevices()); }
                 catch (error) { throw invalid(error.message); }
                 if (ids.has(configuration.id)) throw invalid(`Duplicate configuration ID ${configuration.id}`);
                 ids.add(configuration.id);
@@ -179,7 +205,7 @@ function createManager(project, update) {
             if (previews.size >= 100) previews.delete(previews.keys().next().value);
             previews.set(token, { owner, rows: JSON.parse(JSON.stringify(rows)),
                 hash: project.getDevicesHash(), expires: Date.now() + 10 * 60 * 1000 });
-            return { token, rows: reportRows(candidates, result.report),
+            return { token, rows: reportRows(candidates, result.report, project.getDevices()[deviceId]),
                 summary: { candidates: candidates.length, created: result.report.created.length,
                     reused: result.report.reused.length, conflicts: result.report.conflicts.length,
                     unchanged: result.report.unchanged.length } };
@@ -204,7 +230,7 @@ function createManager(project, update) {
             if (previews.size >= 100) previews.delete(previews.keys().next().value);
             previews.set(token, { owner, configurations: JSON.parse(JSON.stringify(configurations)),
                 hash: project.getDevicesHash(), expires: Date.now() + 10 * 60 * 1000 });
-            return { token, rows: reportRows(candidates, result.report),
+            return { token, rows: reportRows(candidates, result.report, project.getDevices()[deviceId]),
                 summary: { candidates: candidates.length, created: result.report.created.length,
                     reused: result.report.reused.length, conflicts: result.report.conflicts.length,
                     unchanged: result.report.unchanged.length } };

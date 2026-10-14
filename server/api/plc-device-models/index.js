@@ -35,6 +35,7 @@ function app(runtime, secure, checkGroups) {
     router.get('/api/plc-device-models/models', (req, res) => handle(res, () => manager.models()));
     router.post('/api/plc-device-models/models', (req, res) => handle(res, () => manager.saveModels(req.body?.models, expectedHash(req))));
     router.get('/api/plc-device-models/configurations', (req, res) => handle(res, () => manager.configurations()));
+    router.get('/api/plc-device-models/legacy-configurations', (req, res) => handle(res, () => manager.legacyConfigurations()));
     router.post('/api/plc-device-models/configurations', (req, res) => handle(res, () => manager.saveConfigurations(req.body?.configurations, expectedHash(req))));
     router.get('/api/plc-device-models/instances', (req, res) => handle(res, () => ({ rows: manager.instances() })));
     router.post('/api/plc-device-models/instances', (req, res) => handle(res, () => manager.saveInstances(req.body?.rows)));

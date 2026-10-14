@@ -22,8 +22,6 @@ vm.runInNewContext(compiled, { module: moduleRef, exports: moduleRef.exports,
     require: name => imports[name] || {}, JSON, URL, Blob, document: {},
     window: browserWindow });
 const Component = moduleRef.exports.PlcDeviceModelsComponent;
-const row = () => ({ 'Device Name': 'V101', 'PLC Device ID': 'ads-1',
-    'Device Model': 'Valve@1.0.0', 'Array Symbol': 'GVL.a', 'Array Indices': '1,1', Profile: 'Full' });
 const configuration = () => ({ schemaVersion: 2, id: 'cfg_start', name: 'Start', deviceId: 'ads-1',
     tagPrefix: 'Start', adsSymbol: 'GVL.bStart', valueKind: 'primitive', plcType: 'BOOL',
     array: { mode: 'scalar' } });
@@ -42,8 +40,7 @@ function setup(savedConfigurations = [configuration()], savedModels = []) {
         get: url => ({ subscribe: observer => {
             gets.push(url);
             if (deferConfigurations && url.endsWith('/configurations')) { deferredGets.push(observer); return; }
-            observer.next(url.endsWith('/instances') ? { rows: [row()] } :
-                url.endsWith('/models') ? { models: structuredClone(savedModels), hash: 'model-hash' } :
+            observer.next(url.endsWith('/models') ? { models: structuredClone(savedModels), hash: 'model-hash' } :
                     url.endsWith('/configurations') ? { configurations: structuredClone(savedConfigurations), hash: 'config-hash' } : []);
         } }),
         post: (url, body) => ({ subscribe: observer => { pending.push({ url, body, observer }); } })
@@ -63,39 +60,12 @@ const model = (name = 'Pump', version = '1.0.0') => ({ schemaVersion: 2, name, v
 const importFile = (component, kind, items) => component.importJson({ target: { value: 'file.json',
     files: [{ size: 100, text: async () => JSON.stringify({ schemaVersion: 2, [kind]: items }) }] } }, kind);
 
-test('an edit during Preview invalidates the response and keeps Apply unavailable', () => {
-    const { component, pending } = setup();
-    component.preview();
-    assert.equal(component.busy, true);
-    component.rows[0]['Array Indices'] = '2,2';
-    component.invalidate();
-    pending[0].observer.next({ token: 'old', summary: { conflicts: 0 } });
-    assert.equal(component.busy, false);
-    assert.equal(component.saved, false);
-    assert.equal(component.previewResult, null);
-    component.apply();
-    assert.equal(pending.length, 1);
-});
-
-test('switching devices rejects the old Preview and a new Preview uses the selected device', () => {
-    const { component, pending } = setup();
-    component.preview();
-    component.previewDeviceId = 'ads-2';
-    component.changePreviewDevice();
-    pending[0].observer.next({ token: 'old', summary: { conflicts: 0 } });
-    assert.equal(component.previewResult, null);
-    assert.equal(component.busy, false);
-    component.preview();
-    assert.deepEqual(Array.from(pending[1].body.rows), []);
-    pending[1].observer.next({ token: 'new', summary: { conflicts: 0 } });
-    assert.equal(component.previewResult.token, 'new');
-});
-
-test('a partial Apply refreshes saved project state and shows the runtime failure', () => {
+test('a partial Apply refreshes saved state and reports reload failure', () => {
     const context = setup();
     const { component, pending } = context;
-    component.preview();
-    pending[0].observer.next({ token: 'ready', summary: { conflicts: 0, created: 20 } });
+    component.selectConfiguration('cfg_start');
+    component.previewConfiguration();
+    pending[0].observer.next({ token: 'ready', summary: { conflicts: 0, created: 1 } });
     component.apply();
     pending[1].observer.next({ persistence: 'committed', runtime: { status: 'failed', message: 'start failed' } });
     assert.equal(context.refreshes(), 1);
@@ -413,4 +383,118 @@ test('configuration and custom model deletions require confirmation', () => {
     context.pending[0].observer.next({ configurations: [], hash: 'deleted' });
     c.deleteModel();
     assert.deepEqual(plain(context.pending[1].body.models), []);
+});
+
+test('online nested member editing saves versioned model definitions and DAQ defaults', () => {
+    const { component: c, pending } = setup();
+    c.newModel();
+    c.modelDraft.name = 'OnlinePump';
+    c.modelRows[0].name = 'Speed';
+    c.modelRows[0].plcType = 'REAL';
+    c.addModelGroup();
+    c.switchModelType('ST_Group1');
+    c.modelRows[0].name = 'Running';
+    c.setModelProperties('Speed', { daq: { enabled: true, interval: 10, changed: true, restored: false }, description: 'Speed' });
+    c.saveModel();
+    const saved = pending[0].body.models[0];
+    assert.equal(saved.types.ST_NewModel.Speed, 'REAL');
+    assert.equal(saved.types.ST_Group1.Running, 'BOOL');
+    assert.equal(saved.memberDefaults.Speed.daq.interval, 10);
+    pending[0].observer.next({ models: [saved], hash: 'saved-model' });
+    assert.equal(c.modelDirty, false);
+    assert.equal(c.modelEditing, false);
+    c.editModel('OnlinePump@1.0.0');
+    c.beginModelEdit();
+    assert.equal(c.modelDraft.version, '1.0.1');
+    assert.equal(c.customModels[0].version, '1.0.0');
+});
+
+test('member property overrides and Reset invalidate Preview without mutating model defaults', () => {
+    const { component: c } = setup();
+    c.selectConfiguration('cfg_start');
+    c.previewResult = { token: 'old' };
+    c.setConfigurationProperties('$value', { daq: { enabled: true, interval: 5 } });
+    assert.equal(c.previewResult, null);
+    assert.equal(c.configSaved, false);
+    c.resetMemberDefaults('$value');
+    assert.deepEqual(plain(c.draft.memberOverrides), {});
+});
+
+test('model cycles and duplicate members are rejected before any API write', () => {
+    const { component: c, pending } = setup();
+    c.newModel();
+    c.modelRows.push({ name: 'Running', plcType: 'REAL' });
+    c.saveModel();
+    assert.match(c.error, /unique/);
+    assert.equal(pending.length, 0);
+    c.modelRows = [{ name: 'Cycle', plcType: 'ST_NewModel' }];
+    c.saveModel();
+    assert.match(c.error, /cyclic/);
+    assert.equal(pending.length, 0);
+});
+
+test('referenced model deletion shows configuration names without writing', () => {
+    const configurationWithModel = { ...configuration(), model: 'Pump@1.0.0' };
+    const { component: c, pending } = setup([configurationWithModel], [model()]);
+    c.editModel('Pump@1.0.0');
+    c.deleteModel();
+    assert.match(c.error, /referenced by: Start/);
+    assert.equal(pending.length, 0);
+});
+
+test('current draft and selected configurations export the same edited Schema data', () => {
+    const { component: c } = setup();
+    let exported;
+    c.download = data => { exported = plain(data); };
+    c.selectConfiguration('cfg_start');
+    c.draft.name = 'Draft';
+    c.setConfigurationProperties('$value', { daq: { interval: 10 } });
+    c.exportConfigurations('current');
+    assert.equal(exported.draft, true);
+    assert.deepEqual(exported.configurations[0], plain(c.draft));
+    c.stageJsonImport(exported, 'configurations');
+    assert.equal(c.jsonImport.plan.conflicts, 1);
+    c.selectedTasks.cfg_start = true;
+    c.exportConfigurations('selected');
+    assert.deepEqual(exported.configurations, [configuration()]);
+});
+
+test('batch DAQ edits affect only selected model leaves', () => {
+    const { component: c } = setup();
+    c.newModel();
+    c.modelRows.push({ name: 'Speed', plcType: 'REAL' });
+    c.memberSelection.Speed = true;
+    c.bulkDaq = { enabled: true, interval: 5, changed: true, restored: false };
+    c.bulkSetModelDaq();
+    assert.deepEqual(plain(c.modelDraft.memberDefaults.Speed.daq), c.bulkDaq);
+    assert.equal(c.modelDraft.memberDefaults.Running, undefined);
+});
+
+test('draft export assigns a missing identity once and import rejects invalid IDs', async () => {
+    const { component: c, pending } = setup();
+    c.newConfiguration();
+    delete c.draft.id;
+    let data;
+    c.download = value => { data = plain(value); };
+    c.exportConfigurations('current');
+    const id = data.configurations[0].id;
+    c.exportConfigurations('current');
+    assert.equal(data.configurations[0].id, id);
+    await importFile(c, 'configurations', [{ ...configuration(), id: 'bad-id' }]);
+    assert.match(c.error, /Invalid configuration ID/);
+    assert.equal(pending.length, 0);
+});
+
+test('structure type rename updates its root and nested references', () => {
+    const { component: c } = setup();
+    c.newModel();
+    c.addModelGroup();
+    c.switchModelType('ST_Group1');
+    c.renameModelType('ST_Status');
+    assert.equal(c.modelDraft.types.ST_NewModel.Group1, 'ST_Status');
+    c.switchModelType('ST_NewModel');
+    c.renameModelType('ST_Pump_HMI');
+    assert.equal(c.modelDraft.rootType, 'ST_Pump_HMI');
+    assert.equal(c.modelDraft.types.ST_NewModel, undefined);
+    assert.equal(c.expandedModelLeaves().length, 2);
 });

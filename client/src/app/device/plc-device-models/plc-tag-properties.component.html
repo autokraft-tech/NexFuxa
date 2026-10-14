@@ -1,0 +1,19 @@
+<div class="fields">
+  <label><input type="checkbox" [ngModel]="daq('enabled')" (ngModelChange)="setDaq('enabled', $event)" [disabled]="disabled">Record History</label>
+  <label>Interval (seconds)<input class="number" type="number" min="1" step="1" [ngModel]="daq('interval')" (ngModelChange)="setDaq('interval', $event)" [disabled]="disabled"></label>
+  <label><input type="checkbox" [ngModel]="daq('changed')" (ngModelChange)="setDaq('changed', $event)" [disabled]="disabled">Save if Changed</label>
+  <label><input type="checkbox" [ngModel]="daq('restored')" (ngModelChange)="setDaq('restored', $event)" [disabled]="disabled">Restore</label>
+</div>
+<small>Restore saves the last value for restoration on device start; native device restoration may write to the PLC.</small>
+<label>Description<input class="text" [ngModel]="value('description')" (ngModelChange)="set('description', $event)" [disabled]="disabled"></label>
+<details><summary>Advanced Tag Properties</summary>
+  <label>Decimal places<input class="number" type="number" min="0" max="100" [ngModel]="value('format')" (ngModelChange)="set('format', $event)" [disabled]="disabled"></label>
+  <label>UNS Path<input [ngModel]="value('unsPath')" (ngModelChange)="set('unsPath', $event)" [disabled]="disabled"></label>
+  <label>Scale<select [ngModel]="value('scale')?.mode || 'none'" (ngModelChange)="setScaleMode($event)" [disabled]="disabled"><option value="none">None</option><option value="linear">Linear</option><option value="convertDateTime">Date/time</option><option value="convertTickTime">Tick time</option><option value="expression">Expression</option></select></label>
+  <ng-container *ngIf="value('scale')?.mode === 'linear'"><label *ngFor="let field of ['rawLow','rawHigh','scaledLow','scaledHigh']">{{field}}<input type="number" [ngModel]="value('scale')[field]" (ngModelChange)="setScale(field, $event)" [disabled]="disabled"></label></ng-container>
+  <label *ngIf="value('scale')?.mode === 'convertDateTime' || value('scale')?.mode === 'convertTickTime'">Date/time format<input [ngModel]="value('scale').dateTimeFormat" (ngModelChange)="setScale('dateTimeFormat', $event)" [disabled]="disabled"></label>
+  <ng-container *ngIf="value('scale')?.mode === 'expression'"><label>Read expression<input [ngModel]="value('scale').readExpression" (ngModelChange)="setScale('readExpression', $event)" [disabled]="disabled"></label><label>Write expression<input [ngModel]="value('scale').writeExpression" (ngModelChange)="setScale('writeExpression', $event)" [disabled]="disabled"></label></ng-container>
+  <label>Read script ID<input [ngModel]="value('scaleReadFunction')" (ngModelChange)="set('scaleReadFunction', $event)" [disabled]="disabled"></label>
+  <label>Write script ID<input [ngModel]="value('scaleWriteFunction')" (ngModelChange)="set('scaleWriteFunction', $event)" [disabled]="disabled"></label>
+  <small>Existing script references and expressions are stored, never evaluated by import or Preview.</small>
+</details>

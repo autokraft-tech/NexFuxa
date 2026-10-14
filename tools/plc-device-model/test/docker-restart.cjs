@@ -36,7 +36,8 @@ ${init}
 (async () => {
     const manager = await open();
     await manager.saveModels([{ schemaVersion: 2, name: 'Pump', version: '1.0.0',
-        rootType: 'ST_Pump', types: { ST_Pump: { Running: 'BOOL' } }, profiles: {} }]);
+        rootType: 'ST_Pump', types: { ST_Pump: { Running: 'BOOL' } }, profiles: {},
+        memberDefaults: { Running: { daq: { enabled: true, interval: 10, changed: true, restored: false }, description: 'Running' } } }]);
     await project.saveTagGeneratorConfigurations([{ schemaVersion: 2, id: 'pump_1',
         name: 'Pump 1', deviceId: 'isolated', tagPrefix: 'Pump',
         adsSymbol: 'GVL.stPump', valueKind: 'structure', model: 'Pump@1.0.0',
@@ -53,6 +54,7 @@ const assert = require('node:assert/strict');
 (async () => {
     const manager = await open();
     assert.equal(manager.models().models[0].name, 'Pump');
+    assert.equal(manager.models().models[0].memberDefaults.Running.daq.interval, 10);
     assert.equal(manager.configurations().configurations[0].id, 'pump_1');
     assert.equal(manager.instances()[0]['Device Name'], 'V101');
     storage.close();

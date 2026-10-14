@@ -122,3 +122,61 @@ test('stale project version, mixed ADS devices and runtime failure are explicit'
     assert.deepEqual(result.runtime, { status: 'failed', message: 'start failed' });
     assert.equal(Object.keys(devices[deviceId].tags).length, 1);
 });
+
+test('DAQ defaults create Tags and repeated Apply previews and preserves existing properties', async () => {
+    const { manager, devices } = setup();
+    await manager.saveModels([{ ...pump, memberDefaults: { 'Sts.Speed': {
+        daq: { enabled: true, interval: 10, changed: true, restored: false }, description: 'Speed' } } }]);
+    await manager.saveConfigurations([config('Pump1', { valueKind: 'structure', model: 'Pump@1.0.0',
+        adsSymbol: 'GVL.stPump', memberPaths: ['Sts.Speed'] })]);
+    const first = preview(manager, ['Pump1']);
+    assert.equal(first.rows[0].daq.interval, 10);
+    await manager.apply(first.token, 'admin');
+    const existing = Object.values(devices[deviceId].tags)[0];
+    existing.name = 'HistoricalSpeed';
+    existing.type = 'Number';
+    const before = structuredClone(devices[deviceId].tags);
+    await manager.saveConfigurations([config('Pump1', { valueKind: 'structure', model: 'Pump@1.0.0',
+        adsSymbol: 'GVL.stPump', memberPaths: ['Sts.Speed'], memberOverrides: { 'Sts.Speed': { daq: { interval: 5 } } } })]);
+    const second = preview(manager, ['Pump1']);
+    assert.equal(second.rows[0].operation, 'Reused');
+    assert.equal(second.rows[0].actualName, 'HistoricalSpeed');
+    assert.equal(second.rows[0].actualType, 'Number');
+    assert.equal(second.rows[0].daq.interval, 10);
+    assert.equal(second.rows[0].propertiesScope, 'Existing properties preserved');
+    await manager.apply(second.token, 'admin');
+    assert.deepEqual(devices[deviceId].tags, before);
+});
+
+test('legacy migration is deterministic, keeps exact Valve naming and never writes Tags', async () => {
+    const { manager, project, devices } = setup();
+    const rows = ['1,1', '1,2'].map((indices, i) => ({
+        'Device Name': 'V10' + (i + 1), 'PLC Device ID': deviceId, 'Device Model': 'Valve@1.0.0',
+        'Array Symbol': 'GVL.g_aValve_HMI', 'Array Indices': indices, Profile: 'Full'
+    }));
+    project.getModelInstances = () => rows;
+    const configs = manager.legacyConfigurations().configurations;
+    assert.deepEqual(configs, manager.legacyConfigurations().configurations);
+    await manager.saveConfigurations(configs);
+    assert.equal(manager.legacyConfigurations().configurations.length, 0);
+    const report = preview(manager, configs.map(item => item.id));
+    const { expand } = require('../model.cjs');
+    const legacy = expand(require('../models/valve.v1.json'), rows);
+    assert.deepEqual(report.rows.map(tag => [tag.name, tag.address]), legacy.map(tag => [tag.name, tag.address]));
+    assert.equal(Object.keys(devices[deviceId].tags).length, 0);
+    assert.deepEqual(project.getModelInstances(), rows);
+});
+
+test('new Tags enforce native per-device UNS uniqueness without changing reused Tags', async () => {
+    const { manager, devices } = setup();
+    await manager.saveConfigurations([config('Start', { memberOverrides: { $value: { unsPath: ' plant/start ' } } })]);
+    const first = preview(manager, ['Start']);
+    assert.equal(first.rows[0].unsPath, 'plant/start');
+    await manager.apply(first.token, 'admin');
+    const before = structuredClone(devices[deviceId].tags);
+    await manager.saveConfigurations([config('Stop', { adsSymbol: 'GVL.bStop', memberOverrides: { $value: { unsPath: 'plant/start' } } })]);
+    const conflict = preview(manager, ['Stop']);
+    assert.equal(conflict.rows[0].reason, 'UNS Path conflict');
+    await assert.rejects(manager.apply(conflict.token, 'admin'), /conflicts/);
+    assert.deepEqual(devices[deviceId].tags, before);
+});

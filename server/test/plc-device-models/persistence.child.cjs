@@ -17,7 +17,8 @@ const rows = ['1,1', '1,2'].map((indices, i) => ({
 const pump = { schemaVersion: 2, name: 'Pump', version: '1.0.0', rootType: 'ST_Pump_HMI',
     types: { ST_Pump_HMI: { Cmd: 'ST_Pump_Command', Sts: 'ST_Pump_Status' },
         ST_Pump_Command: { Start: 'BOOL', Stop: 'BOOL' },
-        ST_Pump_Status: { Running: 'BOOL', Speed: 'REAL', ErrorCode: 'UDINT' } }, profiles: {} };
+        ST_Pump_Status: { Running: 'BOOL', Speed: 'REAL', ErrorCode: 'UDINT' } }, profiles: {},
+    memberDefaults: { 'Sts.Speed': { daq: { enabled: true, interval: 10, changed: true, restored: false }, description: 'Pump speed' } } };
 const pumpConfiguration = { schemaVersion: 2, id: 'pump_array', name: 'Pump array', deviceId: id,
     tagPrefix: 'Pump', adsSymbol: 'GVL.aPump', valueKind: 'structure', model: 'Pump@1.0.0',
     array: { mode: 'range', dimensions: [{ start: 1, end: 2, step: 1 }] } };
@@ -61,6 +62,7 @@ async function main() {
         const device = project.getDevices()[id];
         assert.equal(Object.values(device.tags).filter(tag => tag.address?.startsWith('GVL.g_aValve_HMI[')).length, 40);
         assert.equal(Object.values(device.tags).filter(tag => tag.address?.startsWith('GVL.aPump[')).length, 10);
+        assert.equal(Object.values(device.tags).find(tag => tag.address === 'GVL.aPump[1].Sts.Speed').daq.interval, 10);
         const tag = JSON.parse(fs.readFileSync(path.join(dir, 'original-tag.json'), 'utf8'));
         assert.deepEqual(device.tags[tag.id], tag);
         const saved = await project.getProject();

@@ -46,6 +46,8 @@ function mergeDevices(devices, candidates, newId) {
             else { report.reused.push({ ...reference, id: tag.id, existingName: tag.name }); touched.add(tag.id); }
         } else if (atName.length) {
             report.conflicts.push({ ...reference, reason: 'Name conflict', existingIds: atName.map(tag => tag.id) });
+        } else if (candidate.unsPath && tags.some(tag => typeof tag.unsPath === 'string' && tag.unsPath.trim() === candidate.unsPath)) {
+            report.conflicts.push({ ...reference, reason: 'UNS Path conflict' });
         } else {
             let id;
             do { id = newId(); } while (allIds.has(id));
@@ -53,8 +55,10 @@ function mergeDevices(devices, candidates, newId) {
             allIds.add(id);
             device.tags[id] = {
                 id, name: candidate.name, type: candidate.type, address: candidate.address,
-                daq: { enabled: false, interval: 60, changed: false, restored: false },
-                description: candidate.description
+                daq: candidate.daq || { enabled: false, interval: 60, changed: false, restored: false },
+                description: candidate.description,
+                ...Object.fromEntries(['format', 'scale', 'scaleReadFunction', 'scaleWriteFunction', 'unsPath']
+                    .filter(key => Object.hasOwn(candidate, key)).map(key => [key, candidate[key]]))
             };
             report.created.push({ ...reference, id });
             touched.add(id);

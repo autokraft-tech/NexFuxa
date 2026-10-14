@@ -63,11 +63,37 @@ test('selected primitive element and two dimensional ranges keep actual indices'
 
 test('invalid type, range, count and duplicate naming are rejected', () => {
     assert.throws(() => generate({ ...base, plcType: 'TIME' }, [valve], devices), /Unsupported/);
-    assert.throws(() => generate({ ...base, adsSymbol: 'GVL.' + 'A'.repeat(257) }, [valve], devices), /Invalid generator/);
+    assert.throws(() => generate({ ...base, adsSymbol: 'GVL.' + 'A'.repeat(257) }, [valve], devices), /Invalid ADS Symbol/);
     assert.throws(() => generate({ ...base, array: { mode: 'range', dimensions: [{ start: 1, end: 2, step: 0 }] } }, [valve], devices), /range/);
     assert.throws(() => generate({ ...base, array: { mode: 'range', dimensions: [{ start: 1, end: 501, step: 1 }] } }, [valve], devices), /500/);
     assert.throws(() => generate({ ...base, array: { mode: 'range', dimensions: [{ start: 1, end: 2, step: 1 }] },
         namingTemplate: '{prefix}' }, [valve], devices), /duplicate/);
     assert.throws(() => validateModel({ ...pump, version: '1.0.1', types: {
         ST_Pump_HMI: { Cmd: 'UNKNOWN' } } }), /Unsupported/);
+});
+
+test('member defaults and partial configuration overrides preserve native Tag properties', () => {
+    const custom = validateModel({ ...pump, memberDefaults: {
+        'Sts.Speed': { daq: { enabled: true, interval: 10, changed: true, restored: false },
+            description: 'Speed', format: 2, scale: { mode: 'linear', rawLow: 0, rawHigh: 100, scaledLow: 0, scaledHigh: 10 },
+            scaleReadFunction: 'script_read', scaleWriteFunction: null, unsPath: 'plant/pump/speed' }
+    } });
+    const config = { ...base, valueKind: 'structure', model: 'Pump@1.0.0', memberPaths: ['Sts.Speed'],
+        memberOverrides: { 'Sts.Speed': { daq: { interval: 5 }, description: 'Override' } } };
+    const [tag] = generate(config, [custom], devices);
+    assert.deepEqual(tag.daq, { enabled: true, interval: 5, changed: true, restored: false });
+    assert.equal(tag.description, 'Override');
+    assert.equal(tag.format, 2);
+    assert.equal(tag.unsPath, 'plant/pump/speed');
+    assert.equal(tag.scaleReadFunction, 'script_read', 'references must remain inert strings');
+    assert.deepEqual(custom.memberDefaults['Sts.Speed'].daq.interval, 10);
+    assert.equal(generate({ ...config, memberOverrides: {} }, [custom], devices)[0].daq.interval, 10);
+});
+
+test('invalid member properties and generated identity overrides are rejected', () => {
+    for (const properties of [{ id: 'stolen' }, { type: 'string' }, { daq: { interval: 0 } }, { daq: { interval: 0.5 } },
+        { daq: { restored: 'yes' } }, { format: 101 }, { scale: { mode: 'linear', rawLow: 1, rawHigh: 1 } }]) {
+        assert.throws(() => validateModel({ ...pump, memberDefaults: { 'Sts.Speed': properties } }));
+    }
+    assert.throws(() => generate({ ...base, memberOverrides: { Unknown: {} } }, [pump], devices), /Unknown property/);
 });
