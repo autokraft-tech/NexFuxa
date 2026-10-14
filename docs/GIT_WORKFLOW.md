@@ -36,6 +36,12 @@ gh pr create --repo autokraft-tech/NexFuxa --base nexfuxa --head feature/my-feat
 
 Review the diff and relevant test evidence before merging. Regular feature PRs may use squash merge. Keep the feature branch until the merged result has been verified. A GitHub default branch of `nexfuxa` helps new PRs select the correct base, but always check the base explicitly.
 
+### PR checks
+
+The [NexFuxa CI workflow](../.github/workflows/nexfuxa-ci.yml) runs for PRs targeting `nexfuxa`, pushes to `nexfuxa`, and manual dispatch. Before merging a customization PR, require all three checks to pass on its current head: `plc-model-tests` (Phase 3A/3B), `server-tests` (server tests and TypeScript build), and `client-build` (script and Phase 3B race tests plus Angular production build). Review any failure and fix the cause on the PR branch; do not skip a failing check. The workflow uses Node.js 20 and isolated GitHub-hosted Ubuntu jobs with no production credentials or PLC connection. Node.js 22 and Docker runtime upgrades need separate planning and validation.
+
+The corresponding local commands are `node --test tools/plc-device-model/test/phase3a.test.cjs tools/plc-device-model/test/phase3b.test.cjs` from the repository root, `npm ci`, `npm test`, and `npm run build` from `server`, and `npm ci`, `npm run test:scripts`, `node --test test/plc-device-models-race.test.cjs`, and `npm run build -- --configuration production` from `client`. These commands use temporary SQLite test data only; they must not target `.local/fuxa-dev` or a production project.
+
 ## Official updates
 
 Official synchronization and customization integration are separate operations. First fetch both official and fork references:
