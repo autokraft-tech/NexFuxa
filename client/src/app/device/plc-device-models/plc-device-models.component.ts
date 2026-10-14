@@ -671,7 +671,7 @@ export class PlcDeviceModelsComponent {
             !this.previewResult || this.previewResult.summary.conflicts ||
             !window.confirm(`Apply ${this.previewResult.summary.created} new Tag definitions to this FUXA project?` +
                 (this.previewResult.rows?.some(tag => tag.daq?.restored) ?
-                    ' Restore is enabled: native restoration on device start may write stored values to the PLC.' : ''))) return;
+                    ' Restore is enabled for future normal device starts. This Generator reload suppresses restoration for all Tags on the device.' : ''))) return;
         this.busy = true;
         this.http.post<any>(this.api + '/apply', { token: this.previewResult.token, confirmed: true }).subscribe({
             next: result => {

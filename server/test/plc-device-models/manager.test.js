@@ -56,7 +56,11 @@ describe('PLC Device Models', function () {
         };
         const app = express();
         app.use(express.json());
-        app.use(api.app({ project, update: async () => { throw new Error('start failed'); } },
+        app.use(api.app({ project, update: async (cmd, device, options) => {
+            assert.equal(cmd, 'set-device');
+            assert.deepEqual(options, { suppressRestore: true });
+            throw new Error('start failed');
+        } },
             (req, res, next) => { req.userId = 'admin'; next(); }, () => 255));
         const preview = await request(app, 'POST', '/api/plc-device-models/preview', { rows });
         assert.equal(preview.status, 200);
@@ -102,7 +106,10 @@ describe('PLC Device Models', function () {
         };
         const app = express();
         app.use(express.json());
-        app.use(api.app({ project, update: async () => {} },
+        app.use(api.app({ project, update: async (cmd, device, options) => {
+            assert.equal(cmd, 'set-device');
+            assert.deepEqual(options, { suppressRestore: true });
+        } },
             (req, res, next) => { req.userId = 'admin'; next(); }, () => 255));
         const initial = JSON.parse((await request(app, 'GET', '/api/plc-device-models/configurations')).body);
         const config = { schemaVersion: 2, id: 'start', name: 'Start', deviceId: id,

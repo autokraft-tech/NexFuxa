@@ -1,6 +1,6 @@
 # PLC Tag Generator (Phase 3B.1)
 
-Open **Devices → ⋮ → PLC Tag Generator** as a project administrator. Choose an existing ADSclient device. The generator stores Tag definitions in the FUXA project; Preview and generation do not write PLC values or verify symbols against a connected PLC. Native Restore on device start may write stored values through the driver. Check the declared PLC types and ADS addresses against the TwinCAT project before Apply. The supported declared primitives are `BOOL`, `INT`, `DINT`, `UINT`, `UDINT`, `REAL`, `LREAL`, and `STRING`. Other types are rejected. Each array element or structure leaf becomes a separate ADS Tag.
+Open **Devices → ⋮ → PLC Tag Generator** as a project administrator. Choose an existing ADSclient device. The generator stores Tag definitions in the FUXA project; Preview and generation do not write PLC values or verify symbols against a connected PLC. Generator Apply suppresses native Restore for every Tag on the reloaded device, including existing Tags outside the selected configurations. Normal device starts may still write stored values through the driver. Check the declared PLC types and ADS addresses against the TwinCAT project before Apply. The supported declared primitives are `BOOL`, `INT`, `DINT`, `UINT`, `UDINT`, `REAL`, `LREAL`, and `STRING`. Other types are rejected. Each array element or structure leaf becomes a separate ADS Tag.
 
 ## Configuration workflow
 
@@ -50,7 +50,15 @@ Model Schema v2 remains compatible. Optional `memberDefaults` maps full leaf pat
 
 Properties persist in the existing project general SQLite sections and, for new Tags, in device Tag storage. Reused Tags display their actual properties with “Existing properties preserved”; ordinary Apply keeps their entire existing object and ID. This stage does not synchronize properties onto existing Tags.
 
-Restore is not history replay: native DAQ stores the last value, and `device.restoreValues` calls device `setValue` on startup, potentially writing the PLC. The editor and Apply confirmation explicitly describe this. Interval is in positive whole seconds (the native scheduler uses integer seconds); Changed enables saving on value changes in addition to interval scheduling.
+Restore is not history replay: native DAQ stores the last value, and `device.restoreValues` calls device `setValue` on normal startup, potentially writing the PLC. The editor and Apply confirmation explicitly describe this. Interval is in positive whole seconds (the native scheduler uses integer seconds); Changed enables saving on value changes in addition to interval scheduling.
+
+### Generator reload and Restore safety
+
+Apply passes the transient runtime option `{ suppressRestore: true }` through the API adapter, `runtime.update`, and `devices.updateDevice` to `Device.start`. The flag belongs to that device's running session, not its saved configuration or Tags. It is set before asynchronous connection begins and remains active through connection retries and reconnects in that session. It suppresses Restore for the whole device; choosing only new Tags with `daq.restored=false` would not protect existing Tags with Restore enabled.
+
+Stopping or starting a device invalidates pending connection callbacks and Restore lookups from its previous session. A pending lookup cannot begin additional writes after the reload; a driver write already issued before stopping cannot be revoked. Ordinary application/project startup and a later non-Generator device reload start with normal Restore behavior. Existing DAQ flags, values, Tag IDs and Widget bindings remain unchanged. Apply still stops, loads all updated Tags and starts the driver, refreshing ADS subscriptions. SQLite commit and runtime reload failure continue to be reported separately; a successful runtime reload does not certify a live PLC connection.
+
+Other native Restore paths remain intentional: application/project restart, ordinary `set-device` updates and reconnects in ordinary sessions. Scripts, recipes and explicit Tag value writes use separate native write paths and are not disabled by this option. No Generator Restore authorization switch is introduced: Generator Apply always suppresses restoration. See [Docker build diagnostics](DOCKER_BUILD_DIAGNOSTICS.md) for environment checks and the Node.js compatibility evaluation.
 
 ## Export and responsive Dialog
 

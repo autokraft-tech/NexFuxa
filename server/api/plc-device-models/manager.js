@@ -253,7 +253,7 @@ function createManager(project, update) {
             const response = { created: result.report.created.length, reused: result.report.reused.length,
                 persistence: 'committed', runtime: { status: 'updated' } };
             try {
-                await update('set-device', result.device);
+                await update('set-device', result.device, { suppressRestore: true });
             } catch (error) {
                 response.runtime = { status: 'failed', message: error?.message || String(error) };
             }

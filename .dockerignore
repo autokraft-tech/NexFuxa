@@ -1,6 +1,7 @@
 .git
 .local
 .angular
+**/.angular
 **/node_modules
 **/dist
 app/electron

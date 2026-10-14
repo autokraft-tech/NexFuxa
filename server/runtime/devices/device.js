@@ -44,6 +44,8 @@ function Device(data, runtime) {
     var pollingInterval = DEVICE_POLLING_INTERVAL;
     var sharedDevices = data.sharedDevices;
     var tryToConnect = 0;
+    var suppressRestore = false;                            // Runtime session only; never persisted in device data
+    var restoreSession = 0;                                 // Invalidates pending restore work when stopped/restarted
     var comm;                                               // Interface to OPCUA/S7/.. Device
                                                             // required: connect, disconnect, isConnected, polling, init, load, getValue,
                                                             // getValues, getStatus, setValue, bindAddDaq, getTagProperty,
@@ -138,7 +140,9 @@ function Device(data, runtime) {
     /**
      * Start StateMachine, init and start TimerInterval to check Device status
      */
-    this.start = function () {
+    this.start = function (options) {
+        suppressRestore = options?.suppressRestore === true;
+        restoreSession++;
         currentCmd = DeviceCmdEnum.START;
         if (status === DeviceStatusEnum.INIT) {
             logger.info(`'${property.name}' start`);
@@ -154,6 +158,7 @@ function Device(data, runtime) {
      * Stop StateMachine, Close Device connection, break all TimerInterval (Device status/polling)
      */
     this.stop = function () {
+        restoreSession++;
         return new Promise(function (resolve, reject) {
             currentCmd = DeviceCmdEnum.STOP;
             logger.info(`'${property.name}' stop`);
@@ -181,7 +186,9 @@ function Device(data, runtime) {
     this.checkStatus = function () {
         if (status === DeviceStatusEnum.INIT && currentCmd === DeviceCmdEnum.START) {
             const self = this;
+            const session = restoreSession;
             this.connect().then(() => {
+                if (session !== restoreSession || currentCmd !== DeviceCmdEnum.START) return;
                 tryToConnect = 0;
                 status = DeviceStatusEnum.IDLE;
                 self.restoreValues();
@@ -429,12 +436,15 @@ function Device(data, runtime) {
     }
 
     this.restoreValues = () => {
+        if (suppressRestore) return;
+        const session = restoreSession;
         try {
             if (this.getDaqValueToRestore) {
                 var self = this;
                 this.getDaqValueToRestore(property.id).then(async (toRestore) => {
                     var restored = 0;
                     for (let element of toRestore) {
+                        if (suppressRestore || session !== restoreSession || currentCmd !== DeviceCmdEnum.START) return;
                         if (element.id && !utils.isNullOrUndefined(element.value)) {
                             const result = await self.setValue(element.id, element.value);
                             if (result) {

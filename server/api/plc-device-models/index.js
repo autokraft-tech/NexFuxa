@@ -6,7 +6,7 @@ const { createManager } = require('./manager');
 
 function app(runtime, secure, checkGroups) {
     const router = express.Router();
-    const manager = createManager(runtime.project, (cmd, device) => runtime.update(cmd, device));
+    const manager = createManager(runtime.project, (cmd, device, options) => runtime.update(cmd, device, options));
     router.use('/api/plc-device-models', secure, (req, res, next) => {
         if (!authJwt.haveAdminPermission(checkGroups(req))) {
             return res.status(401).json({ error: 'unauthorized_error', message: 'Administrator permission required' });
