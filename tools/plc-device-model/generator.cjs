@@ -88,9 +88,12 @@ function indicesFor(array) {
 
 function validateConfiguration(input, models, devices) {
     if (!input || typeof input !== 'object' || Array.isArray(input) || input.schemaVersion !== 2 ||
-        !identifier.test(input.id || '') || typeof input.name !== 'string' || !input.name.trim() || input.name.length > 100 ||
-        !identifier.test(input.tagPrefix || '') || !symbol.test(input.adsSymbol || '') ||
-        typeof input.deviceId !== 'string' || devices[input.deviceId]?.type !== 'ADSclient') fail('Invalid generator configuration or ADS device');
+        !identifier.test(input.id || '') || input.id.length > 100 ||
+        typeof input.name !== 'string' || !input.name.trim() || input.name.length > 100 ||
+        !identifier.test(input.tagPrefix || '') || input.tagPrefix.length > 100 ||
+        !symbol.test(input.adsSymbol || '') || input.adsSymbol.length > 256 ||
+        typeof input.deviceId !== 'string' || input.deviceId.length > 128 ||
+        devices[input.deviceId]?.type !== 'ADSclient') fail('Invalid generator configuration or ADS device');
     if (input.valueKind !== 'primitive' && input.valueKind !== 'structure') fail('Invalid value kind');
     const indexes = indicesFor(input.array);
     let model;

@@ -63,6 +63,7 @@ test('selected primitive element and two dimensional ranges keep actual indices'
 
 test('invalid type, range, count and duplicate naming are rejected', () => {
     assert.throws(() => generate({ ...base, plcType: 'TIME' }, [valve], devices), /Unsupported/);
+    assert.throws(() => generate({ ...base, adsSymbol: 'GVL.' + 'A'.repeat(257) }, [valve], devices), /Invalid generator/);
     assert.throws(() => generate({ ...base, array: { mode: 'range', dimensions: [{ start: 1, end: 2, step: 0 }] } }, [valve], devices), /range/);
     assert.throws(() => generate({ ...base, array: { mode: 'range', dimensions: [{ start: 1, end: 501, step: 1 }] } }, [valve], devices), /500/);
     assert.throws(() => generate({ ...base, array: { mode: 'range', dimensions: [{ start: 1, end: 2, step: 1 }] },
