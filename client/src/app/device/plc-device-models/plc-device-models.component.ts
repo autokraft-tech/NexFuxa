@@ -178,7 +178,8 @@ export class PlcDeviceModelsComponent {
 
     modelLeaves(): any[] {
         const model = this.models.find(item => `${item.name}@${item.version}` === this.draft?.model);
-        return model?.leaves || [];
+        const selected = this.draft?.profile && this.draft.profile !== 'Full' ? model?.profileDefinitions?.[this.draft.profile] : null;
+        return (model?.leaves || []).filter(leaf => !selected || selected.includes(leaf.path));
     }
 
     modelProfiles(): string[] {

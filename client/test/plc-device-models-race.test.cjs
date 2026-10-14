@@ -517,3 +517,16 @@ test('successful Apply keeps an unsaved model draft open', () => {
     assert.match(c.notice, /Tags committed.*unsaved model draft/);
     assert.equal(c.busy, false);
 });
+
+test('configuration member tree shows the selected profile rather than excluded leaves', () => {
+    const { component: c } = setup();
+    c.selectConfiguration('cfg_start');
+    c.draft.model = 'Pump@1.0.0';
+    c.draft.profile = 'Status';
+    c.models = [{ name: 'Pump', version: '1.0.0',
+        profileDefinitions: { Status: ['Sts.Running'] },
+        leaves: [{ path: 'Cmd.Start', plcType: 'BOOL' }, { path: 'Sts.Running', plcType: 'BOOL' }] }];
+    assert.deepEqual(plain(c.modelLeaves()).map(leaf => leaf.path), ['Sts.Running']);
+    c.draft.profile = 'Full';
+    assert.equal(c.modelLeaves().length, 2);
+});
