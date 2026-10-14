@@ -72,3 +72,14 @@ jobs:
         run: node --test test/plc-device-models-race.test.cjs
       - name: Angular production build
         run: npm run build -- --configuration production
+
+  docker-runtime-package:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - name: Build final runtime image
+        run: docker build --build-arg INSTALL_ODBC=false -t nexfuxa-runtime-ci .
+      - name: Load PLC Device Model Manager from final image
+        run: docker run --rm --network none --entrypoint node nexfuxa-runtime-ci -e "const manager = require('./api/plc-device-models/manager'); if (typeof manager.createManager !== 'function') process.exit(1);"
