@@ -2,6 +2,7 @@
 <div mat-dialog-content class="model-dialog">
   <p class="intro">Save → Preview → Confirm Apply. Member properties apply only to new Tags. Reused Tags retain all existing properties.</p>
   <p class="error" *ngIf="error" role="alert">{{error}}</p>
+  <p *ngIf="notice" role="status">{{notice}}</p>
   <section class="panel" *ngIf="jsonImport" aria-label="JSON import preview">
     <h3>JSON import preview · {{jsonImport.kind}}</h3>
     <label>Import mode <select [(ngModel)]="jsonImport.mode" (ngModelChange)="updateJsonImportMode()" [disabled]="busy">
@@ -105,14 +106,14 @@
           <h3>Structure editor</h3>
           <p class="hint">Saved versions are immutable. Edit a draft and save a new name or version.</p>
           <button mat-button (click)="beginModelEdit()" [disabled]="busy || modelEditing || selectedModel === 'Valve@1.0.0'">Edit Draft / Save as New Version</button>
-          <label>Model Name<input [(ngModel)]="modelDraft.name" (ngModelChange)="modelDirty = true" [disabled]="busy || !modelEditing"></label>
-          <label>Model Version<input [(ngModel)]="modelDraft.version" (ngModelChange)="modelDirty = true" [disabled]="busy || !modelEditing"></label>
-          <label>Root Structure<select aria-label="Root Structure" [(ngModel)]="modelDraft.rootType" (ngModelChange)="modelDirty = true" [disabled]="busy || !modelEditing"><option *ngFor="let type of modelTypes()">{{type}}</option></select></label>
+          <label>Model Name<input [(ngModel)]="modelDraft.name" (ngModelChange)="modelChanged()" [disabled]="busy || !modelEditing"></label>
+          <label>Model Version<input [(ngModel)]="modelDraft.version" (ngModelChange)="modelChanged()" [disabled]="busy || !modelEditing"></label>
+          <label>Root Structure<select aria-label="Root Structure" [(ngModel)]="modelDraft.rootType" (ngModelChange)="modelChanged()" [disabled]="busy || !modelEditing"><option *ngFor="let type of modelTypes()">{{type}}</option></select></label>
           <label>Editing Structure<select aria-label="Editing Structure" [ngModel]="editingType" (ngModelChange)="switchModelType($event)" [disabled]="busy"><option *ngFor="let type of modelTypes()">{{type}}</option></select></label>
           <label>Structure Type Name<input #structureTypeName [value]="editingType" (change)="renameModelType(structureTypeName.value)" [disabled]="busy || !modelEditing"></label>
           <div class="table-scroll"><table class="model-table"><thead><tr><th>Member Name</th><th>PLC Type</th><th>FUXA Type</th><th></th></tr></thead><tbody><tr *ngFor="let row of modelRows; let i = index">
-            <td><input [(ngModel)]="row.name" (ngModelChange)="modelDirty = true" [disabled]="busy || !modelEditing" [attr.aria-label]="'Member Name ' + i"></td>
-            <td><select [(ngModel)]="row.plcType" (ngModelChange)="modelDirty = true" [disabled]="busy || !modelEditing" [attr.aria-label]="'PLC Type ' + i"><option *ngFor="let type of primitiveTypes">{{type}}</option><option *ngFor="let type of modelTypes()">{{type}}</option></select></td>
+            <td><input [(ngModel)]="row.name" (ngModelChange)="modelChanged()" [disabled]="busy || !modelEditing" [attr.aria-label]="'Member Name ' + i"></td>
+            <td><select [(ngModel)]="row.plcType" (ngModelChange)="modelChanged()" [disabled]="busy || !modelEditing" [attr.aria-label]="'PLC Type ' + i"><option *ngFor="let type of primitiveTypes">{{type}}</option><option *ngFor="let type of modelTypes()">{{type}}</option></select></td>
             <td>{{fuxaType(row.plcType)}}</td><td><button mat-icon-button (click)="removeModelMember(i)" [disabled]="busy || !modelEditing" [attr.aria-label]="'Delete member ' + i"><mat-icon>delete</mat-icon></button></td>
           </tr></tbody></table></div>
           <div class="inline-actions"><button mat-button (click)="addModelMember()" [disabled]="busy || !modelEditing">Add Member</button><button mat-button (click)="addModelGroup()" [disabled]="busy || !modelEditing">Add Structure / Group</button><button mat-raised-button color="primary" (click)="saveModel()" [disabled]="busy || !modelEditing">{{selectedModel ? 'Save as New Version' : 'Save Model'}}</button></div>

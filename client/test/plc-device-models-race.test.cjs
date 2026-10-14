@@ -395,6 +395,9 @@ test('online nested member editing saves versioned model definitions and DAQ def
     c.switchModelType('ST_Group1');
     c.modelRows[0].name = 'Running';
     c.setModelProperties('Speed', { daq: { enabled: true, interval: 10, changed: true, restored: false }, description: 'Speed' });
+    c.previewResult = { token: 'old-model-preview' };
+    c.setModelProperties('Speed', { daq: { enabled: true, interval: 10, changed: true, restored: false }, description: 'Speed' });
+    assert.equal(c.previewResult, null);
     c.saveModel();
     const saved = pending[0].body.models[0];
     assert.equal(saved.types.ST_NewModel.Speed, 'REAL');
@@ -497,4 +500,20 @@ test('structure type rename updates its root and nested references', () => {
     assert.equal(c.modelDraft.rootType, 'ST_Pump_HMI');
     assert.equal(c.modelDraft.types.ST_NewModel, undefined);
     assert.equal(c.expandedModelLeaves().length, 2);
+});
+
+test('successful Apply keeps an unsaved model draft open', () => {
+    const context = setup();
+    const c = context.component;
+    c.selectConfiguration('cfg_start');
+    c.newModel();
+    c.previewConfiguration();
+    context.pending[0].observer.next({ token: 'ready', summary: { conflicts: 0, created: 1 } });
+    c.apply();
+    context.pending[1].observer.next({ persistence: 'committed', runtime: { status: 'updated' } });
+    assert.equal(context.closed(), false);
+    assert.equal(c.modelDirty, true);
+    assert.equal(c.modelDraft.name, 'NewModel');
+    assert.match(c.notice, /Tags committed.*unsaved model draft/);
+    assert.equal(c.busy, false);
 });

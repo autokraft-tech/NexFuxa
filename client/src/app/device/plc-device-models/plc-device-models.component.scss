@@ -14,6 +14,7 @@ h4 { margin:18px 0 8px; font-size:13px; }
 .task-entry { display:flex; align-items:center; gap:6px; }
 .task { display:flex; flex-direction:column; width:100%; min-width:0; padding:10px; margin-bottom:5px; border:1px solid rgba(128,128,128,.25); border-radius:4px; background:transparent; color:inherit; text-align:left; cursor:pointer; }
 .task.active { border-color:currentColor; }
+.task strong { max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .task span { overflow:hidden; text-overflow:ellipsis; max-width:100%; opacity:.7; font-size:11px; }
 .config-form > div > label,.config-form > label { display:flex; flex-direction:column; gap:4px; margin:9px 0; font-size:12px; }
 input,select { box-sizing:border-box; min-width:0; max-width:100%; padding:6px; color:inherit; background:transparent; border:1px solid rgba(128,128,128,.5); border-radius:3px; }
@@ -34,7 +35,7 @@ summary { cursor:pointer; overflow-wrap:anywhere; }
 .model-table { border-collapse:collapse; width:100%; white-space:nowrap; font-size:12px; }
 .model-table th,.model-table td { padding:7px; border-bottom:1px solid rgba(128,128,128,.25); text-align:left; }
 .model-table input { width:110px; }
-.error { color:#c62828; }
+.error { color:#c62828; overflow-wrap:anywhere; }
 pre { white-space:pre-wrap; max-width:300px; overflow-wrap:anywhere; }
 :host ::ng-deep .mat-mdc-tab-body-content { overflow:visible; }
 @media (max-width:1200px) { .generator-layout,.library-layout { grid-template-columns:minmax(180px,.7fr) minmax(0,1.5fr); } .preview-panel,.library-layout > section:last-child { grid-column:1 / -1; } }

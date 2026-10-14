@@ -44,6 +44,7 @@ export class PlcDeviceModelsComponent {
     readonly primitiveTypes = ['BOOL', 'INT', 'DINT', 'UINT', 'UDINT', 'REAL', 'LREAL', 'STRING'];
     previewResult: any = null;
     error = '';
+    notice = '';
     busy = false;
     jsonImport: any = null;
     private previewVersion = 0;
@@ -148,6 +149,7 @@ export class PlcDeviceModelsComponent {
     }
 
     invalidateConfiguration() {
+        this.notice = '';
         this.previewVersion++;
         this.previewResult = null;
         this.configSaved = false;
@@ -336,7 +338,7 @@ export class PlcDeviceModelsComponent {
         do { parts[2]++; } while (this.customModels.some(item => item.name === this.modelDraft.name && item.version === parts.join('.')));
         this.modelDraft.version = parts.join('.');
         this.modelEditing = true;
-        this.modelDirty = true;
+        this.modelChanged();
     }
 
     newModel() {
@@ -346,7 +348,7 @@ export class PlcDeviceModelsComponent {
             rootType: 'ST_NewModel', types: { ST_NewModel: { Running: 'BOOL' } }, profiles: {} };
         this.editingType = this.modelDraft.rootType;
         this.modelEditing = true;
-        this.modelDirty = true;
+        this.modelChanged();
         this.loadModelRows();
     }
 
@@ -358,7 +360,7 @@ export class PlcDeviceModelsComponent {
         this.modelDraft.version = '1.0.0';
         this.selectedModel = '';
         this.modelEditing = true;
-        this.modelDirty = true;
+        this.modelChanged();
     }
 
     modelTypes(): string[] { return Object.keys(this.modelDraft?.types || {}); }
@@ -399,7 +401,7 @@ export class PlcDeviceModelsComponent {
         for (const row of this.modelRows) if (row.plcType === old) row.plcType = name;
         if (this.modelDraft.rootType === old) this.modelDraft.rootType = name;
         this.editingType = name;
-        this.modelDirty = true;
+        this.modelChanged();
         this.modelTypeNameError = false;
         this.error = '';
     }
@@ -407,16 +409,16 @@ export class PlcDeviceModelsComponent {
         let n = 1;
         while (this.modelRows.some(row => row.name === 'Member' + n)) n++;
         this.modelRows.push({ name: 'Member' + n, plcType: 'BOOL' });
-        this.modelDirty = true;
+        this.modelChanged();
     }
     addModelGroup() {
         let n = 1;
         while (this.modelDraft.types['ST_Group' + n] || this.modelRows.some(row => row.name === 'Group' + n)) n++;
         this.modelDraft.types['ST_Group' + n] = { Value: 'BOOL' };
         this.modelRows.push({ name: 'Group' + n, plcType: 'ST_Group' + n });
-        this.modelDirty = true;
+        this.modelChanged();
     }
-    removeModelMember(index: number) { this.modelRows.splice(index, 1); this.modelDirty = true; }
+    removeModelMember(index: number) { this.modelRows.splice(index, 1); this.modelChanged(); }
     expandedModelLeaves(): any[] {
         if (!this.modelDraft) return [];
         const types = { ...this.modelDraft.types,
@@ -444,7 +446,13 @@ export class PlcDeviceModelsComponent {
     fuxaType(plcType: string): string { return plcType === 'BOOL' ? 'boolean' : plcType === 'STRING' ? 'string' : this.primitiveTypes.includes(plcType) ? 'number' : 'Structure'; }
     setModelProperties(path: string, properties: any) {
         this.modelDraft.memberDefaults = { ...this.modelDraft.memberDefaults, [path]: properties };
+        this.modelChanged();
+    }
+    modelChanged() {
+        this.notice = '';
         this.modelDirty = true;
+        this.previewVersion++;
+        this.previewResult = null;
     }
     bulkSetModelDaq() {
         for (const leaf of this.expandedModelLeaves().filter(item => this.memberSelection[item.path])) {
@@ -485,6 +493,9 @@ export class PlcDeviceModelsComponent {
 
     private persistModels(next: any[], done: () => void = () => {}) {
         this.error = '';
+        this.notice = '';
+        this.previewVersion++;
+        this.previewResult = null;
         this.busy = true;
         this.http.post<any>(this.api + '/models', { models: next, expectedHash: this.modelHash }).subscribe({
             next: result => {
@@ -671,7 +682,13 @@ export class PlcDeviceModelsComponent {
                     this.reloadConfigurations();
                     this.busy = false;
                 } else if (result.persistence === 'committed' && result.runtime?.status === 'updated') {
-                    this.dialogRef.close(true);
+                    if (this.modelDirty) {
+                        this.notice = 'Tags committed and runtime updated. Your unsaved model draft remains open.';
+                        this.previewResult = null;
+                        this.busy = false;
+                        this.reloadModels();
+                        this.reloadConfigurations();
+                    } else this.dialogRef.close(true);
                 } else {
                     this.error = 'Apply returned an unknown outcome. Refresh the project before retrying.';
                     this.previewResult = null;
