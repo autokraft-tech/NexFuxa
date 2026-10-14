@@ -23,13 +23,18 @@ vm.runInNewContext(compiled, { module: moduleRef, exports: moduleRef.exports,
 const Component = moduleRef.exports.PlcDeviceModelsComponent;
 const row = () => ({ 'Device Name': 'V101', 'PLC Device ID': 'ads-1',
     'Device Model': 'Valve@1.0.0', 'Array Symbol': 'GVL.a', 'Array Indices': '1,1', Profile: 'Full' });
+const configuration = () => ({ schemaVersion: 2, id: 'cfg_start', name: 'Start', deviceId: 'ads-1',
+    tagPrefix: 'Start', adsSymbol: 'GVL.bStart', valueKind: 'primitive', plcType: 'BOOL',
+    array: { mode: 'scalar' } });
 
 function setup() {
     const pending = [];
     let refreshes = 0;
     let closed = false;
     const http = {
-        get: url => ({ subscribe: observer => observer.next(url.endsWith('/instances') ? { rows: [row()] } : []) }),
+        get: url => ({ subscribe: observer => observer.next(url.endsWith('/instances') ? { rows: [row()] } :
+            url.endsWith('/models') ? { models: [], hash: 'model-hash' } :
+                url.endsWith('/configurations') ? { configurations: [configuration()], hash: 'config-hash' } : []) }),
         post: (url, body) => ({ subscribe: observer => { pending.push({ url, body, observer }); } })
     };
     const project = { getDeviceList: () => [{ id: 'ads-1', type: 'ADSclient', name: 'ADS 1' },
@@ -78,4 +83,30 @@ test('a partial Apply refreshes saved project state and shows the runtime failur
     assert.match(component.error, /Tags were saved.*start failed/);
     assert.equal(component.previewResult, null);
     assert.equal(component.busy, false);
+});
+
+test('v2 Preview ignores a response after editing the saved configuration', () => {
+    const { component, pending } = setup();
+    component.selectConfiguration('cfg_start');
+    component.previewConfiguration();
+    assert.equal(component.busy, true);
+    component.draft.adsSymbol = 'GVL.bChanged';
+    component.invalidateConfiguration();
+    pending[0].observer.next({ token: 'old', summary: { conflicts: 0 } });
+    assert.equal(component.busy, false);
+    assert.equal(component.configSaved, false);
+    assert.equal(component.previewResult, null);
+    component.apply();
+    assert.equal(pending.length, 1);
+});
+
+test('v2 Preview accepts only the selected saved task and Apply uses its token', () => {
+    const { component, pending } = setup();
+    component.selectConfiguration('cfg_start');
+    component.previewConfiguration();
+    assert.deepEqual(Array.from(pending[0].body.configurationIds), ['cfg_start']);
+    pending[0].observer.next({ token: 'fresh', summary: { conflicts: 0, created: 1 } });
+    assert.equal(component.previewResult.token, 'fresh');
+    component.apply();
+    assert.equal(pending[1].body.token, 'fresh');
 });

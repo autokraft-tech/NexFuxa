@@ -68,7 +68,7 @@ COPY --from=server-builder /opt/microsoft/ /opt/microsoft/
 
 # 1. Copy Server
 COPY --from=server-builder /usr/src/app/FUXA/server ./server
-COPY tools/plc-device-model/model.cjs tools/plc-device-model/fuxa.cjs tools/plc-device-model/csv.cjs ./tools/plc-device-model/
+COPY tools/plc-device-model/model.cjs tools/plc-device-model/fuxa.cjs tools/plc-device-model/csv.cjs tools/plc-device-model/generator.cjs ./tools/plc-device-model/
 COPY tools/plc-device-model/models/valve.v1.json ./tools/plc-device-model/models/
 
 # 2. Copy Client

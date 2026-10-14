@@ -5,6 +5,7 @@ const model = require('../../../tools/plc-device-model/models/valve.v1.json');
 const { expand, flatten } = require('../../../tools/plc-device-model/model.cjs');
 const { mergeDevices } = require('../../../tools/plc-device-model/fuxa.cjs');
 const { parseCsv, columns } = require('../../../tools/plc-device-model/csv.cjs');
+const generator = require('../../../tools/plc-device-model/generator.cjs');
 
 const leaves = flatten(model);
 const plcTypes = new Map(leaves.map(leaf => [leaf.path, leaf.plcType]));
@@ -34,6 +35,7 @@ function validateRows(rows, project, singleDevice = true) {
     let candidates;
     try { candidates = expand(model, rows); }
     catch (error) { throw invalid(error.message); }
+    if (singleDevice && candidates.length > generator.maxTags) throw invalid('Tag generation exceeds 500 candidates');
     return { candidates, deviceId: [...ids][0] };
 }
 
@@ -56,13 +58,43 @@ function reportRows(candidates, report) {
         const reused = report.reused.find(match);
         const path = candidate.address.slice(candidate.address.lastIndexOf('].') + 2);
         return {
-            name: candidate.name, address: candidate.address, plcType: plcTypes.get(path),
+            name: candidate.name, address: candidate.address, plcType: candidate.plcType || plcTypes.get(path),
             type: candidate.type, deviceId: candidate.deviceId,
+            sourceConfiguration: candidate.sourceConfiguration || null,
             operation: conflict ? 'Conflict' : reused ? 'Reused' : 'Created',
             existingName: reused?.existingName || null,
             reason: conflict?.reason || null
         };
     });
+}
+
+function generatorModels(project) {
+    return [model, ...(project.getTagGeneratorModels?.() || [])];
+}
+
+function requireSavedConfigurations(configurations, project) {
+    const saved = new Map((project.getTagGeneratorConfigurations?.() || []).map(item => [item.id, item]));
+    for (const configuration of configurations) {
+        if (JSON.stringify(saved.get(configuration.id)) !== JSON.stringify(configuration)) {
+            throw invalid('Generator configuration changed. Save and Preview again.', 'stale_preview');
+        }
+    }
+}
+
+function generateConfigurations(configurations, project) {
+    if (!Array.isArray(configurations) || !configurations.length || configurations.length > maxRows) {
+        throw invalid(`Provide 1–${maxRows} saved configurations`);
+    }
+    const candidates = [];
+    const ids = new Set();
+    for (const configuration of configurations) {
+        try { candidates.push(...generator.generate(configuration, generatorModels(project), project.getDevices())); }
+        catch (error) { throw invalid(error.message); }
+        ids.add(configuration.deviceId);
+        if (candidates.length > generator.maxTags) throw invalid('Tag generation exceeds 500 candidates');
+    }
+    if (ids.size !== 1) throw invalid('One Apply batch must use one ADS device.');
+    return { candidates, deviceId: [...ids][0] };
 }
 
 function requireSavedRows(rows, project) {
@@ -82,8 +114,47 @@ function requireSavedRows(rows, project) {
 function createManager(project, update) {
     return {
         catalog() {
-            return [{ name: model.name, version: model.version, rootType: model.rootType,
-                profiles: ['Full', ...Object.keys(model.profiles)], leaves }];
+            return generatorModels(project).map(item => ({ name: item.name, version: item.version,
+                rootType: item.rootType, types: item.types, profileDefinitions: item.profiles,
+                readOnly: item.schemaVersion === 1,
+                profiles: ['Full', ...Object.keys(item.profiles || {})],
+                leaves: item.schemaVersion === 1 ? leaves : generator.flattenGeneric(item) }));
+        },
+        models() { return { schemaVersion: 2, models: project.getTagGeneratorModels?.() || [], hash: project.getDevicesHash() }; },
+        async saveModels(input, expectedHash) {
+            if (!Array.isArray(input) || input.length > 100) throw invalid('Provide at most 100 custom models');
+            const hash = project.getDevicesHash();
+            if (expectedHash !== undefined && expectedHash !== hash) throw invalid('Structure models changed. Reload and save again.', 'stale_preview');
+            const previous = project.getTagGeneratorModels?.() || [];
+            let next;
+            try { next = input.map(generator.validateModel); }
+            catch (error) { throw invalid(error.message); }
+            const keys = next.map(item => `${item.name}@${item.version}`);
+            if (new Set(keys).size !== keys.length || keys.includes('Valve@1.0.0')) throw invalid('Duplicate or built-in model version');
+            for (const item of previous) {
+                const saved = next.find(entry => entry.name === item.name && entry.version === item.version);
+                if (saved && JSON.stringify(saved) !== JSON.stringify(item)) throw invalid(`Model ${item.name}@${item.version} is immutable; save a new version`);
+                if (!saved && (project.getTagGeneratorConfigurations?.() || []).some(config => config.model === `${item.name}@${item.version}`)) {
+                    throw invalid(`Model ${item.name}@${item.version} is referenced by a saved configuration`);
+                }
+            }
+            await project.saveTagGeneratorModels(next, hash);
+            return this.models();
+        },
+        configurations() { return { schemaVersion: 2, configurations: project.getTagGeneratorConfigurations?.() || [], hash: project.getDevicesHash() }; },
+        async saveConfigurations(input, expectedHash) {
+            if (!Array.isArray(input) || input.length > maxRows) throw invalid(`Provide at most ${maxRows} configurations`);
+            const hash = project.getDevicesHash();
+            if (expectedHash !== undefined && expectedHash !== hash) throw invalid('Generator configurations changed. Reload and save again.', 'stale_preview');
+            const ids = new Set();
+            for (const configuration of input) {
+                try { generator.validateConfiguration(configuration, generatorModels(project), project.getDevices()); }
+                catch (error) { throw invalid(error.message); }
+                if (ids.has(configuration.id)) throw invalid(`Duplicate configuration ID ${configuration.id}`);
+                ids.add(configuration.id);
+            }
+            await project.saveTagGeneratorConfigurations(input, hash);
+            return this.configurations();
         },
         instances() { return project.getModelInstances(); },
         async saveInstances(rows) {
@@ -113,13 +184,41 @@ function createManager(project, update) {
                     reused: result.report.reused.length, conflicts: result.report.conflicts.length,
                     unchanged: result.report.unchanged.length } };
         },
+        previewConfigurations(configurationIds, owner, expectedHash) {
+            if (typeof expectedHash !== 'string' || expectedHash !== project.getDevicesHash()) {
+                throw invalid('Project or saved configurations changed. Reload and Preview again.', 'stale_preview');
+            }
+            if (!Array.isArray(configurationIds) || !configurationIds.length || configurationIds.length > maxRows ||
+                configurationIds.some(id => typeof id !== 'string') || new Set(configurationIds).size !== configurationIds.length) {
+                throw invalid('Select unique saved configurations');
+            }
+            const saved = new Map((project.getTagGeneratorConfigurations?.() || []).map(item => [item.id, item]));
+            const configurations = configurationIds.map(id => {
+                const item = saved.get(id);
+                if (!item) throw invalid(`Configuration ${id} is not saved`, 'stale_preview');
+                return item;
+            });
+            const { candidates, deviceId } = generateConfigurations(configurations, project);
+            const result = merge(project, project.getDevices()[deviceId], candidates);
+            const token = crypto.randomBytes(24).toString('hex');
+            if (previews.size >= 100) previews.delete(previews.keys().next().value);
+            previews.set(token, { owner, configurations: JSON.parse(JSON.stringify(configurations)),
+                hash: project.getDevicesHash(), expires: Date.now() + 10 * 60 * 1000 });
+            return { token, rows: reportRows(candidates, result.report),
+                summary: { candidates: candidates.length, created: result.report.created.length,
+                    reused: result.report.reused.length, conflicts: result.report.conflicts.length,
+                    unchanged: result.report.unchanged.length } };
+        },
         async apply(token, owner) {
             const preview = previews.get(token);
             if (!preview || preview.owner !== owner || preview.expires < Date.now()) throw invalid('Preview expired. Preview again.', 'stale_preview');
             previews.delete(token);
-            const { candidates, deviceId } = validateRows(preview.rows, project);
+            const generated = preview.configurations ? generateConfigurations(preview.configurations, project) :
+                validateRows(preview.rows, project);
+            const { candidates, deviceId } = generated;
             const result = await project.commitDeviceTags(deviceId, preview.hash, current => {
-                requireSavedRows(preview.rows, project);
+                if (preview.configurations) requireSavedConfigurations(preview.configurations, project);
+                else requireSavedRows(preview.rows, project);
                 // Revalidate every candidate against the current server-side device.
                 const merged = merge(project, current, candidates);
                 if (merged.report.conflicts.length) throw invalid('Tag conflicts. Preview again.', 'tag_conflict');

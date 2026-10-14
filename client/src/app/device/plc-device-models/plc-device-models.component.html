@@ -1,47 +1,72 @@
-<h2 mat-dialog-title>PLC Device Models</h2>
+<h2 mat-dialog-title>PLC Tag Generator</h2>
 <div mat-dialog-content class="model-dialog">
-    <p>Generate ADS Tag definitions for existing ADSclient devices. One Apply batch may use one PLC device. Removing a configuration row never deletes existing Tags.</p>
-    <mat-tab-group>
-        <mat-tab label="Model Catalog">
-            <div *ngFor="let model of models">
-                <h3>{{model.name}} · {{model.version}} · {{model.rootType}}</h3>
-                <mat-accordion>
-                    <mat-expansion-panel *ngFor="let group of ['Cmd', 'Sts', 'Cfg']">
-                        <mat-expansion-panel-header>{{group}} — {{groupCount(model, group)}} Tags</mat-expansion-panel-header>
-                        <table class="model-table"><thead><tr><th>Member path</th><th>PLC type</th><th>FUXA type</th></tr></thead>
-                            <tbody><ng-container *ngFor="let leaf of model.leaves"><tr *ngIf="leaf.path.startsWith(group + '.')"><td>{{leaf.path}}</td><td>{{leaf.plcType}}</td><td>{{leaf.type}}</td></tr></ng-container></tbody>
-                        </table>
-                    </mat-expansion-panel>
-                </mat-accordion>
-            </div>
-        </mat-tab>
-        <mat-tab label="Device Instances">
-            <div class="actions"><button mat-button (click)="addRow()" [disabled]="busy">Add instance</button>
-                <label class="import-button">Import CSV<input type="file" accept=".csv,text/csv" (change)="importCsv($event)" [disabled]="busy" hidden></label>
-                <button mat-button (click)="exportCsv()" [disabled]="!rows.length">Export CSV</button>
-                <button mat-button (click)="save()" [disabled]="busy || saved">Save Configurations</button>
-                <span *ngIf="saved">Saved</span></div>
-            <div class="table-scroll"><table class="model-table"><thead><tr><th>Device Name</th><th>PLC Device</th><th>Device Model</th><th>Array Symbol</th><th>Array Indices</th><th>Profile</th><th></th></tr></thead>
-                <tbody><tr *ngFor="let row of rows; let i = index">
-                    <td><input matInput [(ngModel)]="row['Device Name']" (ngModelChange)="invalidate()" [disabled]="busy" aria-label="Device Name"></td>
-                    <td><select [(ngModel)]="row['PLC Device ID']" (ngModelChange)="invalidate()" [disabled]="busy" aria-label="PLC Device"><option *ngFor="let device of adsDevices" [value]="device.id">{{device.name}} ({{device.id}})</option></select></td>
-                    <td>{{row['Device Model']}}</td>
-                    <td><input matInput [(ngModel)]="row['Array Symbol']" (ngModelChange)="invalidate()" [disabled]="busy" aria-label="Array Symbol"></td>
-                    <td><input matInput [(ngModel)]="row['Array Indices']" (ngModelChange)="invalidate()" [disabled]="busy" placeholder="1,1" aria-label="Array Indices"></td>
-                    <td><select [(ngModel)]="row.Profile" (ngModelChange)="invalidate()" [disabled]="busy" aria-label="Profile"><option *ngFor="let profile of ['Full','Status','Control','Engineering']" [value]="profile">{{profile}}</option></select></td>
-                    <td><button mat-icon-button (click)="removeRow(i)" [disabled]="busy" aria-label="Remove instance"><mat-icon>delete</mat-icon></button></td>
-                </tr></tbody></table></div>
-            <label>Preview ADS device <select [(ngModel)]="previewDeviceId" (ngModelChange)="changePreviewDevice()" [disabled]="busy"><option *ngFor="let device of adsDevices" [value]="device.id">{{device.name}}</option></select></label>
-            <button mat-raised-button color="primary" (click)="preview()" [disabled]="busy || !rows.length || !saved" matTooltip="Save Configurations before Preview">Preview Tags</button>
-        </mat-tab>
-    </mat-tab-group>
-    <p class="error" *ngIf="error" role="alert">{{error}}</p>
-    <div *ngIf="previewResult">
-        <h3>Tag Preview</h3>
-        <p>Candidates {{previewResult.summary.candidates}} · Created {{previewResult.summary.created}} · Reused {{previewResult.summary.reused}} · Conflicts {{previewResult.summary.conflicts}} · Unchanged {{previewResult.summary.unchanged}}</p>
-        <div class="table-scroll preview-scroll"><table class="model-table"><thead><tr><th>Tag Name</th><th>ADS Address</th><th>PLC Type</th><th>FUXA Type</th><th>Device</th><th>Operation</th></tr></thead>
-            <tbody><tr *ngFor="let tag of previewResult.rows"><td>{{tag.name}} <small *ngIf="tag.existingName && tag.existingName !== tag.name">(existing: {{tag.existingName}})</small></td><td>{{tag.address}}</td><td>{{tag.plcType}}</td><td>{{tag.type}}</td><td>{{deviceName(tag.deviceId)}}</td><td>{{tag.operation}} {{tag.reason}}</td></tr></tbody></table></div>
-        <button mat-raised-button color="primary" (click)="apply()" [disabled]="busy || !saved || previewResult.summary.conflicts > 0">Apply to Project</button>
-    </div>
+  <p class="intro">Save a configuration, preview server generated ADS symbols, then confirm Apply. PLC values are never written.</p>
+  <p class="error" *ngIf="error" role="alert">{{error}}</p>
+  <mat-tab-group>
+    <mat-tab label="Generator Configurations">
+      <div class="generator-layout">
+        <aside class="panel task-list">
+          <div class="panel-title"><h3>Saved tasks</h3><button mat-button (click)="newConfiguration()" [disabled]="busy">New</button></div>
+          <button class="task" *ngFor="let config of configurations" [class.active]="selectedConfigurationId === config.id" (click)="selectConfiguration(config.id)" [disabled]="busy">
+            <strong>{{config.name}}</strong><span>{{deviceName(config.deviceId)}} · {{config.adsSymbol}}</span>
+          </button>
+          <p class="hint" *ngIf="!configurations.length">No saved tasks yet.</p>
+          <div class="side-actions"><label class="import-button">Import JSON<input type="file" accept=".json,application/json" (change)="importJson($event, 'configurations')" [disabled]="busy" hidden></label><button mat-button (click)="exportJson('configurations')" [disabled]="busy">Export JSON</button></div>
+        </aside>
+        <section class="panel config-form">
+          <div class="panel-title"><h3>Configuration</h3><span *ngIf="draft">{{configSaved ? 'Saved' : 'Unsaved changes'}}</span></div>
+          <div *ngIf="draft; else noTask">
+            <h4>Basic information</h4>
+            <label>PLC Device<select [(ngModel)]="draft.deviceId" (ngModelChange)="invalidateConfiguration()" [disabled]="busy"><option *ngFor="let device of adsDevices" [value]="device.id">{{device.name}} ({{device.id}})</option></select></label>
+            <label>Configuration Name<input [(ngModel)]="draft.name" (ngModelChange)="invalidateConfiguration()" [disabled]="busy"></label>
+            <label>Tag Prefix<input [(ngModel)]="draft.tagPrefix" (ngModelChange)="invalidateConfiguration()" [disabled]="busy"></label>
+            <label>ADS Symbol<input [(ngModel)]="draft.adsSymbol" (ngModelChange)="invalidateConfiguration()" [disabled]="busy" placeholder="GVL.bStart"></label>
+            <h4>Data type</h4>
+            <label>Value Kind<select [(ngModel)]="draft.valueKind" (ngModelChange)="changeValueKind()" [disabled]="busy"><option value="primitive">Primitive</option><option value="structure">Structure</option></select></label>
+            <label *ngIf="draft.valueKind === 'primitive'">PLC Type<select [(ngModel)]="draft.plcType" (ngModelChange)="invalidateConfiguration()" [disabled]="busy"><option *ngFor="let type of primitiveTypes" [value]="type">{{type}}</option></select></label>
+            <ng-container *ngIf="draft.valueKind === 'structure'">
+              <label>Structure Model<select [(ngModel)]="draft.model" (ngModelChange)="changeStructureModel()" [disabled]="busy"><option *ngFor="let model of models" [value]="model.name + '@' + model.version">{{model.name}}&#64;{{model.version}}</option></select></label>
+              <label>Profile<select [(ngModel)]="draft.profile" (ngModelChange)="invalidateConfiguration()" [disabled]="busy"><option *ngFor="let profile of modelProfiles()" [value]="profile">{{profile}}</option></select></label>
+              <div class="member-tree"><span>Members</span><label *ngFor="let leaf of modelLeaves()"><input type="checkbox" [checked]="memberSelected(leaf.path)" (change)="toggleMember(leaf.path)" [disabled]="busy">{{leaf.path}} <small>{{leaf.plcType}}</small></label></div>
+            </ng-container>
+            <h4>Array</h4>
+            <label>Array Mode<select [ngModel]="draft.array.mode" (ngModelChange)="setArrayMode($event)" [disabled]="busy"><option value="scalar">Scalar</option><option value="element">Single Element</option><option value="range">Range</option></select></label>
+            <div *ngIf="draft.array.mode === 'element'" class="dimensions"><label *ngFor="let index of draft.array.indices; let i = index">Dimension {{i + 1}} Index<input type="number" [(ngModel)]="draft.array.indices[i]" (ngModelChange)="invalidateConfiguration()" [disabled]="busy"></label></div>
+            <div *ngIf="draft.array.mode === 'range'" class="dimensions"><div *ngFor="let dimension of draft.array.dimensions; let i = index" class="dimension-row"><span>Dimension {{i + 1}}</span><label>Start<input type="number" [(ngModel)]="dimension.start" (ngModelChange)="invalidateConfiguration()" [disabled]="busy"></label><label>End<input type="number" [(ngModel)]="dimension.end" (ngModelChange)="invalidateConfiguration()" [disabled]="busy"></label><label>Step<input type="number" [(ngModel)]="dimension.step" (ngModelChange)="invalidateConfiguration()" [disabled]="busy"></label></div></div>
+            <div class="inline-actions" *ngIf="draft.array.mode !== 'scalar'"><button mat-button (click)="addDimension()" [disabled]="busy || (draft.array.mode === 'element' ? draft.array.indices.length >= 2 : draft.array.dimensions.length >= 2)">Add dimension</button><button mat-button (click)="removeDimension()" [disabled]="busy || (draft.array.mode === 'element' ? draft.array.indices.length <= 1 : draft.array.dimensions.length <= 1)">Remove dimension</button></div>
+            <h4>Naming</h4>
+            <label>Advanced template <small>Optional: &#123;prefix&#125;, &#123;index&#125;, &#123;member&#125;</small><input [(ngModel)]="draft.namingTemplate" (ngModelChange)="invalidateConfiguration()" [disabled]="busy" placeholder="Default naming"></label>
+            <div class="inline-actions"><button mat-raised-button color="primary" (click)="saveConfiguration()" [disabled]="busy || configSaved">Save</button><button mat-button (click)="copyConfiguration()" [disabled]="busy">Copy</button><button mat-button (click)="deleteConfiguration()" [disabled]="busy">Delete</button></div>
+          </div>
+          <ng-template #noTask><p class="hint">Select a saved task or create a new one.</p></ng-template>
+        </section>
+        <section class="panel preview-panel">
+          <div class="panel-title"><h3>Tag Preview</h3><button mat-raised-button color="primary" (click)="previewConfiguration()" [disabled]="busy || !configSaved">Preview</button></div>
+          <p class="hint">{{configSaved ? 'Preview uses the saved configuration on the server.' : 'Save before Preview.'}}</p>
+          <ng-container *ngIf="previewResult && previewMode === 'configuration'">
+            <p class="summary">Candidates {{previewResult.summary.candidates}} · Created {{previewResult.summary.created}} · Reused {{previewResult.summary.reused}} · Conflicts {{previewResult.summary.conflicts}} · Unchanged {{previewResult.summary.unchanged}}</p>
+            <div class="preview-controls"><input [(ngModel)]="previewSearch" placeholder="Search name, address or task"><select [(ngModel)]="previewFilter"><option *ngFor="let filter of ['All','Created','Reused','Conflict']">{{filter}}</option></select><select [(ngModel)]="previewSort"><option value="name">Name</option><option value="address">Address</option><option value="operation">Operation</option></select></div>
+            <div class="table-scroll preview-scroll"><table class="model-table"><thead><tr><th>Tag Name</th><th>ADS Address</th><th>PLC Type</th><th>FUXA Type</th><th>Source</th><th>Operation</th><th>Conflict Reason</th></tr></thead><tbody><tr *ngFor="let tag of filteredPreviewRows()"><td>{{tag.name}}</td><td>{{tag.address}}</td><td>{{tag.plcType}}</td><td>{{tag.type}}</td><td>{{tag.sourceConfiguration}}</td><td>{{tag.operation}}</td><td>{{tag.reason}}</td></tr></tbody></table></div>
+            <button mat-raised-button color="primary" (click)="apply()" [disabled]="busy || !configSaved || previewResult.summary.conflicts > 0">Apply to Project</button>
+          </ng-container>
+        </section>
+      </div>
+    </mat-tab>
+    <mat-tab label="Model Library">
+      <div class="library-layout">
+        <section class="panel"><div class="panel-title"><h3>Models</h3><button mat-button (click)="newModel()" [disabled]="busy">Create</button></div><button class="task" *ngFor="let model of models" (click)="editModel(model.name + '@' + model.version)"><strong>{{model.name}}&#64;{{model.version}}</strong><span>{{model.rootType}} · {{model.readOnly ? 'Built-in, read-only' : 'Custom'}}</span></button><div class="side-actions"><label class="import-button">Import JSON<input type="file" accept=".json,application/json" (change)="importJson($event, 'models')" [disabled]="busy" hidden></label><button mat-button (click)="exportJson('models')">Export JSON</button></div></section>
+        <section class="panel"><h3>Structure members</h3><ng-container *ngFor="let model of models"><div *ngIf="selectedModel === model.name + '@' + model.version"><p>{{model.rootType}} · {{model.leaves.length}} leaves · {{model.profiles.join(', ')}}</p><div class="table-scroll"><table class="model-table"><thead><tr><th>Member path</th><th>PLC type</th><th>FUXA type</th></tr></thead><tbody><tr *ngFor="let leaf of model.leaves"><td>{{leaf.path}}</td><td>{{leaf.plcType}}</td><td>{{leaf.type}}</td></tr></tbody></table></div></div></ng-container></section>
+        <section class="panel"><h3>Custom model definition</h3><p class="hint">Edit the JSON structure and save a new version. A saved version is immutable.</p><textarea [(ngModel)]="modelEditor" [disabled]="busy" aria-label="Custom model JSON"></textarea><div class="inline-actions"><button mat-raised-button color="primary" (click)="saveModel()" [disabled]="busy || !modelEditor">Save model</button><button mat-button (click)="copyModel()" [disabled]="busy || !selectedModel">Copy</button><button mat-button (click)="deleteModel()" [disabled]="busy || !modelEditor || selectedModel === 'Valve@1.0.0'">Delete</button></div></section>
+      </div>
+    </mat-tab>
+    <mat-tab label="Legacy Valve CSV">
+      <p>Existing V101/V102 configurations retain their Tag names and addresses. Removing a row does not delete Tags.</p>
+      <div class="actions"><button mat-button (click)="addRow()" [disabled]="busy">Add instance</button><label class="import-button">Import CSV<input type="file" accept=".csv,text/csv" (change)="importCsv($event)" [disabled]="busy" hidden></label><button mat-button (click)="exportCsv()" [disabled]="!rows.length">Export CSV</button><button mat-button (click)="save()" [disabled]="busy || saved">Save Configurations</button><span *ngIf="saved">Saved</span></div>
+      <div class="table-scroll"><table class="model-table"><thead><tr><th>Device Name</th><th>PLC Device</th><th>Device Model</th><th>Array Symbol</th><th>Array Indices</th><th>Profile</th><th></th></tr></thead><tbody><tr *ngFor="let row of rows; let i = index"><td><input matInput [(ngModel)]="row['Device Name']" (ngModelChange)="invalidate()" [disabled]="busy" aria-label="Device Name"></td><td><select [(ngModel)]="row['PLC Device ID']" (ngModelChange)="invalidate()" [disabled]="busy" aria-label="PLC Device"><option *ngFor="let device of adsDevices" [value]="device.id">{{device.name}}</option></select></td><td>{{row['Device Model']}}</td><td><input matInput [(ngModel)]="row['Array Symbol']" (ngModelChange)="invalidate()" [disabled]="busy" aria-label="Array Symbol"></td><td><input matInput [(ngModel)]="row['Array Indices']" (ngModelChange)="invalidate()" [disabled]="busy" placeholder="1,1" aria-label="Array Indices"></td><td><select [(ngModel)]="row.Profile" (ngModelChange)="invalidate()" [disabled]="busy"><option *ngFor="let profile of ['Full','Status','Control','Engineering']" [value]="profile">{{profile}}</option></select></td><td><button mat-icon-button (click)="removeRow(i)" [disabled]="busy" aria-label="Remove instance"><mat-icon>delete</mat-icon></button></td></tr></tbody></table></div>
+      <label>Preview ADS device <select [(ngModel)]="previewDeviceId" (ngModelChange)="changePreviewDevice()" [disabled]="busy"><option *ngFor="let device of adsDevices" [value]="device.id">{{device.name}}</option></select></label>
+      <button mat-raised-button color="primary" (click)="preview()" [disabled]="busy || !rows.length || !saved">Preview Tags</button>
+      <div *ngIf="previewResult && previewMode === 'legacy'"><h3>Tag Preview</h3><p>Candidates {{previewResult.summary.candidates}} · Created {{previewResult.summary.created}} · Reused {{previewResult.summary.reused}} · Conflicts {{previewResult.summary.conflicts}} · Unchanged {{previewResult.summary.unchanged}}</p><div class="table-scroll preview-scroll"><table class="model-table"><thead><tr><th>Tag Name</th><th>ADS Address</th><th>PLC Type</th><th>FUXA Type</th><th>Operation</th><th>Conflict Reason</th></tr></thead><tbody><tr *ngFor="let tag of previewResult.rows"><td>{{tag.name}}</td><td>{{tag.address}}</td><td>{{tag.plcType}}</td><td>{{tag.type}}</td><td>{{tag.operation}}</td><td>{{tag.reason}}</td></tr></tbody></table></div><button mat-raised-button color="primary" (click)="apply()" [disabled]="busy || !saved || previewResult.summary.conflicts > 0">Apply to Project</button></div>
+    </mat-tab>
+  </mat-tab-group>
 </div>
 <div mat-dialog-actions align="end"><button mat-button mat-dialog-close>Close</button></div>

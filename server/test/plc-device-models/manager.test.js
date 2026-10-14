@@ -79,6 +79,53 @@ describe('PLC Device Models', function () {
         assert.equal(called, false);
     });
 
+    it('serves the v2 save, Preview and Apply flow with version checks', async function () {
+        const devices = Object.fromEntries(require('../../../tools/plc-device-model/test/fixtures/devices.empty-valves.json')
+            .map(device => [device.id, structuredClone(device)]));
+        const id = 'd_b6ba9d1c-2b054dc3';
+        let configurations = [];
+        const project = {
+            getDevices: () => devices,
+            getTagGeneratorConfigurations: () => structuredClone(configurations),
+            getTagGeneratorModels: () => [],
+            getDevicesHash: () => crypto.createHash('sha256').update(JSON.stringify([devices, configurations])).digest('hex'),
+            saveTagGeneratorConfigurations: async (next, hash) => {
+                assert.equal(hash, project.getDevicesHash());
+                configurations = structuredClone(next);
+            },
+            commitDeviceTags: async (deviceId, hash, build) => {
+                assert.equal(hash, project.getDevicesHash());
+                const result = build(structuredClone(devices[deviceId]));
+                devices[deviceId] = result.device;
+                return result;
+            }
+        };
+        const app = express();
+        app.use(express.json());
+        app.use(api.app({ project, update: async () => {} },
+            (req, res, next) => { req.userId = 'admin'; next(); }, () => 255));
+        const initial = JSON.parse((await request(app, 'GET', '/api/plc-device-models/configurations')).body);
+        const config = { schemaVersion: 2, id: 'start', name: 'Start', deviceId: id,
+            tagPrefix: 'Start', adsSymbol: 'GVL.bStart', valueKind: 'primitive', plcType: 'BOOL',
+            array: { mode: 'scalar' } };
+        const missingHash = await request(app, 'POST', '/api/plc-device-models/configurations',
+            { configurations: [config] });
+        assert.equal(missingHash.status, 400);
+        const saved = await request(app, 'POST', '/api/plc-device-models/configurations',
+            { configurations: [config], expectedHash: initial.hash });
+        assert.equal(saved.status, 200);
+        const currentHash = JSON.parse(saved.body).hash;
+        assert.equal((await request(app, 'POST', '/api/plc-device-models/preview',
+            { configurationIds: ['start'], expectedHash: initial.hash })).status, 409);
+        const preview = await request(app, 'POST', '/api/plc-device-models/preview',
+            { configurationIds: ['start'], expectedHash: currentHash });
+        assert.equal(preview.status, 200);
+        const applied = await request(app, 'POST', '/api/plc-device-models/apply',
+            { token: JSON.parse(preview.body).token, confirmed: true });
+        assert.equal(applied.status, 200);
+        assert.equal(Object.keys(devices[id].tags).length, 1);
+    });
+
     it('persists instances and tags through a separate process reopen', async function () {
         const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fuxa-phase3b-'));
         const script = path.join(__dirname, 'persistence.child.cjs');

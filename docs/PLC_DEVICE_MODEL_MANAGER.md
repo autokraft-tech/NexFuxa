@@ -1,30 +1,41 @@
-# Phase 3B PLC Device Model Manager
+# PLC Tag Generator (Phase 3B.1)
 
-Open **Devices → ⋮ → PLC Device Models** as a project administrator. The catalog shows the read-only `Valve@1.0.0` model from `tools/plc-device-model/models/valve.v1.json`, including every PLC leaf and its FUXA type. The editor is available only when the Devices page is editable.
+Open **Devices → ⋮ → PLC Tag Generator** as a project administrator. Choose an existing ADSclient device. The generator stores Tag definitions in the FUXA project; it does not write PLC values or verify symbols against a connected PLC. Check the declared PLC types and ADS addresses against the TwinCAT project before Apply. The supported declared primitives are `BOOL`, `INT`, `DINT`, `UINT`, `UDINT`, `REAL`, `LREAL`, and `STRING`. Other types are rejected. Each array element or structure leaf becomes a separate ADS Tag.
 
-In **Device Instances**, add rows or import a Phase 3A CSV. Select an existing ADSclient connection by its internal ID, set the Valve instance name, array symbol, indices, and profile, then **Save Configurations**. Export CSV to keep a copy. Removing a row changes only the saved configuration; it does not remove Tags. Configurations are stored in the FUXA project database and can cover multiple ADS devices.
+## Configuration workflow
 
-Select one **Preview ADS device** and click **Preview Tags**. Preview accepts only rows that exactly match saved configurations, and the editor is locked until the request completes. The preview is read-only and lists each candidate's name, ADS address, PLC type, FUXA type, device, and Created/Reused/Conflict operation. It also shows counts. A batch for one ADS device can contain multiple Valve instances. If conflicts are zero, click **Apply to Project** and accept the confirmation. The server checks the saved rows again inside the serialized project write, regenerates candidates with Phase 3A, and persists the one ADS device. Re-preview if the project or saved configuration changed. The Devices page refreshes after success. Apply never writes a PLC value.
+In **Generator Configurations**, create or select a saved task in the left panel, edit it in the middle panel, and inspect server generated Tags in the right panel. Enter a complete root ADS Symbol without brackets or member suffix, select Primitive or Structure, and choose Scalar, Single Element, or Range. Range accepts one or two dimensions with integer Start, End, and nonzero Step. Bounds can start at any integer. The server limits a Preview/Apply batch to 500 candidates and one ADS device. It rejects invalid ranges, types, templates, duplicate generated names, and conflicting existing Tags.
 
-Apply reports the database commit and runtime reload separately. A normal HTTP 200 response contains `persistence: "committed"` and `runtime.status: "updated"` after the device stop, reload, and start calls complete. HTTP 207 means Tags were committed but the runtime reload failed; its response contains `persistence: "committed"`, `runtime.status: "failed"`, and a message. The dialog stays open and shows the failure. Check the device, then Preview and Apply again to retry the runtime reload; already created Tags will be reused. Runtime `updated` means the start call completed, not that a live PLC connection was established; connection status is reported separately by FUXA.
+For Structure, choose a versioned model, a profile, and optional individual leaves. The read-only `Valve@1.0.0` remains available. **Model Library** displays every leaf's member path and declared PLC/FUXA type. Create, copy, and edit custom models in the JSON definition editor. A saved model version is immutable; to change its meaning, save a new version. Referenced versions cannot be deleted. Custom models and tasks are stored in the project SQLite database and restored on restart. JSON import/export uses a top-level `schemaVersion: 2` and a `models` or `configurations` array.
 
-## API
+Default Tag names use `Tag Prefix` for a scalar, `Prefix_index` for a primitive array, `Prefix_member_path` for a structure scalar, and `Prefix_index_member_path` for a structure array. Advanced templates can use `{prefix}`, `{index}`, and `{member}`; duplicate or invalid names are rejected. Member path parts are converted to snake case. Preview shows Created, Reused, Conflict, reasons, source configuration, and summary counts, with search, filter, and sort. **Save → Preview → Apply** is required. A Preview token is bound to the administrator and project version for ten minutes. Apply regenerates candidates and rechecks saved configurations inside the serialized project write.
 
-All routes require the existing authentication middleware and administrator permission. Requests use JSON. The route rejects request bodies over 100 KB; CSV input is limited to 64 KB and configurations to 100 rows. Only the bundled Valve model is accepted.
+| Form | ADS Symbol | Data and array fields | Example generated address |
+| --- | --- | --- | --- |
+| Primitive Scalar | `GVL.bStart` | Primitive BOOL; Scalar | `GVL.bStart` |
+| Primitive Array | `GVL.aTemperature` | Primitive REAL; Range Start 0, End 9, Step 1 | `GVL.aTemperature[0]` … `[9]` |
+| Structure Scalar | `GVL.stValve` | Structure Valve@1.0.0; Full; Scalar | `GVL.stValve.Cmd.Extend` (20 Tags) |
+| Structure Array | `GVL.aValve` | Structure Valve@1.0.0; Full; Range 1..2 | `GVL.aValve[1].Cmd.Extend` (40 Tags) |
+| Array Element | `GVL.aPump` | Structure Pump@1.0.0; Single Element index 2 | `GVL.aPump[2].Sts.Running` |
+| Multidimensional Array | `GVL.g_aValve_HMI` | Structure Valve@1.0.0; Full; Range dimension 1 = 1..1, dimension 2 = 1..2 | `GVL.g_aValve_HMI[1,1].Cmd.Extend`, `[1,2].Cmd.Extend` (40 Tags) |
 
-| Route | Request | Result |
-| --- | --- | --- |
-| `GET /api/plc-device-models` | None | Model metadata and flattened member tree |
-| `GET /api/plc-device-models/instances` | None | Saved configuration rows |
-| `POST /api/plc-device-models/instances` | `{ "rows": [ ... ] }` | Validates and saves rows in project general storage |
-| `POST /api/plc-device-models/csv` | `{ "csv": "..." }` | Parses Phase 3A CSV into rows |
-| `POST /api/plc-device-models/preview` | `{ "rows": [ ... ] }` | Full candidate report and opaque preview token for saved rows; no writes |
-| `POST /api/plc-device-models/apply` | `{ "token": "...", "confirmed": true }` | Revalidates, commits one ADS device, and reports runtime reload outcome |
+For a single primitive array element, select Primitive and Single Element. For a two-dimensional selected element, enter both indices; for example `[1,2]`. A custom `Pump@1.0.0` model can define `ST_Pump_HMI` with nested `Cmd.Start: BOOL`, `Cmd.Stop: BOOL`, `Sts.Running: BOOL`, `Sts.Speed: REAL`, and `Sts.ErrorCode: UDINT`. The same model generates `GVL.stPump.Sts.Running` and `GVL.aPump[1].Sts.Running`.
 
-The six row fields are `Device Name`, `PLC Device ID`, `Device Model`, `Array Symbol`, `Array Indices`, and `Profile`. The model is `Valve` or `Valve@1.0.0`; profiles are Full, Status, Control, and Engineering. A preview token belongs to its authenticated user and expires after ten minutes. Invalid input returns HTTP 400; unsaved configurations, stale previews, and Tag conflicts return HTTP 409; unauthorized requests return HTTP 401. A multi-device Apply batch is rejected before any write. Runtime reload failures after a commit return HTTP 207, and committed Tags are never rolled back automatically.
+## Legacy compatibility and safety
 
-## Isolated checks
+The **Legacy Valve CSV** tab preserves the six Phase 3A columns: `Device Name, PLC Device ID, Device Model, Array Symbol, Array Indices, Profile`. The original `expand()`, `flatten()`, CLI and CSV contracts remain. Existing V101/V102 rows still generate `V101_cmd_extend` at `GVL.g_aValve_HMI[1,1].Cmd.Extend` and equivalent V102 addresses. Existing Tag IDs, widget bindings, DAQ settings, type, address, and name are preserved on reuse. Removing a configuration or model never removes a Tag. Preview does not write to the FUXA project.
 
-Run `node --test tools/plc-device-model/test/phase3a.test.cjs tools/plc-device-model/test/phase3b.test.cjs`, `npm test` in `server`, `node --test test/plc-device-models-race.test.cjs` in `client`, and `npm run build -- --configuration production` in `client`. The server suite includes a temporary SQLite project reopened in a separate process, checks persisted configuration and 40 Valve Tags, verifies that an existing widget binding ID and Tag object survive, and tests stop/start failures and consecutive reloads. The client regression test covers stale Preview responses and the partial Apply result.
+Apply reports SQLite persistence and runtime reload separately. HTTP 200 with `persistence: "committed"` and `runtime.status: "updated"` means the device stop and start calls completed. HTTP 207 means the Tags were committed but runtime reload failed; the response contains `runtime.status: "failed"` and a message. Re-preview and Apply again after investigating the device. Runtime update does not confirm a live PLC connection.
 
-For browser testing, create a fresh temporary FUXA user directory, seed only a sanitized fixture with its ADS device disabled, and run `node server/main.js --userDir <temporary-directory> --port 1881`. Open `/device` and test catalog, CSV import/export, save, preview, confirmation, and the normal Tag controls. Keep the temporary user directory outside `.local/fuxa-dev`; the disabled ADS fixture does not connect to a PLC. Browser and SQLite checks do not replace a later test against the operator's actual TwinCAT PLC and Docker project.
+## API and CI
+
+All `/api/plc-device-models` routes require administrator permission. The v2 routes are `GET/POST /models` and `GET/POST /configurations`, relative to that base. POST bodies contain `models` or `configurations` arrays and the `expectedHash` returned by GET; stale saves return HTTP 409. `POST /preview` takes `{ "configurationIds": ["cfg_..."], "expectedHash": "..." }` for saved v2 tasks, or `{ "rows": [...] }` for saved legacy rows. `POST /apply` takes `{ "token": "...", "confirmed": true }`. Legacy `/instances` and `/csv` routes remain. Requests over 100 KB are rejected.
+
+PRs targeting `nexfuxa` must pass the four NexFuxa CI jobs: PLC model tests, full server tests/build, client script/race tests and production build, and final Docker runtime packaging. Local equivalents:
+
+- `node --test tools/plc-device-model/test/phase3a.test.cjs tools/plc-device-model/test/phase3b.test.cjs tools/plc-device-model/test/phase3b1.test.cjs tools/plc-device-model/test/phase3b1-manager.test.cjs`
+- In `server`: `npm test` and `npm run build`
+- In `client`: `npm run test:scripts`, `node --test test/plc-device-models-race.test.cjs`, and `npm run build -- --configuration production`
+- `docker build --build-arg INSTALL_ODBC=false -t nexfuxa-runtime-ci .`, then `node tools/plc-device-model/test/docker-restart.cjs nexfuxa-runtime-ci`. The Docker CI job also loads the manager and generator from the final image and verifies that legacy/v2 configurations and a custom model survive a restart using a disposable volume.
+
+Tests use temporary SQLite data. Do not point them at `.local/fuxa-dev` or a production project. The Docker test verifies package contents and module loading; it does not establish an ADS connection.
