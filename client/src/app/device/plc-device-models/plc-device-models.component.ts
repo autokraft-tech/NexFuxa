@@ -26,9 +26,11 @@ export class PlcDeviceModelsComponent {
     rows: InstanceRow[] = [];
     previewResult: any = null;
     previewDeviceId = '';
-    saved = true;
+    saved = false;
     error = '';
     busy = false;
+    private previewVersion = 0;
+    private previewRequestId = 0;
 
     constructor(private http: HttpClient, private projectService: ProjectService,
         private dialogRef: MatDialogRef<PlcDeviceModelsComponent>) {
@@ -38,8 +40,13 @@ export class PlcDeviceModelsComponent {
             next: models => this.models = models,
             error: error => this.showError(error)
         });
+        const initialVersion = this.previewVersion;
         this.http.get<{ rows: InstanceRow[] }>(this.api + '/instances').subscribe({
-            next: result => { this.rows = result.rows; if (!this.rows.length) this.addRow(); else this.saved = true; },
+            next: result => {
+                if (initialVersion !== this.previewVersion) return;
+                this.rows = result.rows;
+                if (!this.rows.length) this.addRow(); else this.saved = true;
+            },
             error: error => this.showError(error)
         });
     }
@@ -57,13 +64,17 @@ export class PlcDeviceModelsComponent {
     }
 
     invalidate() {
+        this.previewVersion++;
         this.previewResult = null;
         this.saved = false;
         this.error = '';
     }
 
     save() {
+        if (this.busy) return;
         this.busy = true;
+        this.previewVersion++;
+        this.previewResult = null;
         const rows = JSON.parse(JSON.stringify(this.rows));
         this.http.post(this.api + '/instances', { rows }).subscribe({
             next: () => {
@@ -84,18 +95,19 @@ export class PlcDeviceModelsComponent {
     }
 
     importCsv(event: Event) {
+        if (this.busy) return;
         const input = event.target as HTMLInputElement;
         const file = input.files?.[0];
         input.value = '';
         if (!file) return;
         if (file.size > 65536) { this.error = 'CSV exceeds 64 KB'; return; }
+        this.busy = true;
         file.text().then(csv => {
-            this.busy = true;
             this.http.post<{ rows: InstanceRow[] }>(this.api + '/csv', { csv }).subscribe({
                 next: result => { this.rows = result.rows; this.invalidate(); this.busy = false; },
                 error: error => { this.showError(error); this.busy = false; }
             });
-        }).catch(error => this.showError(error));
+        }).catch(error => { this.showError(error); this.busy = false; });
     }
 
     exportCsv() {
@@ -111,22 +123,53 @@ export class PlcDeviceModelsComponent {
     }
 
     preview() {
+        if (this.busy || !this.saved || !this.rows.length) return;
         this.busy = true;
         this.error = '';
         this.previewResult = null;
+        const version = ++this.previewVersion;
+        const requestId = ++this.previewRequestId;
+        const snapshot = JSON.stringify(this.rows);
+        const deviceId = this.previewDeviceId;
         const rows = this.rows.filter(row => row['PLC Device ID'] === this.previewDeviceId);
         this.http.post<any>(this.api + '/preview', { rows }).subscribe({
-            next: result => { this.previewResult = result; this.busy = false; },
-            error: error => { this.showError(error); this.busy = false; }
+            next: result => {
+                if (version === this.previewVersion) {
+                    if (this.saved && deviceId === this.previewDeviceId && snapshot === JSON.stringify(this.rows)) this.previewResult = result;
+                }
+                if (requestId === this.previewRequestId) this.busy = false;
+            },
+            error: error => {
+                if (version === this.previewVersion) this.showError(error);
+                if (requestId === this.previewRequestId) this.busy = false;
+            }
         });
     }
 
+    changePreviewDevice() {
+        this.previewVersion++;
+        this.previewResult = null;
+    }
+
     apply() {
-        if (!this.previewResult || this.previewResult.summary.conflicts ||
+        if (this.busy || !this.saved || !this.previewResult || this.previewResult.summary.conflicts ||
             !window.confirm(`Apply ${this.previewResult.summary.created} new Tag definitions to this FUXA project?`)) return;
         this.busy = true;
-        this.http.post(this.api + '/apply', { token: this.previewResult.token, confirmed: true }).subscribe({
-            next: () => { this.projectService.onRefreshProject(); this.dialogRef.close(true); },
+        this.http.post<any>(this.api + '/apply', { token: this.previewResult.token, confirmed: true }).subscribe({
+            next: result => {
+                this.projectService.onRefreshProject();
+                if (result.runtime?.status === 'failed') {
+                    this.error = `Tags were saved, but the runtime device reload failed: ${result.runtime.message}. Preview again after checking the device.`;
+                    this.previewResult = null;
+                    this.busy = false;
+                } else if (result.persistence === 'committed' && result.runtime?.status === 'updated') {
+                    this.dialogRef.close(true);
+                } else {
+                    this.error = 'Apply returned an unknown outcome. Refresh the project before retrying.';
+                    this.previewResult = null;
+                    this.busy = false;
+                }
+            },
             error: error => { this.showError(error); this.previewResult = null; this.busy = false; }
         });
     }

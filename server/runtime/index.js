@@ -502,37 +502,35 @@ function stop() {
     });
 }
 
-function update(cmd, data) {
-    return new Promise(function (resolve, reject) {
-        try {
-            if (cmd === project.ProjectDataCmdType.SetDevice) {
-                devices.updateDevice(data);
-                alarmsMgr.reset();
-            } else if (cmd === project.ProjectDataCmdType.DelDevice) {
-                devices.removeDevice(data);
-                alarmsMgr.reset();
-            } else if (cmd === project.ProjectDataCmdType.SetAlarm || cmd === project.ProjectDataCmdType.DelAlarm) {
-                alarmsMgr.reset();
-                notificatorMgr.reset();
-            } else if (cmd === project.ProjectDataCmdType.SetNotification || cmd === project.ProjectDataCmdType.DelNotification) {
-                notificatorMgr.reset();
-            } else if (cmd === project.ProjectDataCmdType.SetScript) {
-                scriptsMgr.updateScript(data);
-            } else if (cmd === project.ProjectDataCmdType.DelScript) {
-                scriptsMgr.removeScript(data);
-            } else if (cmd === project.ProjectDataCmdType.SetReport || cmd === project.ProjectDataCmdType.DelReport) {
-                jobsMgr.reset();
-            }
-            resolve(true);
-        } catch (err) {
-            if (err.stack) {
-                logger.error(err.stack);
-            } else {
-                logger.error(err);
-            }
-            reject();
+async function update(cmd, data) {
+    try {
+        if (cmd === project.ProjectDataCmdType.SetDevice) {
+            await devices.updateDevice(data);
+            alarmsMgr.reset();
+        } else if (cmd === project.ProjectDataCmdType.DelDevice) {
+            devices.removeDevice(data);
+            alarmsMgr.reset();
+        } else if (cmd === project.ProjectDataCmdType.SetAlarm || cmd === project.ProjectDataCmdType.DelAlarm) {
+            alarmsMgr.reset();
+            notificatorMgr.reset();
+        } else if (cmd === project.ProjectDataCmdType.SetNotification || cmd === project.ProjectDataCmdType.DelNotification) {
+            notificatorMgr.reset();
+        } else if (cmd === project.ProjectDataCmdType.SetScript) {
+            scriptsMgr.updateScript(data);
+        } else if (cmd === project.ProjectDataCmdType.DelScript) {
+            scriptsMgr.removeScript(data);
+        } else if (cmd === project.ProjectDataCmdType.SetReport || cmd === project.ProjectDataCmdType.DelReport) {
+            jobsMgr.reset();
         }
-    });
+        return true;
+    } catch (err) {
+        if (err.stack) {
+            logger.error(err.stack);
+        } else {
+            logger.error(err);
+        }
+        throw err;
+    }
 }
 
 function restart(clear) {

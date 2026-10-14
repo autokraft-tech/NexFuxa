@@ -6,6 +6,7 @@ const os = require('node:os');
 const path = require('node:path');
 const { spawn } = require('node:child_process');
 const http = require('node:http');
+const crypto = require('node:crypto');
 const express = require('express');
 const api = require('../../api/plc-device-models');
 
@@ -37,6 +38,36 @@ function runChild(script, mode, dir) {
 }
 
 describe('PLC Device Models', function () {
+    it('returns HTTP 207 when tags commit but the runtime reload fails', async function () {
+        const devices = Object.fromEntries(require('../../../tools/plc-device-model/test/fixtures/devices.empty-valves.json')
+            .map(device => [device.id, structuredClone(device)]));
+        const id = 'd_b6ba9d1c-2b054dc3';
+        const rows = [{ 'Device Name': 'V101', 'PLC Device ID': id, 'Device Model': 'Valve@1.0.0',
+            'Array Symbol': 'GVL.g_aValve_HMI', 'Array Indices': '1,1', Profile: 'Full' }];
+        const project = {
+            getDevices: () => devices,
+            getModelInstances: () => rows,
+            getDevicesHash: () => crypto.createHash('sha256').update(JSON.stringify([devices, rows])).digest('hex'),
+            commitDeviceTags: async (deviceId, hash, build) => {
+                const result = build(structuredClone(devices[deviceId]));
+                devices[deviceId] = result.device;
+                return result;
+            }
+        };
+        const app = express();
+        app.use(express.json());
+        app.use(api.app({ project, update: async () => { throw new Error('start failed'); } },
+            (req, res, next) => { req.userId = 'admin'; next(); }, () => 255));
+        const preview = await request(app, 'POST', '/api/plc-device-models/preview', { rows });
+        assert.equal(preview.status, 200);
+        const result = await request(app, 'POST', '/api/plc-device-models/apply',
+            { token: JSON.parse(preview.body).token, confirmed: true });
+        assert.equal(result.status, 207);
+        assert.equal(JSON.parse(result.body).persistence, 'committed');
+        assert.deepEqual(JSON.parse(result.body).runtime, { status: 'failed', message: 'start failed' });
+        assert.equal(Object.keys(devices[id].tags).length, 20);
+    });
+
     it('rejects operator Apply before calling project mutation', async function () {
         let called = false;
         const app = express();

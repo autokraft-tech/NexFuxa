@@ -17,7 +17,8 @@ function app(runtime, secure, checkGroups) {
         next();
     });
     const owner = req => String(req.userId || '');
-    const handle = (res, action) => Promise.resolve().then(action).then(data => res.json(data)).catch(error => {
+    const handle = (res, action) => Promise.resolve().then(action).then(data =>
+        res.status(data?.runtime?.status === 'failed' ? 207 : 200).json(data)).catch(error => {
         const status = error?.code === 'stale_preview' || error?.code === 'tag_conflict' ? 409 :
             error?.code === 'invalid_input' ? 400 : 500;
         res.status(status).json({ error: error?.code || 'storage_error', message: error?.message || 'Project operation failed' });

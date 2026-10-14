@@ -65,6 +65,20 @@ function reportRows(candidates, report) {
     });
 }
 
+function requireSavedRows(rows, project) {
+    const saved = new Map();
+    const key = row => JSON.stringify(columns.map(column => row[column]));
+    for (const row of project.getModelInstances()) {
+        const value = key(row);
+        saved.set(value, (saved.get(value) || 0) + 1);
+    }
+    for (const row of rows) {
+        const value = key(row);
+        if (!saved.get(value)) throw invalid('Instance configuration is not saved. Save and Preview again.', 'stale_preview');
+        saved.set(value, saved.get(value) - 1);
+    }
+}
+
 function createManager(project, update) {
     return {
         catalog() {
@@ -88,6 +102,7 @@ function createManager(project, update) {
         },
         preview(rows, owner) {
             const { candidates, deviceId } = validateRows(rows, project);
+            requireSavedRows(rows, project);
             const result = merge(project, project.getDevices()[deviceId], candidates);
             const token = crypto.randomBytes(24).toString('hex');
             if (previews.size >= 100) previews.delete(previews.keys().next().value);
@@ -104,13 +119,20 @@ function createManager(project, update) {
             previews.delete(token);
             const { candidates, deviceId } = validateRows(preview.rows, project);
             const result = await project.commitDeviceTags(deviceId, preview.hash, current => {
+                requireSavedRows(preview.rows, project);
                 // Revalidate every candidate against the current server-side device.
                 const merged = merge(project, current, candidates);
                 if (merged.report.conflicts.length) throw invalid('Tag conflicts. Preview again.', 'tag_conflict');
                 return { device: merged.devices[0], report: merged.report };
             });
-            await update('set-device', result.device);
-            return { created: result.report.created.length, reused: result.report.reused.length };
+            const response = { created: result.report.created.length, reused: result.report.reused.length,
+                persistence: 'committed', runtime: { status: 'updated' } };
+            try {
+                await update('set-device', result.device);
+            } catch (error) {
+                response.runtime = { status: 'failed', message: error?.message || String(error) };
+            }
+            return response;
         }
     };
 }
