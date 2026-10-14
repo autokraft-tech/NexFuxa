@@ -2,11 +2,26 @@
 <div mat-dialog-content class="model-dialog">
   <p class="intro">Save a configuration, preview server generated ADS symbols, then confirm Apply. PLC values are never written.</p>
   <p class="error" *ngIf="error" role="alert">{{error}}</p>
+  <section class="panel" *ngIf="jsonImport" aria-label="JSON import preview">
+    <h3>JSON import preview · {{jsonImport.kind}}</h3>
+    <label>Import mode <select [(ngModel)]="jsonImport.mode" (ngModelChange)="updateJsonImportMode()" [disabled]="busy">
+      <option value="merge">Merge — add new items and keep existing data</option>
+      <option value="overwrite">Overwrite matching keys — keep other saved items</option>
+      <option value="replace">Replace all — delete saved items absent from the file</option>
+    </select></label>
+    <p>Added {{jsonImport.plan.added}} · Duplicates {{jsonImport.plan.duplicates}} · Conflicts {{jsonImport.plan.conflicts}} · Will be deleted {{jsonImport.plan.deleted}}</p>
+    <p class="hint">Configurations match by ID. Models match by name and version. Merge skips duplicates and keeps existing conflicting items.</p>
+    <p class="error" *ngIf="jsonImport.plan.blocked">Saved model versions cannot be overwritten. Import a new version or choose Merge.</p>
+    <div class="table-scroll preview-scroll"><table class="model-table"><thead><tr><th>Key</th><th>Operation</th><th>Reason</th></tr></thead>
+      <tbody><tr *ngFor="let item of jsonImport.plan.entries"><td>{{item.key}}</td><td>{{item.operation}}</td><td>{{item.reason}}</td></tr></tbody>
+    </table></div>
+    <div class="inline-actions"><button mat-raised-button color="primary" (click)="confirmJsonImport()" [disabled]="busy || jsonImport.plan.blocked">Confirm import</button><button mat-button (click)="cancelJsonImport()" [disabled]="busy">Cancel import</button></div>
+  </section>
   <mat-tab-group>
     <mat-tab label="Generator Configurations">
       <div class="generator-layout">
         <aside class="panel task-list">
-          <div class="panel-title"><h3>Saved tasks</h3><button mat-button (click)="newConfiguration()" [disabled]="busy">New</button></div>
+          <div class="panel-title"><h3>Saved tasks</h3><button mat-button (click)="newConfiguration()" [disabled]="busy">New</button><button mat-button (click)="refreshConfigurations()" [disabled]="busy">Refresh</button></div>
           <button class="task" *ngFor="let config of configurations" [class.active]="selectedConfigurationId === config.id" (click)="selectConfiguration(config.id)" [disabled]="busy">
             <strong>{{config.name}}</strong><span>{{deviceName(config.deviceId)}} · {{config.adsSymbol}}</span>
           </button>

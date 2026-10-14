@@ -14,6 +14,9 @@ interface InstanceRow {
     Profile: string;
 }
 
+type JsonImportKind = 'models' | 'configurations';
+type JsonImportMode = 'merge' | 'overwrite' | 'replace';
+
 @Component({
     selector: 'app-plc-device-models',
     templateUrl: './plc-device-models.component.html',
@@ -43,8 +46,10 @@ export class PlcDeviceModelsComponent {
     saved = false;
     error = '';
     busy = false;
+    jsonImport: any = null;
     private previewVersion = 0;
     private previewRequestId = 0;
+    private configurationLoadId = 0;
 
     constructor(private http: HttpClient, private projectService: ProjectService,
         private dialogRef: MatDialogRef<PlcDeviceModelsComponent>) {
@@ -74,18 +79,49 @@ export class PlcDeviceModelsComponent {
         });
     }
 
-    private reloadConfigurations() {
+    private reloadConfigurations(refreshEditor = false) {
+        const requestId = ++this.configurationLoadId;
+        const version = this.previewVersion;
+        const draftSnapshot = JSON.stringify(this.draft);
         this.http.get<any>(this.api + '/configurations').subscribe({
             next: result => {
+                if (requestId !== this.configurationLoadId) return;
                 this.configurations = result.configurations;
                 this.configurationHash = result.hash;
-                if (this.selectedConfigurationId) this.selectConfiguration(this.selectedConfigurationId);
+                if (refreshEditor && version === this.previewVersion && draftSnapshot === JSON.stringify(this.draft)) {
+                    const current = this.configurations.find(item => item.id === this.selectedConfigurationId);
+                    this.loadConfiguration(current || null);
+                } else if (this.draft && this.configSaved &&
+                    this.fingerprint(this.draft) !== this.fingerprint(this.configurations.find(item => item.id === this.selectedConfigurationId))) {
+                    this.invalidateConfiguration();
+                }
             }, error: error => this.showError(error)
         });
     }
 
+    refreshConfigurations() {
+        if (this.busy || !this.confirmLeaveConfiguration('refresh the editor')) return;
+        this.previewVersion++;
+        this.previewResult = null;
+        this.reloadConfigurations(true);
+    }
+
+    private confirmLeaveConfiguration(action: string): boolean {
+        return !this.draft || this.configSaved ||
+            window.confirm(`The current configuration has unsaved changes. Continue and ${action}? Changes to the current task will not be saved.`);
+    }
+
+    private loadConfiguration(configuration: any) {
+        this.selectedConfigurationId = configuration?.id || '';
+        this.draft = configuration ? JSON.parse(JSON.stringify(configuration)) : null;
+        this.configSaved = !!configuration;
+        this.previewVersion++;
+        this.previewResult = null;
+        this.error = '';
+    }
+
     newConfiguration() {
-        if (this.busy) return;
+        if (this.busy || !this.confirmLeaveConfiguration('create a new task')) return;
         const id = 'cfg_' + Math.random().toString(36).slice(2, 11);
         this.selectedConfigurationId = id;
         this.draft = { schemaVersion: 2, id, name: 'New configuration',
@@ -97,17 +133,12 @@ export class PlcDeviceModelsComponent {
     selectConfiguration(id: string) {
         if (this.busy) return;
         const saved = this.configurations.find(item => item.id === id);
-        if (!saved) return;
-        this.selectedConfigurationId = id;
-        this.draft = JSON.parse(JSON.stringify(saved));
-        this.configSaved = true;
-        this.previewVersion++;
-        this.previewResult = null;
-        this.error = '';
+        if (!saved || !this.confirmLeaveConfiguration('switch tasks')) return;
+        this.loadConfiguration(saved);
     }
 
     copyConfiguration() {
-        if (!this.draft || this.busy) return;
+        if (!this.draft || this.busy || !this.confirmLeaveConfiguration('copy the current contents into a new task')) return;
         this.draft = { ...JSON.parse(JSON.stringify(this.draft)),
             id: 'cfg_' + Math.random().toString(36).slice(2, 11), name: this.draft.name + ' copy' };
         this.selectedConfigurationId = this.draft.id;
@@ -116,12 +147,14 @@ export class PlcDeviceModelsComponent {
 
     deleteConfiguration() {
         if (!this.draft || this.busy) return;
+        if (!window.confirm(`Delete configuration "${this.draft.name}"?${!this.configSaved ? ' Unsaved changes will be discarded.' : ''} Existing Tags and Widget bindings will be kept.`)) return;
+        if (!this.configurations.some(item => item.id === this.draft.id)) {
+            this.loadConfiguration(null);
+            return;
+        }
         const next = this.configurations.filter(item => item.id !== this.draft.id);
         this.persistConfigurations(next, () => {
-            this.draft = null;
-            this.selectedConfigurationId = '';
-            this.configSaved = false;
-            this.previewResult = null;
+            this.loadConfiguration(null);
         });
     }
 
@@ -199,6 +232,7 @@ export class PlcDeviceModelsComponent {
 
     private persistConfigurations(next: any[], done: () => void) {
         this.busy = true;
+        this.configurationLoadId++;
         this.previewVersion++;
         this.previewResult = null;
         this.http.post<any>(this.api + '/configurations', { configurations: next, expectedHash: this.configurationHash }).subscribe({
@@ -279,15 +313,18 @@ export class PlcDeviceModelsComponent {
 
     deleteModel() {
         if (this.busy || !this.selectedModel) return;
+        if (!this.customModels.some(item => `${item.name}@${item.version}` === this.selectedModel) ||
+            !window.confirm(`Delete custom model "${this.selectedModel}"? Referenced versions cannot be deleted. Existing Tags and Widget bindings will be kept.`)) return;
         this.persistModels(this.customModels.filter(item => `${item.name}@${item.version}` !== this.selectedModel));
     }
 
-    private persistModels(next: any[]) {
+    private persistModels(next: any[], done: () => void = () => {}) {
         this.busy = true;
         this.http.post<any>(this.api + '/models', { models: next, expectedHash: this.modelHash }).subscribe({
             next: result => {
                 this.customModels = result.models;
                 this.modelHash = result.hash;
+                done();
                 this.busy = false;
                 this.http.get<any[]>(this.api).subscribe({ next: models => this.models = models,
                     error: error => this.showError(error) });
@@ -296,17 +333,98 @@ export class PlcDeviceModelsComponent {
         });
     }
 
-    importJson(event: Event, kind: 'models' | 'configurations') {
+    async importJson(event: Event, kind: JsonImportKind) {
         const input = event.target as HTMLInputElement;
         const file = input.files?.[0];
         input.value = '';
+        if (this.busy) return;
         if (!file || file.size > 100000) { if (file) this.error = 'JSON exceeds 100 KB'; return; }
-        file.text().then(text => {
-            const data = JSON.parse(text);
+        this.jsonImport = null;
+        this.busy = true;
+        try {
+            const data = JSON.parse(await file.text());
             if (data.schemaVersion !== 2 || !Array.isArray(data[kind])) throw new Error('Expected Schema Version 2 JSON');
-            if (kind === 'models') this.persistModels(data.models);
-            else this.persistConfigurations(data.configurations, () => { this.draft = null; this.configSaved = false; });
-        }).catch(error => this.showError(error));
+            const keys = new Set<string>();
+            for (const item of data[kind]) {
+                const key = this.importKey(item, kind);
+                if (keys.has(key)) throw new Error(`Duplicate key in import file: ${key}`);
+                if (kind === 'models' && key === 'Valve@1.0.0') throw new Error('Valve@1.0.0 is a read-only built-in model');
+                keys.add(key);
+            }
+            this.jsonImport = { kind, items: data[kind], mode: 'merge',
+                baseline: this.fingerprint(kind === 'models' ? this.customModels : this.configurations),
+                expectedHash: kind === 'models' ? this.modelHash : this.configurationHash };
+            this.updateJsonImportMode();
+            this.error = '';
+        } catch (error) { this.showError(error); }
+        finally { this.busy = false; }
+    }
+
+    private importKey(item: any, kind: JsonImportKind): string {
+        if (!item || typeof item !== 'object' || Array.isArray(item) ||
+            (kind === 'models' ? typeof item.name !== 'string' || !item.name ||
+                typeof item.version !== 'string' || !item.version : typeof item.id !== 'string' || !item.id)) {
+            throw new Error('Every imported item requires a valid identity');
+        }
+        return kind === 'models' ? `${item.name}@${item.version}` : item.id;
+    }
+
+    private fingerprint(value: any): string {
+        const normalize = (input: any): any => Array.isArray(input) ? input.map(normalize) :
+            input && typeof input === 'object' ? Object.fromEntries(Object.keys(input).sort().map(key => [key, normalize(input[key])])) : input;
+        return JSON.stringify(normalize(value));
+    }
+
+    updateJsonImportMode() {
+        if (!this.jsonImport) return;
+        const { kind, items, mode } = this.jsonImport as { kind: JsonImportKind; items: any[]; mode: JsonImportMode };
+        const existing = kind === 'models' ? this.customModels : this.configurations;
+        const byKey = new Map<string, any>(existing.map(item => [this.importKey(item, kind), item]));
+        const incomingKeys = new Set(items.map(item => this.importKey(item, kind)));
+        const added = items.filter(item => !byKey.has(this.importKey(item, kind)));
+        const entries = items.map(item => {
+            const key = this.importKey(item, kind);
+            const previous = byKey.get(key);
+            const operation = !previous ? 'Added' : this.fingerprint(previous) === this.fingerprint(item) ? 'Duplicate' : 'Conflict';
+            return { key, operation, reason: operation === 'Conflict' ?
+                (kind === 'models' ? 'Saved model versions are immutable. Import a new version.' :
+                    mode === 'merge' ? 'Same configuration ID has different content; existing data will be kept.' :
+                        'Same configuration ID has different content; imported data will overwrite it.') : '' };
+        });
+        const conflicts = entries.filter(entry => entry.operation === 'Conflict').length;
+        const deleted = mode === 'replace' ? existing.filter(item => !incomingKeys.has(this.importKey(item, kind))) : [];
+        const next = mode === 'replace' ? items : mode === 'overwrite' ?
+            [...existing.map(item => items.find(incoming => this.importKey(incoming, kind) === this.importKey(item, kind)) || item), ...added] :
+            [...existing, ...added];
+        this.jsonImport.plan = { next, entries: [...entries, ...deleted.map(item => ({
+            key: this.importKey(item, kind), operation: 'Deleted', reason: 'Missing from the replacement file.'
+        }))], added: added.length, duplicates: entries.filter(entry => entry.operation === 'Duplicate').length,
+            conflicts, deleted: deleted.length, blocked: kind === 'models' && mode !== 'merge' && conflicts > 0 };
+    }
+
+    cancelJsonImport() {
+        if (!this.busy) this.jsonImport = null;
+    }
+
+    confirmJsonImport() {
+        if (this.busy || !this.jsonImport || this.jsonImport.plan.blocked) return;
+        const { kind, mode, plan, baseline, expectedHash } = this.jsonImport;
+        const existing = kind === 'models' ? this.customModels : this.configurations;
+        const hash = kind === 'models' ? this.modelHash : this.configurationHash;
+        if (baseline !== this.fingerprint(existing) || expectedHash !== hash) {
+            this.error = 'Saved data changed after the import preview. Cancel and import again.';
+            return;
+        }
+        if (kind === 'configurations' && !this.confirmLeaveConfiguration('import configurations')) return;
+        if (!window.confirm(`Confirm JSON ${mode} import: ${plan.added} added, ${plan.duplicates} duplicates, ${plan.conflicts} conflicts (${mode === 'merge' ? 'kept existing' : 'overwritten'}), ${plan.deleted} deleted?`)) return;
+        if (kind === 'models') {
+            this.persistModels(plan.next, () => { this.jsonImport = null; });
+        } else {
+            this.persistConfigurations(plan.next, () => {
+                this.jsonImport = null;
+                this.loadConfiguration(null);
+            });
+        }
     }
 
     exportJson(kind: 'models' | 'configurations') {
