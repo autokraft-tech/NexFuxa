@@ -14,6 +14,8 @@
 <input type="file" #fileImportInput style="display: none" id="devicesConfigFileUpload" (change)="onDevTplChangeListener($event, false)" accept=".json,.csv" />
 <input type="file" #tplFileImportInput style="display: none" id="devicesConfigTplUpload" (change)="onDevTplChangeListener($event, true)" accept=".json,.csv" />
 <mat-menu #optionsgMenu [overlapTrigger]="false">
+    <button mat-menu-item *ngIf="!readonly" (click)="openPlcDeviceModels()">PLC Device Models</button>
+    <mat-divider *ngIf="!readonly" class="menu-separator"></mat-divider>
     <button mat-menu-item [matMenuTriggerFor]="export" style="font-size: 14px;">{{'devices.export' | translate}}</button>
     <mat-menu #export="matMenu" xPosition="before">
         <button mat-menu-item (click)="onExport('json')">{{'devices.export-json' | translate}}</button>

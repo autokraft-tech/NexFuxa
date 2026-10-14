@@ -13,6 +13,7 @@ import {DEVICE_READONLY} from '../_models/hmi';
 import {Utils} from '../_helpers/utils';
 import { SettingsService } from '../_services/settings.service';
 import { SectionMessageDialogComponent } from '../editor/section-message-dialog/section-message-dialog.component';
+import { PlcDeviceModelsComponent } from './plc-device-models/plc-device-models.component';
 
 @Component({
     selector: 'app-device',
@@ -147,6 +148,10 @@ export class DeviceComponent implements OnInit, OnDestroy {
         setTimeout(() => {
             this.reloadActive = false;
         }, 1000);
+    }
+
+    openPlcDeviceModels() {
+        this.dialog.open(PlcDeviceModelsComponent, { width: '94vw', maxWidth: '1400px', autoFocus: false });
     }
 
     onExport(type: string) {

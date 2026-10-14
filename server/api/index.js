@@ -10,6 +10,7 @@ const authJwt = require('./jwt-helper');
 const rateLimit = require("express-rate-limit");
 
 var prjApi = require('./projects');
+var plcDeviceModels = require('./plc-device-models');
 var authApi = require('./auth');
 var usersApi = require('./users');
 var apiKeysApi = require('./apikeys');
@@ -47,6 +48,18 @@ function init(_server, _runtime) {
 			}
 
             var maxApiRequestSize = runtime.settings.apiMaxLength || '100mb';
+            apiApp.use('/api/plc-device-models', function(req, res, next) {
+                if (req.method === 'POST' && !req.is('application/json')) {
+                    return res.status(415).json({ error: 'invalid_content_type', message: 'JSON request required' });
+                }
+                next();
+            }, bodyParser.json({limit: '100kb'}));
+            apiApp.use('/api/plc-device-models', function(err, req, res, next) {
+                res.status(err.status === 413 ? 413 : 400).json({
+                    error: err.status === 413 ? 'request_too_large' : 'invalid_json',
+                    message: err.status === 413 ? 'Request exceeds 100 KB' : 'Invalid JSON request'
+                });
+            });
             apiApp.use(bodyParser.json({limit:maxApiRequestSize}));
             apiApp.use(bodyParser.urlencoded({limit:maxApiRequestSize, extended: true}));
             authJwt.init(runtime.settings.secureEnabled, runtime.settings.secretCode, runtime.settings.tokenExpiresIn);
@@ -70,6 +83,7 @@ function init(_server, _runtime) {
 
             prjApi.init(runtime, authMiddleware, verifyGroups);
             apiApp.use(prjApi.app());
+            apiApp.use(plcDeviceModels.app(runtime, authMiddleware, verifyGroups));
             usersApi.init(runtime, authMiddleware, verifyGroups);
             apiApp.use(usersApi.app());
             alarmsApi.init(runtime, authMiddleware, verifyGroups);

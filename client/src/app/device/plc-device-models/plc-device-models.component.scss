@@ -1,0 +1,9 @@
+.model-dialog { min-width: 780px; max-height: 72vh; }
+.actions { display: flex; align-items: center; gap: 12px; margin: 12px 0; }
+.import-button { cursor: pointer; padding: 8px; color: #3f51b5; }
+.table-scroll { overflow: auto; margin: 12px 0; }
+.preview-scroll { max-height: 280px; }
+.model-table { border-collapse: collapse; width: 100%; white-space: nowrap; }
+.model-table th, .model-table td { padding: 8px; border-bottom: 1px solid #ddd; text-align: left; }
+.model-table input { min-width: 100px; }
+.error { color: #b00020; }

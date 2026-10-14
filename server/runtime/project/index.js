@@ -6,6 +6,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 const async = require('async');
 
 var events = require('../events');
@@ -19,6 +20,45 @@ var logger;                     // Application logger
 var runtime;
 
 var data = {};                  // Project data
+var deviceWrite = Promise.resolve();
+
+function serializeDeviceWrite(work) {
+    const pending = deviceWrite.then(work, work);
+    deviceWrite = pending.catch(() => {});
+    return pending;
+}
+
+function getDevicesHash() {
+    return crypto.createHash('sha256').update(JSON.stringify([data.devices, data.plcDeviceModelInstances || []])).digest('hex');
+}
+
+function getModelInstances() {
+    return JSON.parse(JSON.stringify(data.plcDeviceModelInstances || []));
+}
+
+function saveModelInstances(rows) {
+    return serializeDeviceWrite(async () => {
+        await prjstorage.setSection({ table: prjstorage.TableType.GENERAL,
+            name: 'plcDeviceModelInstances', value: rows });
+        data.plcDeviceModelInstances = JSON.parse(JSON.stringify(rows));
+    });
+}
+
+function commitDeviceTags(deviceId, expectedHash, buildDevice) {
+    return serializeDeviceWrite(async () => {
+        if (getDevicesHash() !== expectedHash) {
+            const error = new Error('Project devices changed since Preview. Preview again.');
+            error.code = 'stale_preview';
+            throw error;
+        }
+        const current = data.devices[deviceId];
+        if (!current || current.type !== DeviceType.ADSclient) throw new Error('ADS device no longer exists');
+        const result = buildDevice(JSON.parse(JSON.stringify(current)));
+        await prjstorage.setSection({ table: prjstorage.TableType.DEVICES, name: deviceId, value: result.device });
+        data.devices[deviceId] = result.device;
+        return result;
+    });
+}
 
 /**
  * Init Project resource and update project
@@ -198,6 +238,13 @@ function load() {
  * @param {*} data
  */
 function setProjectData(cmd, value) {
+    if (cmd === ProjectDataCmdType.SetDevice || cmd === ProjectDataCmdType.DelDevice) {
+        return serializeDeviceWrite(() => setProjectDataUnsafe(cmd, value));
+    }
+    return setProjectDataUnsafe(cmd, value);
+}
+
+function setProjectDataUnsafe(cmd, value) {
     return new Promise(function (resolve, reject) {
         try {
             var toremove = false;
@@ -881,6 +928,13 @@ function setProject(prjcontent) {
     });
 }
 
+function replaceProjectAndRestart(prjcontent) {
+    return serializeDeviceWrite(async () => {
+        await setProject(prjcontent);
+        await runtime.restart(true);
+    });
+}
+
 /**
  * Return Devices list
  */
@@ -1334,9 +1388,14 @@ module.exports = {
     getDeviceProperty: getDeviceProperty,
     setDeviceProperty: setDeviceProperty,
     setProjectData: setProjectData,
+    getDevicesHash: getDevicesHash,
+    getModelInstances: getModelInstances,
+    saveModelInstances: saveModelInstances,
+    commitDeviceTags: commitDeviceTags,
     getProject: getProject,
     getProjectView: getProjectView,
     setProject: setProject,
+    replaceProjectAndRestart: replaceProjectAndRestart,
     getProjectDemo: getProjectDemo,
     ProjectDataCmdType, ProjectDataCmdType,
 };
