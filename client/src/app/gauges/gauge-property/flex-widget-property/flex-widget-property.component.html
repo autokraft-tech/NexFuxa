@@ -1,5 +1,39 @@
 <div class="container">
-    <div *ngFor="let varRef of property.varsToBind" class="var-ref">
+    <mat-form-field *ngIf="property.bindingProfile || property.prefixBinding">
+        <mat-label>Binding Mode</mat-label>
+        <mat-select [value]="!!property.prefixBinding" (selectionChange)="setMode($event.value)">
+            <mat-option [value]="false">Manual</mat-option>
+            <mat-option [value]="true">Prefix Binding</mat-option>
+        </mat-select>
+    </mat-form-field>
+    <div *ngIf="property.prefixBinding as binding" class="prefix-binding">
+        <mat-form-field>
+            <mat-label>PLC Device</mat-label>
+            <mat-select [(ngModel)]="binding.deviceId" (selectionChange)="validateBindings()">
+                <mat-option *ngFor="let device of dataDevices.devices" [value]="device.id">{{device.name}}</mat-option>
+            </mat-select>
+        </mat-form-field>
+        <mat-form-field *ngFor="let key of parameterKeys">
+            <mat-label>Tag Prefix ({{key}})</mat-label>
+            <input matInput [(ngModel)]="binding.parameters[key]" (ngModelChange)="validateBindings()">
+        </mat-form-field>
+        <p role="status">{{communicationStatus}}</p>
+        <p>Prefix mode replaces profile bindings. Switching to Manual restores the previous manual bindings.</p>
+        <button mat-stroked-button (click)="validateBindings()">Validate Bindings</button>
+        <div class="binding-preview" aria-label="Binding Preview" aria-live="polite">
+            <div *ngFor="let result of preview" class="binding-result">
+                <strong>{{result.parameter}}</strong>
+                <mat-form-field *ngIf="property.bindingProfile?.bindings[result.parameter] !== undefined">
+                    <mat-label>Tag template</mat-label>
+                    <input matInput [(ngModel)]="property.bindingProfile.bindings[result.parameter]" (ngModelChange)="validateBindings()">
+                </mat-form-field>
+                <div>{{result.tagName}}</div>
+                <div [class.binding-error]="!!result.error">{{result.error || 'Bound'}} · {{result.type || '—'}}</div>
+                <code *ngIf="result.tagId">{{result.tagId}}</code>
+            </div>
+        </div>
+    </div>
+    <div *ngFor="let varRef of property.varsToBind" class="var-ref" [hidden]="property.prefixBinding && property.bindingProfile?.bindings[varRef.originalName] !== undefined">
         <div class="my-form-field">
             <input type="text"
                    [value]="varRef.originalName"

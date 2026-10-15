@@ -1,6 +1,26 @@
 :host {
     .container {
         margin-top: 20px;
+        max-height: 60vh;
+        overflow: auto;
+        overflow-wrap: anywhere;
+    }
+    .prefix-binding {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    .binding-preview {
+        max-height: 32vh;
+        overflow: auto;
+    }
+    .binding-result {
+        border-bottom: 1px solid #8884;
+        padding: 12px 4px;
+        mat-form-field { display: block; width: 100%; }
+    }
+    .binding-error {
+        color: #b91c1c;
     }
     .var-ref {
         display: block;

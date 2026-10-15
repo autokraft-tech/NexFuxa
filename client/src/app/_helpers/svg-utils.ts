@@ -116,18 +116,33 @@ export class SvgUtils {
         return scriptContent;
     }
 
-    static renameIdsInSvg(svgElement: SVGSVGElement, uniqueId: string): { [oldId: string]: string } {
+    static renameIdsInSvg(svgElement: SVGSVGElement, uniqueId: string, previousId?: string): { [oldId: string]: string } {
         const idMap: { [oldId: string]: string } = {};
         function traverseElement(element: HTMLElement | SVGSVGElement) {
             if (element.id) {
                 const oldId = element.id;
-                const newId = `${oldId}_${uniqueId}`;
+                const baseId = previousId && oldId.endsWith(`_${previousId}`) ? oldId.slice(0, -previousId.length - 1) : oldId;
+                const newId = `${baseId}_${uniqueId}`;
                 element.id = newId;
                 idMap[oldId] = newId;
             }
             Array.from(element.children).forEach(child => traverseElement(child as HTMLElement));
         }
         traverseElement(svgElement);
+        // Keep gradients, clip paths and <use> references pointing at the renamed nodes.
+        function updateReferences(element: Element) {
+            Array.from(element.attributes || []).forEach(attribute => {
+                if (attribute.name === 'id') return;
+                let value = attribute.value.replace(/url\(#([^)]+)\)/g,
+                    (match, id) => idMap[id] ? `url(#${idMap[id]})` : match);
+                if ((attribute.name === 'href' || attribute.name === 'xlink:href') && idMap[value.slice(1)] && value.startsWith('#')) {
+                    value = `#${idMap[value.slice(1)]}`;
+                }
+                if (value !== attribute.value) element.setAttribute(attribute.name, value);
+            });
+            Array.from(element.children).forEach(updateReferences);
+        }
+        updateReferences(svgElement);
 
         return idMap;
     }

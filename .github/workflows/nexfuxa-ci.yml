@@ -83,6 +83,10 @@ jobs:
           python -m playwright install --with-deps chromium
       - name: Actual Angular Dialog and API regression
         run: python test/plc-generator-e2e.py
+      - name: Widget prefix binding and SQLite restart regression
+        run: npm run test:widget-binding
+      - name: Widget prefix binding browser regression
+        run: python test/widget-prefix-e2e.py
 
   docker-runtime-package:
     runs-on: ubuntu-24.04

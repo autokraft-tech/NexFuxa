@@ -104,3 +104,7 @@ foreach ($kind in @('appdata', 'db', 'logs', 'images')) {
 ```
 
 Use the restoration block above with this `$snapshotPath` to populate the host runtime directories, then start FUXA on port 1882. Keep the original named volumes until the migrated projects have been checked. Do not run `docker compose down -v` or `docker volume prune` during migration or recovery.
+
+## Optional prefix binding (Phase 4A.1)
+
+The SVG now carries a six-status Binding Profile in non-executable metadata. After importing the updated asset, choose Prefix Binding in Properties, select an existing PLC Device and enter `#1` (for example `V101` or `V105_1_5`). The preview resolves actual saved Tag IDs; templates can be adapted to existing names. Manual remains the default. Equipment geometry, source attribution and license are unchanged. See [the binding guide](../../../docs/WIDGET_PREFIX_BINDING.md) for architecture, tests, limitations and Docker editor acceptance steps.

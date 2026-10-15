@@ -46,6 +46,16 @@
   </g>
   <rect id="statusBand" x="16" y="124" width="248" height="25" rx="6" fill="#64748b"/>
   <text id="statusText" x="140" y="141" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="13" font-weight="bold">WAITING FOR DATA</text>
+  <metadata data-fuxa-binding-profile="1"><![CDATA[
+{"version":1,"bindings":{
+  "_pb_extended":"{#1}_sts_extended",
+  "_pb_retracted":"{#1}_sts_retracted",
+  "_pb_extending":"{#1}_sts_extending",
+  "_pb_retracting":"{#1}_sts_retracting",
+  "_pb_error":"{#1}_sts_error",
+  "_pb_isManualMode":"{#1}_sts_is_manual_mode"
+}}
+  ]]></metadata>
   <script><![CDATA[
 //!export-start
 let _ps_label = 'Valve';
@@ -108,7 +118,11 @@ function putValue(id, value) {
     _ps_label = String(value);
   } else if (signals.includes(id)) {
     const normalized = String(value).toLowerCase();
-    if (normalized !== 'true' && normalized !== 'false' && normalized !== '1' && normalized !== '0') return;
+    if (normalized !== 'true' && normalized !== 'false' && normalized !== '1' && normalized !== '0') {
+      delete received[id];
+      render();
+      return;
+    }
     const booleanValue = normalized === 'true' || normalized === '1';
     if (id === '_pb_extended') _pb_extended = booleanValue;
     else if (id === '_pb_retracted') _pb_retracted = booleanValue;

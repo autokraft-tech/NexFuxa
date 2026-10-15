@@ -17,6 +17,7 @@
     "build": "ng build",
     "lint": "ng lint",
     "test:scripts": "node --test test/home-scheduled-scripts.test.cjs",
+    "test:widget-binding": "node --test test/widget-prefix-binding.test.cjs ../custom/widgets/valves/NexPlc_Valve.test.cjs",
     "e2e": "ng e2e"
   },
   "dependencies": {

@@ -50,6 +50,7 @@ export class HmiService {
     public hmi: Hmi;
     viewSignalGaugeMap = new ViewSignalGaugeMap();
     variables = {};
+    deviceStatuses: { [id: string]: string } = {};
     alarms = { highhigh: 0, high: 0, low: 0, info: 0 };
     private socket;
     private socketToken: string | null = null;
@@ -239,6 +240,7 @@ export class HmiService {
 
         // devicse status
         this.socket.on(IoEventTypes.DEVICE_STATUS, (message) => {
+            this.deviceStatuses[message.id] = message.status;
             this.onDeviceChanged.emit(message);
             if (message.status === 'connect-error' && this.hmi?.layout?.show_connection_error) {
                 let name = message.id;
