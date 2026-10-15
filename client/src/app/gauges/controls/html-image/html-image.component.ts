@@ -59,7 +59,10 @@ export class HtmlImageComponent extends GaugeBaseComponent {
                 let svgContent = gaugeSettings.property.svgContent ?? localStorage.getItem(gaugeSettings.property.address);
                 if (SvgUtils.isSVG(gaugeSettings.property.address) && svgContent) {
                     const previousModule = svgImageContainer.getAttribute('data-fuxa-module');
-                    if (previousModule) window[previousModule] = undefined;
+                    if (previousModule && Object.prototype.hasOwnProperty.call(window, previousModule)) {
+                        window[previousModule] = undefined;
+                        Reflect.deleteProperty(window, previousModule);
+                    }
                     svgImageContainer.innerHTML = '';
                     svgImageContainer.setAttribute('type', HtmlImageComponent.propertyWidgetType);
                     const parser = new DOMParser();
@@ -260,7 +263,7 @@ export class HtmlImageComponent extends GaugeBaseComponent {
     }
 
     static bindEvents(ga: GaugeSettings, callback?: any): Event {
-        if (!ga.property.prefixBinding && ga.property.type === HtmlImageComponent.propertyWidgetType && ga.property.scriptContent && ga.property.varsToBind?.length) {
+        if (!ga.property.prefixBinding && !ga.property.inheritFaceplateBinding && ga.property.type === HtmlImageComponent.propertyWidgetType && ga.property.scriptContent && ga.property.varsToBind?.length) {
             const scriptContent = ga.property.scriptContent;
             if (window[scriptContent.moduleId]?.['postValue']) {
                 window[scriptContent.moduleId]['postValue'] = (varName, value) => {

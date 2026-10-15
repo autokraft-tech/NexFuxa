@@ -60,9 +60,13 @@ export class WidgetBindingResolver {
     }
 
     static apply(property: { bindingProfile?: WidgetBindingProfile; prefixBinding?: WidgetPrefixBinding;
-                            varsToBind?: WidgetPropertyVariable[] }, devices: Device[]): WidgetBindingResult[] {
-        if (!property.prefixBinding) return [];
-        const results = this.resolve(property.bindingProfile, property.prefixBinding, property.varsToBind, devices);
+                            inheritFaceplateBinding?: boolean; varsToBind?: WidgetPropertyVariable[] },
+                 devices: Device[], faceplateBinding?: WidgetPrefixBinding): WidgetBindingResult[] {
+        if (!property.prefixBinding && !property.inheritFaceplateBinding) return [];
+        const config = property.inheritFaceplateBinding ? faceplateBinding : property.prefixBinding;
+        const results = property.inheritFaceplateBinding && !config ?
+            [{ parameter: '', tagName: '', error: 'Missing Faceplate Binding Context' }] :
+            this.resolve(property.bindingProfile, config, property.varsToBind, devices);
         const validProfile = property.bindingProfile?.version === 1 && Object.keys(property.bindingProfile.bindings || {}).length > 0;
         // Prefix mode owns profile parameters only. Never fall back to a stale manual ID.
         for (const variable of property.varsToBind || []) {

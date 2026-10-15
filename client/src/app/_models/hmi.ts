@@ -241,6 +241,7 @@ export interface PermissionRoles {
 }
 
 export class WidgetProperty extends GaugeProperty {
+    inheritFaceplateBinding?: boolean;
     bindingProfile?: WidgetBindingProfile;
     prefixBinding?: WidgetPrefixBinding;
     manualBindings?: WidgetPropertyVariable[];

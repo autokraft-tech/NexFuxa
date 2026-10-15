@@ -1,4 +1,5 @@
 import { Component, Inject, OnInit } from '@angular/core';
+import type { WidgetPrefixBinding } from '../../_helpers/widget-binding';
 import { Hmi, View } from '../../_models/hmi';
 import { GaugesManager } from '../../gauges/gauges.component';
 import { MAT_DIALOG_DATA as MAT_DIALOG_DATA, MatDialogRef as MatDialogRef } from '@angular/material/dialog';
@@ -37,4 +38,5 @@ export interface FuxaViewDialogData {
     view: View;
     variablesMapping: [];
     sourceDeviceId?: string;
+    faceplateBinding?: WidgetPrefixBinding;
 }

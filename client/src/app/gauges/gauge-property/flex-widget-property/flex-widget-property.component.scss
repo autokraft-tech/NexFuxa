@@ -23,6 +23,7 @@
         color: #b91c1c;
     }
     .var-ref {
+        &[hidden] { display: none; }
         display: block;
         flex-variable {
             display: inline-block;

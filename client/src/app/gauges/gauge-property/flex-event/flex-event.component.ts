@@ -13,7 +13,8 @@ import {
     View,
     ViewEventActionType,
     ViewEventType,
-    ViewType
+    ViewType,
+    WidgetProperty
 } from '../../../_models/hmi';
 import { Script, ScriptParam, SCRIPT_PARAMS_MAP } from '../../../_models/script';
 
@@ -143,6 +144,12 @@ export class FlexEventComponent implements OnInit {
                 event.actoptions[SCRIPT_PARAMS_MAP] = JSON.parse(JSON.stringify(script.parameters));
             }
         }
+    }
+
+    faceplateActionLabel(action: string): string {
+        const widget = this.property as WidgetProperty;
+        if (!widget?.prefixBinding && !widget?.inheritFaceplateBinding) return '';
+        return action === 'ondialog' ? 'Open Faceplate (Dialog)' : action === 'onwindow' ? 'Open Faceplate (Card)' : '';
     }
 
     withDestination(action) {

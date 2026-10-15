@@ -1,4 +1,5 @@
 import { View } from '../_models/hmi';
+import type { WidgetPrefixBinding } from './widget-binding';
 
 /** One rendered view. Never write this clone back to the project. */
 export class ViewRuntimeContext {
@@ -7,6 +8,7 @@ export class ViewRuntimeContext {
     readonly viewInstanceId = ViewRuntimeContext.createInstanceId();
     readonly viewDefinitionId: string;
     readonly view: View;
+    readonly faceplateBinding?: WidgetPrefixBinding;
     readonly ids: Record<string, string> = {};
     readonly cleanups: (() => void)[] = [];
     private timers = new Set<ReturnType<typeof setTimeout>>();
@@ -19,8 +21,13 @@ export class ViewRuntimeContext {
         this.timers.add(timer);
     }
 
-    constructor(definition: View, root: HTMLElement) {
+    static snapshotBinding(binding?: WidgetPrefixBinding): WidgetPrefixBinding | undefined {
+        return binding ? Object.freeze({deviceId: binding.deviceId, parameters: Object.freeze({...binding.parameters})}) : undefined;
+    }
+
+    constructor(definition: View, root: HTMLElement, faceplateBinding?: WidgetPrefixBinding) {
         this.viewDefinitionId = definition.id;
+        this.faceplateBinding = ViewRuntimeContext.snapshotBinding(faceplateBinding);
         this.view = JSON.parse(JSON.stringify(definition));
         root.querySelectorAll('[id]').forEach(node => {
             this.ids[node.id] = `${node.id}__${this.viewInstanceId}`;

@@ -68,6 +68,7 @@ export class PanelComponent extends GaugeBaseComponent {
                 const factory = resolver.resolveComponentFactory(FuxaViewComponent);
                 const componentRef = viewContainerRef.createComponent(factory);
                 componentRef.instance.gaugesManager = gaugeManager;
+                componentRef.instance.faceplateBinding = parent?.runtime?.faceplateBinding;
 
                 componentRef.changeDetectorRef.detectChanges();
                 const loaderComponentElement = componentRef.location.nativeElement;

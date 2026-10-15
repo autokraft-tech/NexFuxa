@@ -139,3 +139,12 @@
 .dialog-input button {
     min-width: 80px;
 }
+.runtime-binding-errors {
+    border: 1px solid #b91c1c;
+    background: #fff4f4;
+    color: #8b1515;
+    padding: 8px;
+    max-height: 120px;
+    overflow: auto;
+    overflow-wrap: anywhere;
+}

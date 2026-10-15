@@ -95,6 +95,12 @@ jobs:
         env:
           TMPDIR: ${{ runner.temp }}
         run: python test/view-instance-e2e.py
+      - name: Faceplate inheritance unit regression
+        run: node --test test/faceplate-binding.test.cjs
+      - name: Faceplate inheritance browser and restart regression
+        env:
+          TMPDIR: ${{ runner.temp }}
+        run: python test/faceplate-e2e.py
       - name: Upload browser evidence
         if: always()
         uses: actions/upload-artifact@v4
