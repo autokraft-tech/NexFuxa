@@ -502,10 +502,10 @@ function stop() {
     });
 }
 
-async function update(cmd, data) {
+async function update(cmd, data, options) {
     try {
         if (cmd === project.ProjectDataCmdType.SetDevice) {
-            await devices.updateDevice(data);
+            await devices.updateDevice(data, options);
             alarmsMgr.reset();
         } else if (cmd === project.ProjectDataCmdType.DelDevice) {
             devices.removeDevice(data);

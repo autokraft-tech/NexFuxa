@@ -1268,3 +1268,7 @@ mat-toolbar-row {
     justify-content: center;
     align-items: center;
   }
+/* Keep the generator above existing FUXA floating controls while it is open. */
+.cdk-overlay-container:has(.plc-generator-dialog) {
+    z-index: 1000000;
+}

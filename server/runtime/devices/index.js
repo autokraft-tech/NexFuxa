@@ -78,7 +78,7 @@ function update() {
  * Update the device, load and restart it
  * @param {*} device
  */
-function updateDevice(device) {
+function updateDevice(device, options) {
     const previous = deviceUpdates.get(device.id) || Promise.resolve();
     const pending = previous.catch(() => {}).then(async () => {
         if (activeDevices[device.id]) await activeDevices[device.id].stop();
@@ -88,7 +88,7 @@ function updateDevice(device) {
             return;
         }
         if (!devices.loadDevice(device)) throw new Error(`Failed to load device ${device.name}`);
-        await activeDevices[device.id].start();
+        await activeDevices[device.id].start(options);
     });
     deviceUpdates.set(device.id, pending);
     pending.finally(() => {

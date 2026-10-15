@@ -46,6 +46,7 @@ import { LanguageTextListComponent } from './language/language-text-list/languag
 import { LabComponent } from './lab/lab.component';
 import { DeviceComponent } from './device/device.component';
 import { PlcDeviceModelsComponent } from './device/plc-device-models/plc-device-models.component';
+import { PlcTagPropertiesComponent } from './device/plc-device-models/plc-tag-properties.component';
 import { DevicePropertyComponent } from './device/device-property/device-property.component';
 import { TagOptionsComponent } from './device/tag-options/tag-options.component';
 import { TopicPropertyComponent } from './device/topic-property/topic-property.component';
@@ -269,6 +270,7 @@ export const myCustomTooltipDefaults: MatTooltipDefaultOptions = {
         LabComponent,
         DeviceComponent,
         PlcDeviceModelsComponent,
+        PlcTagPropertiesComponent,
         DeviceTagSelectionComponent,
         TagPropertyEditS7Component,
         TagPropertyEditServerComponent,

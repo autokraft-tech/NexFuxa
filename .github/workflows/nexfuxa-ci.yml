@@ -24,8 +24,8 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: '20'
-      - name: Phase 3A and 3B regression tests
-        run: node --test tools/plc-device-model/test/phase3a.test.cjs tools/plc-device-model/test/phase3b.test.cjs
+      - name: Phase 3A, 3B and 3B.1 regression tests
+        run: node --test tools/plc-device-model/test/phase3a.test.cjs tools/plc-device-model/test/phase3b.test.cjs tools/plc-device-model/test/phase3b1.test.cjs tools/plc-device-model/test/phase3b1-manager.test.cjs
 
   server-tests:
     runs-on: ubuntu-24.04
@@ -72,6 +72,17 @@ jobs:
         run: node --test test/plc-device-models-race.test.cjs
       - name: Angular production build
         run: npm run build -- --configuration production
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install isolated UI test dependencies
+        run: |
+          sudo apt-get update && sudo apt-get install -y build-essential python3 libsqlite3-dev
+          npm ci --prefix ../server
+          python -m pip install playwright==1.55.0
+          python -m playwright install --with-deps chromium
+      - name: Actual Angular Dialog and API regression
+        run: python test/plc-generator-e2e.py
 
   docker-runtime-package:
     runs-on: ubuntu-24.04
@@ -79,7 +90,12 @@ jobs:
       - uses: actions/checkout@v5
         with:
           persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '20'
       - name: Build final runtime image
         run: docker build --build-arg INSTALL_ODBC=false -t nexfuxa-runtime-ci .
-      - name: Load PLC Device Model Manager from final image
-        run: docker run --rm --network none --entrypoint node nexfuxa-runtime-ci -e "const manager = require('./api/plc-device-models/manager'); if (typeof manager.createManager !== 'function') process.exit(1);"
+      - name: Load PLC Tag Generator from final image
+        run: docker run --rm --network none --entrypoint node nexfuxa-runtime-ci -e "const manager = require('./api/plc-device-models/manager'); const generator = require('../tools/plc-device-model/generator.cjs'); if (typeof manager.createManager !== 'function' || typeof generator.generate !== 'function') process.exit(1);"
+      - name: Verify isolated Docker restart persistence
+        run: node tools/plc-device-model/test/docker-restart.cjs nexfuxa-runtime-ci

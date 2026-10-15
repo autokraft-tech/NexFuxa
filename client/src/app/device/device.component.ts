@@ -151,7 +151,9 @@ export class DeviceComponent implements OnInit, OnDestroy {
     }
 
     openPlcDeviceModels() {
-        this.dialog.open(PlcDeviceModelsComponent, { width: '94vw', maxWidth: '1400px', autoFocus: false });
+        this.dialog.open(PlcDeviceModelsComponent, { width: '96vw', maxWidth: '1400px',
+            height: 'calc(100dvh - 32px)', maxHeight: 'calc(100dvh - 32px)', autoFocus: false,
+            disableClose: true, panelClass: 'plc-generator-dialog' });
     }
 
     onExport(type: string) {

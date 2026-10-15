@@ -29,7 +29,8 @@ function serializeDeviceWrite(work) {
 }
 
 function getDevicesHash() {
-    return crypto.createHash('sha256').update(JSON.stringify([data.devices, data.plcDeviceModelInstances || []])).digest('hex');
+    return crypto.createHash('sha256').update(JSON.stringify([data.devices, data.plcDeviceModelInstances || [],
+        data.plcTagGeneratorConfigurations || [], data.plcTagGeneratorModels || []])).digest('hex');
 }
 
 function getModelInstances() {
@@ -41,6 +42,40 @@ function saveModelInstances(rows) {
         await prjstorage.setSection({ table: prjstorage.TableType.GENERAL,
             name: 'plcDeviceModelInstances', value: rows });
         data.plcDeviceModelInstances = JSON.parse(JSON.stringify(rows));
+    });
+}
+
+function getTagGeneratorConfigurations() {
+    return JSON.parse(JSON.stringify(data.plcTagGeneratorConfigurations || []));
+}
+
+function saveTagGeneratorConfigurations(configurations, expectedHash) {
+    return serializeDeviceWrite(async () => {
+        if (expectedHash !== undefined && getDevicesHash() !== expectedHash) {
+            const error = new Error('Generator configurations changed. Reload and save again.');
+            error.code = 'stale_preview';
+            throw error;
+        }
+        await prjstorage.setSection({ table: prjstorage.TableType.GENERAL,
+            name: 'plcTagGeneratorConfigurations', value: configurations });
+        data.plcTagGeneratorConfigurations = JSON.parse(JSON.stringify(configurations));
+    });
+}
+
+function getTagGeneratorModels() {
+    return JSON.parse(JSON.stringify(data.plcTagGeneratorModels || []));
+}
+
+function saveTagGeneratorModels(models, expectedHash) {
+    return serializeDeviceWrite(async () => {
+        if (expectedHash !== undefined && getDevicesHash() !== expectedHash) {
+            const error = new Error('Structure models changed. Reload and save again.');
+            error.code = 'stale_preview';
+            throw error;
+        }
+        await prjstorage.setSection({ table: prjstorage.TableType.GENERAL,
+            name: 'plcTagGeneratorModels', value: models });
+        data.plcTagGeneratorModels = JSON.parse(JSON.stringify(models));
     });
 }
 
@@ -1391,6 +1426,10 @@ module.exports = {
     getDevicesHash: getDevicesHash,
     getModelInstances: getModelInstances,
     saveModelInstances: saveModelInstances,
+    getTagGeneratorConfigurations: getTagGeneratorConfigurations,
+    saveTagGeneratorConfigurations: saveTagGeneratorConfigurations,
+    getTagGeneratorModels: getTagGeneratorModels,
+    saveTagGeneratorModels: saveTagGeneratorModels,
     commitDeviceTags: commitDeviceTags,
     getProject: getProject,
     getProjectView: getProjectView,
