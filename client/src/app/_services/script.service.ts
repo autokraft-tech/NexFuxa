@@ -55,7 +55,9 @@ export class ScriptService {
         (window as any).fuxaScriptAPI = api;
     }
 
-    runScript(script: Script, toLogEvent: boolean = true): Observable<any> {
+    private runtimeViewId?: string;
+
+    runScript(script: Script, toLogEvent: boolean = true, viewInstanceId?: string): Observable<any> {
         return new Observable((observer) => {
             const permission = this.authService.checkPermission(script, true);
             if (permission?.enabled === false) {
@@ -68,7 +70,7 @@ export class ScriptService {
                 if (environment.serverEnabled) {
                     let header = new HttpHeaders({ 'Content-Type': 'application/json' });
                     let params = { script: script, toLogEvent: toLogEvent };
-                    this.http.post<any>(this.endPointConfig + '/api/runscript', { headers: header, params: params }).subscribe(result => {
+                    return this.http.post<any>(this.endPointConfig + '/api/runscript', { headers: header, params: params }).subscribe(result => {
                         observer.next(result);
                         observer.complete();
                     }, err => {
@@ -97,7 +99,10 @@ export class ScriptService {
                     const code = `${parameterToAdd}${script.code}`;
                     const asyncText = script.sync ? 'function' : 'async function';
                     const callText = `${asyncText} ${script.name}() {\n${this.addSysFunctions(code, script.name)} \n }\n${script.name}.call(this);\n`;
-                    const result = eval(callText);
+                    // Each invocation keeps its receiver across await; never mutate the singleton scope.
+                    const executionService = Object.create(this) as ScriptService;
+                    executionService.runtimeViewId = viewInstanceId;
+                    const result = function() { return eval(callText); }.call(executionService);
 
                     if (result && typeof result.then === 'function') {
                         result
@@ -232,15 +237,15 @@ export class ScriptService {
     }
 
     public $invokeObject(gaugeName: string, fncName: string, ...params: any[]) {
-        const gauge = this.hmiService.getGaugeMapped(gaugeName);
-        if (gauge[fncName]) {
+        const gauge = this.$getObject(gaugeName);
+        if (gauge?.[fncName]) {
             return gauge[fncName](...params);
         }
         return null;
     }
 
     public $getObject(gaugeName: string) {
-        const gauge = this.hmiService.getGaugeMapped(gaugeName);
+        const gauge = this.hmiService.getGaugeMapped(gaugeName, this.runtimeViewId);
         return gauge;
     }
 

@@ -55,6 +55,7 @@ function createRuntime() {
         const calls = [];
         home.intervalsScript = new Intervals();
         home.projectService = { getScripts: () => scripts };
+        home.hmiService = { homeTagsSubscribe() {} };
         home.scriptService = {
             evalScript(script) {
                 assert.equal(this, home.scriptService);
@@ -99,7 +100,8 @@ test('HMI load events start a fresh schedule and destruction removes the subscri
     home.loadHmi = () => {};
     home.checkDateTimeTimer = () => {};
     const idleEvent = { subscribe: () => ({ unsubscribe() {} }) };
-    home.hmiService = { onAlarmsStatus: idleEvent, onGoTo: idleEvent, onOpen: idleEvent };
+    home.hmiService = { onAlarmsStatus: idleEvent, onGoTo: idleEvent, onOpen: idleEvent,
+        onWriteUnauthorized: idleEvent, homeTagsSubscribe: tags => assert.equal(tags.length, 0) };
     home.languageService = {};
     home.authService = {};
     home.gaugesManager = { onchange: { pipe: () => idleEvent } };

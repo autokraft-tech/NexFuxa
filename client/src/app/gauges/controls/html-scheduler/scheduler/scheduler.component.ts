@@ -1,3 +1,4 @@
+import { ViewRuntimeContext } from '../../../../_helpers/view-runtime-context';
 import { Component, Input, OnInit, OnDestroy, OnChanges, SimpleChanges, ViewChild, ElementRef, ChangeDetectorRef, ViewEncapsulation, AfterViewInit, NgZone } from '@angular/core';
 import { fromEvent, Subject, take, takeUntil } from 'rxjs';
 import { HmiService } from '../../../../_services/hmi.service';
@@ -178,6 +179,8 @@ export class SchedulerComponent implements OnInit, OnDestroy, OnChanges, AfterVi
         return `${item.deviceName}-${item.startTime}-${index}`;
     }
 
+    private readonly subscriptionOwner = ViewRuntimeContext.createInstanceId();
+
     constructor(
         private hmiService: HmiService,
         private cdr: ChangeDetectorRef,
@@ -331,6 +334,7 @@ export class SchedulerComponent implements OnInit, OnDestroy, OnChanges, AfterVi
     }
 
     ngOnDestroy() {
+        this.hmiService.releaseViewTags(this.subscriptionOwner);
         this.destroy$.next();
         this.destroy$.complete();
 
@@ -1207,10 +1211,8 @@ export class SchedulerComponent implements OnInit, OnDestroy, OnChanges, AfterVi
             }
         });
 
+        this.hmiService.viewsTagsSubscribe(Array.from(this.scheduledTags), true, this.subscriptionOwner);
         if (this.scheduledTags.size > 0) {
-            const tagIds = Array.from(this.scheduledTags);
-
-            this.hmiService.viewsTagsSubscribe(tagIds, true);
 
             this.signalSubscription = this.hmiService.onVariableChanged.pipe(
                 takeUntil(this.destroy$)

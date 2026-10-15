@@ -83,6 +83,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     private subscriptionWriteUnauthorized: Subscription;
     private loginDialogRef: MatDialogRef<LoginComponent> = null;
     private destroy$ = new Subject<void>();
+    private navigationGeneration = 0;
     loggedUser$: Observable<User>;
     language$: Observable<LanguageConfiguration>;
     readonly defaultHeaderHeight = HeaderSettings.DefaultHeight;
@@ -159,6 +160,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     ngOnDestroy() {
+        ++this.navigationGeneration;
         try {
             if (this.subscriptionLoad) {
                 this.subscriptionLoad.unsubscribe();
@@ -178,6 +180,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
             this.destroy$.next(null);
             this.destroy$.complete();
             this.intervalsScript.clearIntervals();
+            this.hmiService.homeTagsSubscribe([]);
         } catch (e) {
         }
     }
@@ -208,11 +211,13 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     async onGoToPage(viewId: string, force: boolean = false, options: any = {}) {
+        const generation = ++this.navigationGeneration;
         if (viewId === this.viewAsAlarms) {
             this.onAlarmsShowMode('expand');
             this.checkToCloseSideNav();
         } else if (!this.homeView || viewId !== this.homeView?.id || force || this.fuxaview?.view?.id !== viewId || this.hasPageOptions(options)) {
             const view = await this.projectService.ensureViewLoaded(viewId);
+            if (generation !== this.navigationGeneration) return;
             this.setIframe();
             this.showHomeLink = false;
             this.changeDetector.detectChanges();
@@ -487,6 +492,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     private loadHeaderItems() {
         this.headerItemsMap.clear();
         if (!this.showNavigation) {
+            this.hmiService.homeTagsSubscribe([]);
             return;
         }
         this.layoutHeader.items?.forEach(item => {

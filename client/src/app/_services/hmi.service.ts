@@ -60,9 +60,9 @@ export class HmiService {
     private addFunctionType = Utils.getEnumKey(GaugeEventSetValueType, GaugeEventSetValueType.add);
     private removeFunctionType = Utils.getEnumKey(GaugeEventSetValueType, GaugeEventSetValueType.remove);
     private homeTagsSubscription = [];
-    private viewsTagsSubscription = [];
+    private viewsTagsSubscription = new Map<string, string[]>();
 
-    getGaugeMapped: (gaugeName: string) => void; // function binded in GaugeManager
+    getGaugeMapped: (gaugeName: string, viewInstanceId?: string) => any; // function binded in GaugeManager
 
     constructor(public projectService: ProjectService,
         private translateService: TranslateService,
@@ -470,7 +470,7 @@ export class HmiService {
 
     private tagsSubscribe(sendLastValue: boolean = false) {
         if (this.socket) {
-            const mergedArray = this.viewsTagsSubscription.concat(this.homeTagsSubscription);
+            const mergedArray = [...this.viewsTagsSubscription.values()].flat().concat(this.homeTagsSubscription);
             const mergedArrayResolvedAdapter = this.deviceAdapaterService.resolveAdapterTagsId(mergedArray);
             let msg = { tagsId: [...new Set(mergedArrayResolvedAdapter)], sendLastValue: sendLastValue };
             this.socket.emit(IoEventTypes.DEVICE_TAGS_SUBSCRIBE, msg);
@@ -480,9 +480,18 @@ export class HmiService {
     /**
      * Subscribe views tags values
      */
-    public viewsTagsSubscribe(tagsId: string[], sendLastValue: boolean = false) {
-        this.viewsTagsSubscription = tagsId;
+    public viewsTagsSubscribe(tagsId: string[], sendLastValue: boolean = false, owner: string = 'legacy') {
+        this.viewsTagsSubscription.set(owner, tagsId);
         this.tagsSubscribe(sendLastValue);
+    }
+
+    public getViewTags(owner: string): string[] {
+        return this.viewSignalGaugeMap.getSignalIds(owner);
+    }
+
+    public releaseViewTags(owner: string) {
+        this.viewsTagsSubscription.delete(owner);
+        this.tagsSubscribe();
     }
 
     /**
@@ -763,7 +772,7 @@ class ViewSignalGaugeMap {
     }
 
     public signalsGauges(domViewId: string, sigid: string) {
-        return this.views[domViewId][sigid];
+        return this.views[domViewId]?.[sigid] || [];
     }
 
     public getSignalIds(domViewId: string) {

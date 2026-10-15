@@ -1,4 +1,5 @@
 /* eslint-disable @angular-eslint/component-class-suffix */
+import { ViewRuntimeContext } from '../../_helpers/view-runtime-context';
 import { Component, OnInit, AfterViewInit, ViewChild, Input, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
 import { MatDialog as MatDialog } from '@angular/material/dialog';
 import { ChangeDetectorRef } from '@angular/core';
@@ -55,6 +56,8 @@ export class DeviceListComponent implements OnInit, AfterViewInit {
     @ViewChild(MatMenuTrigger, {static: false}) trigger: MatMenuTrigger;
     @ViewChild(MatPaginator, {static: false}) paginator: MatPaginator;
 
+    private readonly subscriptionOwner = ViewRuntimeContext.createInstanceId();
+
     constructor(private dialog: MatDialog,
         private hmiService: HmiService,
         private translateService: TranslateService,
@@ -62,6 +65,10 @@ export class DeviceListComponent implements OnInit, AfterViewInit {
         private projectService: ProjectService,
         private tagPropertyService: TagPropertyService
         ) { }
+
+    ngOnDestroy() {
+        this.hmiService.releaseViewTags(this.subscriptionOwner);
+    }
 
     ngOnInit() {
         this.devices = this.projectService.getDevices();
@@ -92,7 +99,7 @@ export class DeviceListComponent implements OnInit, AfterViewInit {
             tags = {};
         }
         this.dataSource.data = Object.values(tags);
-        this.hmiService.viewsTagsSubscribe(Object.keys(tags));
+        this.hmiService.viewsTagsSubscribe(Object.keys(tags), false, this.subscriptionOwner);
     }
 
     onDeviceChange(source) {

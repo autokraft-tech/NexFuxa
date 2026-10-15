@@ -87,6 +87,10 @@ jobs:
         run: npm run test:widget-binding
       - name: Widget prefix binding browser regression
         run: python test/widget-prefix-e2e.py
+      - name: View instance isolation unit regression
+        run: node --test test/view-instance.test.cjs
+      - name: View instance isolation browser regression
+        run: python test/view-instance-e2e.py
 
   docker-runtime-package:
     runs-on: ubuntu-24.04
