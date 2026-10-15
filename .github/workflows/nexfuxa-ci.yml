@@ -86,7 +86,23 @@ jobs:
       - name: Widget prefix binding and SQLite restart regression
         run: npm run test:widget-binding
       - name: Widget prefix binding browser regression
+        env:
+          TMPDIR: ${{ runner.temp }}
         run: python test/widget-prefix-e2e.py
+      - name: View instance isolation unit regression
+        run: node --test test/view-instance.test.cjs
+      - name: View instance isolation browser regression
+        env:
+          TMPDIR: ${{ runner.temp }}
+        run: python test/view-instance-e2e.py
+      - name: Upload browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: view-instance-browser-evidence
+          path: ${{ runner.temp }}/nexfuxa-*.png
+          if-no-files-found: ignore
+          retention-days: 14
 
   docker-runtime-package:
     runs-on: ubuntu-24.04

@@ -65,6 +65,7 @@ export class GaugesManager {
     mapChart = {};
     mapGauges = {};
     mapTable = {};
+    private instanceGauges = new Map<string, Set<string>>();
 
     // list of gauges tags to speed up the check
     static gaugesTags = [];
@@ -292,6 +293,8 @@ export class GaugesManager {
      * @param bindhtmlevent
      */
     bindGauge(gauge: any, domViewId: string, ga: GaugeSettings, sourceDeviceTags: Tag[], bindMouseEvent: any, bindhtmlevent: any) {
+        if (!this.instanceGauges.has(domViewId)) this.instanceGauges.set(domViewId, new Set());
+        this.instanceGauges.get(domViewId).add(ga.id);
         let sigsId: string[] = this.getBindSignals(ga, sourceDeviceTags);
         if (sigsId) {
             for (let i = 0; i < sigsId.length; i++) {
@@ -332,6 +335,8 @@ export class GaugesManager {
         }
         this.bindGaugeEventToSignal(ga);
         this.checkElementToInit(ga);
+        this.mapGaugeView[ga.id] = this.mapGaugeView[ga.id] || {};
+        this.mapGaugeView[ga.id][domViewId] = ga;
     }
 
 
@@ -340,46 +345,24 @@ export class GaugesManager {
      * called from fuxa-view, remove bind of dom view gauge
      */
     unbindGauge(domViewId: string) {
-        // first remove special gauge like chart from memorySigGauges
-        let sigGaugeSettingsIdremoved = this.hmiService.removeSignalGaugeFromMap(domViewId);
-        Object.keys(sigGaugeSettingsIdremoved).forEach(sid => {
-            if (this.memorySigGauges[sid]) {
-                for (let i = 0; i < sigGaugeSettingsIdremoved[sid].length; i++) {
-                    let gsId = sigGaugeSettingsIdremoved[sid][i];
-                    if (this.memorySigGauges[sid][gsId]) {
-                        let g = this.memorySigGauges[sid][gsId];
-                        try {
-                            if (g.myComRef) {
-                                g.myComRef.destroy();
-                            }
-                            delete this.memorySigGauges[sid][gsId];
-                            if (this.mapChart[g.id]) {
-                                delete this.mapChart[g.id];
-                            }
-                            if (this.mapGauges[g.id]) {
-                                delete this.mapGauges[g.id];
-                            }
-                            if (this.mapTable[g.id]) {
-                                delete this.mapTable[g.id];
-                            }
-                        } catch (err) {
-                            console.error(err);
-                        }
-                    }
-                }
-            }
+        this.hmiService.removeSignalGaugeFromMap(domViewId);
+        const ids = this.instanceGauges.get(domViewId) || new Set<string>();
+        Object.keys(this.memorySigGauges).forEach(signal => {
+            ids.forEach(id => delete this.memorySigGauges[signal][id]);
+            if (!Object.keys(this.memorySigGauges[signal]).length) delete this.memorySigGauges[signal];
         });
-
-        // remove mapped gauge for events of this view
-        Object.values(this.mapGaugeView).forEach(val => {
-            if (val[domViewId]) {
-                let g = val[domViewId];
-                if (g.myComRef) {
-                    g.myComRef.destroy();
-                }
-                delete val[domViewId];
-            }
+        Object.keys(this.eventGauge).forEach(id => {
+            if (ids.has(this.eventGauge[id]?.id)) delete this.eventGauge[id];
         });
+        ids.forEach(id => {
+            const gauge = this.mapGauges[id];
+            if (gauge?.myComRef && !gauge.myComRef.hostView?.destroyed) gauge.myComRef.destroy();
+            delete this.mapGauges[id];
+            delete this.mapChart[id];
+            delete this.mapTable[id];
+            delete this.mapGaugeView[id];
+        });
+        this.instanceGauges.delete(domViewId);
     }
 
     /**
@@ -419,7 +402,12 @@ export class GaugesManager {
         }
     }
 
-    getGaugeFromName(gaugeName: string) {
+    getGaugeFromName(gaugeName: string, viewInstanceId?: string) {
+        if (viewInstanceId !== undefined) {
+            const ids = this.instanceGauges.get(viewInstanceId);
+            const id = ids && Array.from(ids).find(key => this.mapGaugeView[key]?.[viewInstanceId]?.name === gaugeName);
+            return id ? this.mapGauges[id] || this.mapGaugeView[id][viewInstanceId] : undefined;
+        }
         let gauge = Object.values(this.mapGauges).find((g: any) => g?.name === gaugeName);
         if (!gauge && this.mapGaugeView) {
           gauge = Object.values(this.mapGaugeView).find((g: any) => g?.name === gaugeName);
@@ -460,7 +448,7 @@ export class GaugesManager {
             for (let i = 0; i < GaugesManager.Gauges.length; i++) {
                 if (gaugeSettings.type.startsWith(GaugesManager.Gauges[i].TypeTag)) {
                     if (gaugeSettings.type.startsWith(HtmlChartComponent.TypeTag)) {
-                        let sigsId = this.hmiService.getChartSignal(gaugeSettings.property.id);
+                        let sigsId = this.hmiService.getChartSignal(gaugeSettings.property.id) || [];
                         if (sourceDeviceTags) {
                             sigsId = sigsId.map(signalId => {
                                 const tag = DevicesUtils.placeholderToTag(signalId, sourceDeviceTags);
@@ -469,7 +457,7 @@ export class GaugesManager {
                         }
                         return sigsId;
                     } else if (gaugeSettings.type.startsWith(HtmlGraphComponent.TypeTag)) {
-                        let sigsId = this.hmiService.getGraphSignal(gaugeSettings.property.id);
+                        let sigsId = this.hmiService.getGraphSignal(gaugeSettings.property.id) || [];
                         if (sourceDeviceTags) {
                             sigsId = sigsId.map(signalId => {
                                 const tag = DevicesUtils.placeholderToTag(signalId, sourceDeviceTags);
@@ -989,7 +977,7 @@ export class GaugesManager {
             if (property.id) {
                 let chart = this.hmiService.getChart(property.id);
                 if (chart) {
-                    const opt = <ChartOptions>{ ...property.options, ...{ title: chart.name, id: chart.name, scales: { x: { time: true } } } };
+                    const opt = <ChartOptions>{ ...property.options, ...{ title: chart.name, id: `${gauge.id}_plot`, scales: { x: { time: true } } } };
                     gauge.setOptions(opt, true);
                     let yaxisNotOne = chart.lines.find(line => line.yaxis > 1);
                     for (let i = 0; i < chart.lines.length; i++) {

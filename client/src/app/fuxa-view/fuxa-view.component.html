@@ -1,4 +1,4 @@
-<div  [ngStyle]="{ visibility: viewLoaded ? 'visible' : 'hidden' }" #dataContainer class="view-container" id="content">
+<div  [ngStyle]="{ visibility: viewLoaded ? 'visible' : 'hidden' }" #dataContainer class="view-container" [id]="viewInstanceId + '_content'">
 </div>
 <div *ngFor="let card of cards; let i = index"
      (pointerdown)="bringCardToFront(card)"

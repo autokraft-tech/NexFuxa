@@ -114,7 +114,7 @@ export class HtmlImageComponent extends GaugeBaseComponent {
                     }
                     if (gaugeSettings.property.scriptContent) {
                         const newScript = document.createElement('script');
-                        newScript.textContent = SvgUtils.initWidget(gaugeSettings.property.scriptContent.content, gaugeSettings.property.varsToBind);
+                        newScript.textContent = '(function(){' + SvgUtils.initWidget(gaugeSettings.property.scriptContent.content, gaugeSettings.property.varsToBind) + '\n})();';
                         document.body.appendChild(newScript);
                         newScript.remove();
                         svgImageContainer.setAttribute('data-fuxa-module', gaugeSettings.property.scriptContent.moduleId);

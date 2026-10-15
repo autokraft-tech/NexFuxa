@@ -33,8 +33,8 @@ def run_browser(url, server):
         page.goto(url + '/home/Prefix%20Binding%20Fixture')
         assert page.evaluate('navigator.language') == 'en-US'
         assert page.evaluate('new Intl.Locale(navigator.language).baseName') == 'en-US'
-        a = page.locator('#widget_V101 [id^="statusText_"]')
-        b = page.locator('#widget_V102 [id^="statusText_"]')
+        a = page.locator('[id^="widget_V101__"] [id^="statusText_"]')
+        b = page.locator('[id^="widget_V102__"] [id^="statusText_"]')
         expect(a).to_have_text('WAITING FOR DATA')
         expect(b).to_have_text('WAITING FOR DATA')
         emit('device-status:changed', dict(id=DEVICE, status='connect-ok'))
@@ -88,7 +88,7 @@ def run_browser(url, server):
         response = page.request.post(url + '/api/projectData', data=dict(cmd='set-view', data=view))
         assert response.ok
         page.reload()
-        expect(page.locator('#widget_V101')).to_have_count(0)
+        expect(page.locator('[id^="widget_V101__"]')).to_have_count(0)
         expect(b).to_have_text('WAITING FOR DATA')
         emit('device-status:changed', dict(id=DEVICE, status='connect-ok'))
         values('V102', 1)
@@ -106,6 +106,8 @@ def run_browser(url, server):
         page.get_by_text('Prefix Binding Fixture', exact=True).first.click()
         # Import through the actual editor file flow, also testing metadata discovery.
         page.locator('input[accept="image/png|jpg|svg"]').first.set_input_files(ROOT / 'custom/widgets/valves/NexPlc_Valve.svg')
+        page.wait_for_function("localStorage.getItem('NexPlc_Valve.svg') !== null")
+        expect(page.locator('.svg-tool-active input[accept="image/png|jpg|svg"]').first).to_be_attached()
         page.locator('#svgroot').click(position=dict(x=420, y=230))
         page.locator('gauge-base button').click()
         panel = page.locator('flex-widget-property')
@@ -155,21 +157,24 @@ def run_browser(url, server):
         browser.close()
 
 
-def main():
+def main(fixture='widget-prefix-fixture.cjs', runner=run_browser, broadcast_all=True, lazy=False):
     with tempfile.TemporaryDirectory(prefix='nexfuxa-prefix-ui-') as directory:
         root = Path(directory)
         work = root / '_appdata'
         work.mkdir()
         static = os.environ.get('FUXA_TEST_CLIENT_DIST', str(ROOT / 'client/dist'))
         settings = 'const s = require(' + json.dumps(str(ROOT / 'server/settings.default.js')) + ');'
-        settings += "s.uiHost='127.0.0.1';s.nodeRedEnabled=false;s.broadcastAll=true;"
+        settings += "s.uiHost='127.0.0.1';s.nodeRedEnabled=false;s.broadcastAll=" + str(broadcast_all).lower() + ';'
+        settings += 's.lazyViewLoading=' + str(lazy).lower() + ';'
         settings += 's.httpStatic=' + json.dumps(static) + ';module.exports=s;'
         (work / 'settings.js').write_text(settings, encoding='utf-8')
-        subprocess.run(['node', str(ROOT / 'client/test/widget-prefix-fixture.cjs'), 'seed', str(work)], check=True, cwd=ROOT)
+        subprocess.run(['node', str(ROOT / 'client/test' / fixture), 'seed', str(work)], check=True, cwd=ROOT)
         wrapper = root / 'server.cjs'
         wrapper.write_text('require(' + json.dumps(str(ROOT / 'server/main.js')) + ');\n' +
-                           "require('node:readline').createInterface({input:process.stdin}).on('line',line=>{const m=JSON.parse(line);require(" +
-                           json.dumps(str(ROOT / 'server/runtime')) + ').events.emit(m.event,m.payload);});', encoding='utf-8')
+                           "require('node:readline').createInterface({input:process.stdin}).on('line',line=>{const m=JSON.parse(line);const r=require(" +
+                           json.dumps(str(ROOT / 'server/runtime')) + ');if(m.event==="fixture-disconnect"){r.io.sockets.sockets.forEach(s=>s.conn.close());}' +
+                           'else if(m.event==="fixture-assert-tags"){r.io.sockets.sockets.forEach(s=>require("node:assert/strict").deepEqual([...new Set(s.tagsClientSubscriptions.filter(t=>t.startsWith("t_fixture_")))].sort(),m.payload.sort()));}' +
+                           'else{r.events.emit(m.event,m.payload);}});', encoding='utf-8')
         with socket.socket() as sock:
             sock.bind(('127.0.0.1', 0))
             port = sock.getsockname()[1]
@@ -186,7 +191,7 @@ def main():
                         if server.poll() is not None:
                             raise RuntimeError('Isolated server exited')
                         time.sleep(.5)
-                run_browser(url, server)
+                runner(url, server)
             except Exception:
                 log.seek(0)
                 print(log.read()[-4000:])

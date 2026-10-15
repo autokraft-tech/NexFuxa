@@ -1,3 +1,4 @@
+import { ViewRuntimeContext } from '../../_helpers/view-runtime-context';
 import { AfterViewInit, ApplicationRef, Component, ComponentFactoryResolver, ElementRef, EventEmitter, Injector, Input, OnDestroy, Output, ViewChild } from '@angular/core';
 import * as L from 'leaflet';
 import { GaugesManager } from '../../gauges/gauges.component';
@@ -57,6 +58,8 @@ export class MapsViewComponent implements AfterViewInit, OnDestroy {
     private openPopups = [];
     private currentPopup: L.Popup | null = null;
 
+    private readonly subscriptionOwner = ViewRuntimeContext.createInstanceId();
+
     constructor(
         private resolver: ComponentFactoryResolver,
         private hmiService: HmiService,
@@ -75,6 +78,7 @@ export class MapsViewComponent implements AfterViewInit, OnDestroy {
         }
 
         setTimeout(() => {
+            if (this.destroy$.isStopped) return;
             this.map = L.map('map').setView(startLocation, this.view.property?.startZoom || 13);
 
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -103,6 +107,7 @@ export class MapsViewComponent implements AfterViewInit, OnDestroy {
     }
 
     ngOnDestroy() {
+        this.hmiService.releaseViewTags(this.subscriptionOwner);
         this.destroy$.next(null);
         this.destroy$.complete();
     }
@@ -471,9 +476,7 @@ export class MapsViewComponent implements AfterViewInit, OnDestroy {
 
     private subscribeMarkerTags() {
         const tagIds = Array.from(this.markerItemsMap.keys());
-        if (tagIds.length) {
-            this.hmiService.viewsTagsSubscribe(tagIds, true);
-        }
+        this.hmiService.viewsTagsSubscribe(tagIds, true, this.subscriptionOwner);
     }
 
     private collectActionTags(actions: GaugeAction[] | undefined, marker: L.Marker) {
