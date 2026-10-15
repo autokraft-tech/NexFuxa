@@ -1,12 +1,19 @@
 <div class="container">
-    <mat-form-field *ngIf="property.bindingProfile || property.prefixBinding">
+    <mat-form-field *ngIf="property.bindingProfile || property.prefixBinding || property.inheritFaceplateBinding">
         <mat-label>Binding Mode</mat-label>
-        <mat-select [value]="!!property.prefixBinding" (selectionChange)="setMode($event.value)">
+        <mat-select [value]="property.inheritFaceplateBinding ? 'inherit' : !!property.prefixBinding" (selectionChange)="setMode($event.value)">
             <mat-option [value]="false">Manual</mat-option>
             <mat-option [value]="true">Prefix Binding</mat-option>
+            <mat-option value="inherit">Inherit Faceplate Binding</mat-option>
         </mat-select>
     </mat-form-field>
-    <div *ngIf="property.prefixBinding as binding" class="prefix-binding">
+    <div *ngIf="property.inheritFaceplateBinding" class="prefix-binding" role="status">
+        <p>Use the PLC Device and Tag Prefix from the Symbol that opens this Faceplate. No Variables Mapping is required.</p>
+        <p>Bindings are validated when the Faceplate opens. Missing parameters, devices or Tags are shown in that instance.</p>
+        <div *ngFor="let key of parameterKeys">Required parameter: {{key}}</div>
+        <div *ngFor="let entry of property.bindingProfile?.bindings | keyvalue"><strong>{{entry.key}}</strong>: {{entry.value}}</div>
+    </div>
+    <div *ngIf="!property.inheritFaceplateBinding && property.prefixBinding as binding" class="prefix-binding">
         <mat-form-field>
             <mat-label>PLC Device</mat-label>
             <mat-select [(ngModel)]="binding.deviceId" (selectionChange)="validateBindings()">
@@ -33,7 +40,7 @@
             </div>
         </div>
     </div>
-    <div *ngFor="let varRef of property.varsToBind" class="var-ref" [hidden]="property.prefixBinding && property.bindingProfile?.bindings[varRef.originalName] !== undefined">
+    <div *ngFor="let varRef of property.varsToBind" class="var-ref" [hidden]="(property.prefixBinding || property.inheritFaceplateBinding) && property.bindingProfile?.bindings[varRef.originalName] !== undefined">
         <div class="my-form-field">
             <input type="text"
                    [value]="varRef.originalName"

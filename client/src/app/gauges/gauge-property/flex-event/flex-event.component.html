@@ -18,7 +18,7 @@
             <mat-select [(value)]="item.action" (change)="item.actparam = '';">
                 <ng-container *ngIf="!isEnterOrSelect(item.type); else enterOrSelectAction">
                     <mat-option *ngFor="let type of actionType | enumToArray" [value]="type.key">
-                        {{ type.value }}
+                        {{ faceplateActionLabel(type.key) || type.value }}
                     </mat-option>
                 </ng-container>
                 <ng-template #enterOrSelectAction>
@@ -29,6 +29,7 @@
             </mat-select>
         </div>
     </div>
+    <p *ngIf="faceplateActionLabel(item.action)" class="faceplate-hint">The opening Symbol passes its PLC Device and Tag Prefix. Target Widgets can select Inherit Faceplate Binding.</p>
     <div class="my-form-field" style="width: 280px;padding-left: 20px" *ngIf="withDestination(item.action)">
         <ng-container *ngIf="isWithPanel(item.action); else destination" class="inbk" style="vertical-align: top;">
             <div class="my-form-field block" style="width: 240px;">

@@ -30,7 +30,7 @@ export class FlexWidgetPropertyComponent implements OnInit {
                 this.property.varsToBind
             );
         }
-        if (this.property.prefixBinding) this.validateBindings();
+        if (this.property.prefixBinding || this.property.inheritFaceplateBinding) this.validateBindings();
         this.hmiService.askDeviceStatus();
     }
 
@@ -39,20 +39,34 @@ export class FlexWidgetPropertyComponent implements OnInit {
         return Array.from(new Set(Array.from(expressions.matchAll(/\{(#[1-9]\d*)\}/g), match => match[1])));
     }
 
-    setMode(prefix: boolean) {
+    setMode(prefix: boolean | 'inherit') {
         if (prefix) {
-            this.property.manualBindings = JSON.parse(JSON.stringify(this.property.varsToBind || []));
-            this.property.prefixBinding = { deviceId: '', parameters: { '#1': '' } };
+            if (!this.property.prefixBinding && !this.property.inheritFaceplateBinding) {
+                this.property.manualBindings = JSON.parse(JSON.stringify(this.property.varsToBind || []));
+            }
+            if (prefix === 'inherit') {
+                this.property.inheritFaceplateBinding = true;
+                delete this.property.prefixBinding;
+            } else {
+                delete this.property.inheritFaceplateBinding;
+                this.property.prefixBinding = { deviceId: '', parameters: { '#1': '' } };
+            }
             this.validateBindings();
         } else {
             this.property.varsToBind = this.property.manualBindings || this.property.varsToBind;
             delete this.property.manualBindings;
             delete this.property.prefixBinding;
+            delete this.property.inheritFaceplateBinding;
             this.preview = [];
         }
     }
 
     validateBindings() {
+        if (this.property.inheritFaceplateBinding) {
+            WidgetBindingResolver.apply(this.property, Object.values(this.projectService.getDevices()));
+            this.preview = [];
+            return;
+        }
         this.preview = WidgetBindingResolver.apply(this.property, Object.values(this.projectService.getDevices()));
     }
 

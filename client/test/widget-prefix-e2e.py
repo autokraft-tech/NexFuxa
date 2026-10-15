@@ -157,7 +157,7 @@ def run_browser(url, server):
         browser.close()
 
 
-def main(fixture='widget-prefix-fixture.cjs', runner=run_browser, broadcast_all=True, lazy=False):
+def main(fixture='widget-prefix-fixture.cjs', runner=run_browser, broadcast_all=True, lazy=False, restart_runner=None):
     with tempfile.TemporaryDirectory(prefix='nexfuxa-prefix-ui-') as directory:
         root = Path(directory)
         work = root / '_appdata'
@@ -180,25 +180,26 @@ def main(fixture='widget-prefix-fixture.cjs', runner=run_browser, broadcast_all=
             port = sock.getsockname()[1]
         url = 'http://127.0.0.1:' + str(port)
         with (root / 'server.log').open('w+', encoding='utf-8', errors='replace') as log:
-            server = subprocess.Popen(['node', str(wrapper), '--userDir', str(root), '--port', str(port)],
-                                      cwd=ROOT / 'server', stdout=log, stderr=log, stdin=subprocess.PIPE, text=True)
-            try:
-                for _ in range(120):
-                    try:
-                        urllib.request.urlopen(url + '/api/project', timeout=1)
-                        break
-                    except Exception:
-                        if server.poll() is not None:
-                            raise RuntimeError('Isolated server exited')
-                        time.sleep(.5)
-                runner(url, server)
-            except Exception:
-                log.seek(0)
-                print(log.read()[-4000:])
-                raise
-            finally:
-                server.terminate()
-                server.wait(timeout=30)
+            for current_runner in [runner] + ([restart_runner] if restart_runner else []):
+                server = subprocess.Popen(['node', str(wrapper), '--userDir', str(root), '--port', str(port)],
+                                          cwd=ROOT / 'server', stdout=log, stderr=log, stdin=subprocess.PIPE, text=True)
+                try:
+                    for _ in range(120):
+                        try:
+                            urllib.request.urlopen(url + '/api/project', timeout=1)
+                            break
+                        except Exception:
+                            if server.poll() is not None:
+                                raise RuntimeError('Isolated server exited')
+                            time.sleep(.5)
+                    current_runner(url, server)
+                except Exception:
+                    log.seek(0)
+                    print(log.read()[-4000:])
+                    raise
+                finally:
+                    server.terminate()
+                    server.wait(timeout=30)
 
 
 if __name__ == '__main__':

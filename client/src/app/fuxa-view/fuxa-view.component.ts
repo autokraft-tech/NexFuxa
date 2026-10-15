@@ -34,7 +34,7 @@ import { DevicesUtils, PlaceholderDevice, Tag } from '../_models/device';
 import { LanguageService } from '../_services/language.service';
 import { EventUtils } from '../_helpers/event-utils';
 import { ViewRuntimeContext } from '../_helpers/view-runtime-context';
-import { WidgetBindingResolver } from '../_helpers/widget-binding';
+import { WidgetBindingResolver, WidgetPrefixBinding } from '../_helpers/widget-binding';
 
 declare var SVG: any;
 
@@ -53,6 +53,8 @@ export class FuxaViewComponent implements OnInit, AfterViewInit, OnDestroy {
     @Input() gaugesManager: GaugesManager;        // gauges.component
     @Input() parentcards: CardModel[];
     @Input() sourceDeviceId: string;
+    @Input() faceplateBinding?: WidgetPrefixBinding;
+    bindingErrors: { widget: string; message: string }[] = [];
     @Output() onclose = new EventEmitter();
     @Output() ongoto: EventEmitter<string> = new EventEmitter();
 
@@ -106,6 +108,7 @@ export class FuxaViewComponent implements OnInit, AfterViewInit, OnDestroy {
         this.viewContainerRef.clear();
         this.mapControls = {};
         this.prefixWidgets = [];
+        this.bindingErrors = [];
         this.staticValues = {};
         this.ownedDialogs.forEach(dialog => dialog.close());
         this.ownedDialogs.clear();
@@ -293,7 +296,7 @@ export class FuxaViewComponent implements OnInit, AfterViewInit, OnDestroy {
                     FuxaViewComponent.setAlignStyle(view.profile.align, this.dataContainer.nativeElement);
                 }
             }
-            this.runtime = new ViewRuntimeContext(view, this.dataContainer.nativeElement);
+            this.runtime = new ViewRuntimeContext(view, this.dataContainer.nativeElement, this.faceplateBinding);
             this.view = this.runtime.view;
             this.changeDetector.detectChanges();
             this.loadWatch(this.view);
@@ -363,10 +366,17 @@ export class FuxaViewComponent implements OnInit, AfterViewInit, OnDestroy {
                 }
                 try {
                     // check language translation
-                    if (items[key].property?.prefixBinding) {
+                    if (items[key].property?.prefixBinding || items[key].property?.inheritFaceplateBinding) {
                         this.prefixWidgets.push(items[key]);
-                        const results = WidgetBindingResolver.apply(items[key].property, Object.values(this.projectService.getDevices()));
-                        results.filter(result => result.error).forEach(result => console.error('Widget binding', key, result.parameter, result.error));
+                        const results = WidgetBindingResolver.apply(items[key].property, Object.values(this.projectService.getDevices()), this.runtime.faceplateBinding);
+                        if (items[key].property.inheritFaceplateBinding) {
+                            // Effective config is attached only to this runtime clone, for validity and nested opens.
+                            items[key].property.prefixBinding = this.runtime.faceplateBinding || {deviceId: '', parameters: {}};
+                        }
+                        results.filter(result => result.error).forEach(result => {
+                            const message = `${result.parameter || 'Binding'}: ${result.tagName ? result.tagName + ' — ' : ''}${result.error}`;
+                            this.bindingErrors.push({widget: items[key].name || key, message});
+                        });
                     }
                     const textTranslated = this.languageService.getTranslation(items[key].property?.text);
                     // init gauge and TagId
@@ -659,6 +669,10 @@ export class FuxaViewComponent implements OnInit, AfterViewInit, OnDestroy {
         }
     }
 
+    private faceplateOptions(ga: GaugeSettings, options: any) {
+        return {...options, faceplateBinding: ViewRuntimeContext.snapshotBinding(ga.property?.prefixBinding)};
+    }
+
     public runEvents(self: any, ga: GaugeSettings, ev: any, events: any) {
         for (let i = 0; i < events.length; i++) {
             let actindex = Object.keys(GaugeEventActionType).indexOf(events[i].action);
@@ -666,9 +680,9 @@ export class FuxaViewComponent implements OnInit, AfterViewInit, OnDestroy {
             if (eventTypes.indexOf(GaugeEventActionType.onpage) === actindex) {
                 self.loadPage(ev, events[i].actparam, events[i].actoptions);
             } else if (eventTypes.indexOf(GaugeEventActionType.onwindow) === actindex) {
-                self.onOpenCard(ga.id, ev, events[i].actparam, events[i].actoptions);
+                self.onOpenCard(ga.id, ev, events[i].actparam, this.faceplateOptions(ga, events[i].actoptions));
             } else if (eventTypes.indexOf(GaugeEventActionType.ondialog) === actindex) {
-                self.openDialog(ev, events[i].actparam, events[i].actoptions);
+                self.openDialog(ev, events[i].actparam, this.faceplateOptions(ga, events[i].actoptions));
             } else if (eventTypes.indexOf(GaugeEventActionType.onSetValue) === actindex) {
                 self.onSetValue(ga, events[i]);
             } else if (eventTypes.indexOf(GaugeEventActionType.onToggleValue) === actindex) {
@@ -936,6 +950,7 @@ export class FuxaViewComponent implements OnInit, AfterViewInit, OnDestroy {
         if (view) {
             this.loadVariableMapping(options?.variablesMapping || []);
             this.sourceDeviceId = options?.sourceDeviceId;
+            this.faceplateBinding = ViewRuntimeContext.snapshotBinding(options?.faceplateBinding);
             this.loadHmi(view, true);
             if (param?.scaleMode) {
                 Utils.resizeViewRev(this.dataContainer.nativeElement, this.dataContainer.nativeElement.parentElement?.parentElement, param.scaleMode);
@@ -944,6 +959,7 @@ export class FuxaViewComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     async openDialog(event, viewref: string, options: any = {}) {
+        options = {...options, faceplateBinding: ViewRuntimeContext.snapshotBinding(options.faceplateBinding)};
         const generation = this.loadGeneration;
         const view = await this.getView(viewref);
         if (this.destroyed || generation !== this.loadGeneration) return;
@@ -956,7 +972,8 @@ export class FuxaViewComponent implements OnInit, AfterViewInit, OnDestroy {
             variablesMapping: options.variablesMapping,
             disableDefaultClose: options.hideClose,
             gaugesManager: this.gaugesManager,
-            sourceDeviceId: options.sourceDeviceId
+            sourceDeviceId: options.sourceDeviceId,
+            faceplateBinding: ViewRuntimeContext.snapshotBinding(options.faceplateBinding)
         };
         let dialogRef = this.fuxaDialog.open(FuxaViewDialogComponent, {
             panelClass: 'fuxa-dialog-property',
@@ -985,6 +1002,7 @@ export class FuxaViewComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     async onOpenCard(id: string, event: PointerEvent | TouchEvent | any, viewref: string, options: any = {}) {
+        options = {...options, faceplateBinding: ViewRuntimeContext.snapshotBinding(options.faceplateBinding)};
         if (options?.singleCard) {
             this.closeAllCards();
             this.changeDetector.detectChanges();
@@ -1024,6 +1042,7 @@ export class FuxaViewComponent implements OnInit, AfterViewInit, OnDestroy {
         card.variablesMapping = options?.variablesMapping;
         card.disableDefaultClose = options?.hideClose;
         card.sourceDeviceId = options?.sourceDeviceId;
+        card.faceplateBinding = ViewRuntimeContext.snapshotBinding(options?.faceplateBinding);
         card.zIndex = this.nextZIndex();
         this.ownedCards.add(card);
         console.log('index', card.zIndex);
@@ -1320,6 +1339,7 @@ interface GaugePropertyExt extends GaugeProperty {
 
 export class CardModel {
     owner?: FuxaViewComponent;
+    faceplateBinding?: WidgetPrefixBinding;
     public id: string;
     public name: string;
     public link: string;
