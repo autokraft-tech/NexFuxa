@@ -92,6 +92,8 @@ Local verification on 2026-10-15:
 
 `nexfuxa-view-instance-dialogs.png` additionally captures concurrent Dialogs and the scoped Chart script result. No real TwinCAT connection, production Docker deployment or general heap benchmark was performed.
 
+The CI client job uploads these screenshots as `view-instance-browser-evidence` with 14-day retention.
+
 ## Docker + TwinCAT manual acceptance
 
 Use a development build of the PR in a separately provisioned test environment. Preserve existing runtime data/volumes; do not replace production Compose or migrate its database.
