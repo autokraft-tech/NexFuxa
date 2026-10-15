@@ -1,6 +1,7 @@
 import { GridType } from 'angular-gridster2';
 import { Device, DeviceType, Tag } from './device';
 import { WidgetPropertyVariable } from '../_helpers/svg-utils';
+import { WidgetBindingProfile, WidgetPrefixBinding } from '../_helpers/widget-binding';
 import { MapsLocation } from './maps';
 
 export class Hmi {
@@ -240,6 +241,9 @@ export interface PermissionRoles {
 }
 
 export class WidgetProperty extends GaugeProperty {
+    bindingProfile?: WidgetBindingProfile;
+    prefixBinding?: WidgetPrefixBinding;
+    manualBindings?: WidgetPropertyVariable[];
     type: string;
     scriptContent?: { moduleId: string, content: string };
     svgContent?: string;

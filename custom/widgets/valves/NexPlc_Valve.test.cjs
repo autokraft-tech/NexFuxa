@@ -128,6 +128,41 @@ test('two FUXA-style instances keep their elements and values separate', () => {
   assert.equal(second.parts.valveBody.attributes.fill, '#2563eb');
 });
 
+for (const [state, values] of [
+  ['EXTENDED', { extended: true }],
+  ['FAULT', { error: true, extended: true, retracted: true }],
+  ['CONFLICT', { extended: true, retracted: true }],
+]) {
+  test(`${state} loses validity on disconnect and recovers identical BOOL feedback only when complete`, () => {
+    const harness = makeHarness();
+    const first = harness.addWidget('V101');
+    const second = harness.addWidget('V102');
+    feed(first, values);
+    feed(second, { retracted: true, isManualMode: true });
+    assert.equal(first.parts.statusText.textContent, state);
+    for (const name of signals) {
+      first.putValue(`_pb_${name}`, null);
+      assert.equal(first.parts.statusText.textContent, 'WAITING FOR DATA');
+      assert.equal(first.parts.valveBody.attributes.fill, '#64748b');
+      assert.equal(first.parts.statusBand.attributes.fill, '#64748b');
+      assert.equal(second.parts.statusText.textContent, 'RETRACTED');
+      assert.equal(second.parts.manualText.textContent, 'MANUAL');
+    }
+    assert.equal(first.parts.manualText.textContent, 'MODE ?');
+    for (const name of signals.slice(0, -1)) {
+      first.putValue(`_pb_${name}`, values[name] ?? false);
+      assert.equal(first.parts.statusText.textContent, 'WAITING FOR DATA');
+      assert.equal(second.parts.statusText.textContent, 'RETRACTED');
+    }
+    first.putValue('_pb_isManualMode', false);
+    assert.equal(first.parts.statusText.textContent, state);
+    assert.equal(second.parts.statusText.textContent, 'RETRACTED');
+    feed(first, { extending: true });
+    assert.equal(first.parts.statusText.textContent, 'EXTENDING');
+    assert.equal(second.parts.valveBody.attributes.fill, '#2563eb');
+  });
+}
+
 test('development mount follows FUXA widget discovery and binding paths', () => {
   const compose = fs.readFileSync(path.join(repo, 'compose.dev.yml'), 'utf8');
   const resources = fs.readFileSync(path.join(repo, 'server/api/resources/index.js'), 'utf8');

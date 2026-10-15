@@ -12,7 +12,7 @@ import {
     ViewChild,
     ViewContainerRef
 } from '@angular/core';
-import { Subject, Subscription, take } from 'rxjs';
+import { Subject, Subscription, take, takeUntil } from 'rxjs';
 import { ChangeDetectorRef } from '@angular/core';
 
 import { Event, GaugeEvent, GaugeEventActionType, GaugeSettings, GaugeProperty, GaugeEventType, GaugeRangeProperty, GaugeStatus, Hmi, View, ViewType, Variable, ZoomModeType, InputOptionType, DocAlignType, DictionaryGaugeSettings, GaugeEventRelativeFromType, ViewEventType, InputActionEscType, IPropertyVariable, DocProfile } from '../_models/hmi';
@@ -33,6 +33,7 @@ import { WebcamPlayerDialogComponent, WebcamPlayerDialogData } from '../gui-help
 import { DevicesUtils, PlaceholderDevice, Tag } from '../_models/device';
 import { LanguageService } from '../_services/language.service';
 import { EventUtils } from '../_helpers/event-utils';
+import { WidgetBindingResolver } from '../_helpers/widget-binding';
 
 declare var SVG: any;
 
@@ -79,6 +80,7 @@ export class FuxaViewComponent implements OnInit, AfterViewInit, OnDestroy {
     private viewRenderDelay = 0; // Delay to render view after loading SVG content
 
     private subscriptionOnChange: Subscription;
+    private prefixWidgets: GaugeSettings[] = [];
     protected staticValues: any = {};
     protected plainVariableMapping: VariableMappingDictionary = {};
     private destroy$ = new Subject<void>();
@@ -99,6 +101,25 @@ export class FuxaViewComponent implements OnInit, AfterViewInit, OnDestroy {
 
     ngOnInit() {
         this.loadVariableMapping();
+        this.hmiService.onDeviceChanged.pipe(takeUntil(this.destroy$)).subscribe((event: any) => {
+            if (event.status !== 'connect-ok') this.invalidatePrefixWidgets(event.id);
+        });
+        this.hmiService.onServerConnection$.pipe(takeUntil(this.destroy$)).subscribe(connected => {
+            if (!connected) this.invalidatePrefixWidgets();
+        });
+    }
+
+    private invalidatePrefixWidgets(deviceId?: string) {
+        for (const widget of this.prefixWidgets) {
+            if (deviceId && widget.property.prefixBinding.deviceId !== deviceId) continue;
+            const module: any = window[widget.property.scriptContent?.moduleId];
+            for (const variable of widget.property.varsToBind || []) {
+                if (widget.property.bindingProfile?.bindings[variable.originalName] === undefined) continue;
+                module?.putValue?.(variable.name, null);
+                if (this.mapGaugeStatus[widget.id]) delete this.mapGaugeStatus[widget.id].variablesValue[variable.variableId];
+                if (this.hmiService.variables[variable.variableId]) this.hmiService.variables[variable.variableId].value = null;
+            }
+        }
     }
 
     ngAfterViewInit() {
@@ -280,6 +301,7 @@ export class FuxaViewComponent implements OnInit, AfterViewInit, OnDestroy {
      */
     private loadWatch(view: View) {
         if (view && view.items) {
+            this.prefixWidgets = [];
             this.mapControls = {};
             const device = this.projectService.getDeviceFromId(this.sourceDeviceId);
             let sourceTags: Tag[] | null = device?.tags ? Object.values(device.tags) : null;
@@ -305,6 +327,11 @@ export class FuxaViewComponent implements OnInit, AfterViewInit, OnDestroy {
                 }
                 try {
                     // check language translation
+                    if (items[key].property?.prefixBinding) {
+                        this.prefixWidgets.push(items[key]);
+                        const results = WidgetBindingResolver.apply(items[key].property, Object.values(this.projectService.getDevices()));
+                        results.filter(result => result.error).forEach(result => console.error('Widget binding', key, result.parameter, result.error));
+                    }
                     const textTranslated = this.languageService.getTranslation(items[key].property?.text);
                     // init gauge and TagId
                     let gauge = this.gaugesManager.initElementAdded(items[key], this.resolver, this.viewContainerRef, true, this, textTranslated, sourceTags);
@@ -341,7 +368,11 @@ export class FuxaViewComponent implements OnInit, AfterViewInit, OnDestroy {
                             }
                         }
                         // get the the last signal value in memory of gauge, is important that last one is the value (variableId)
-                        variables = variables.concat(this.gaugesManager.getBindSignalsValue(items[key]));
+                        const prefixDevice = gaugeSetting.property.prefixBinding?.deviceId;
+                        const status = this.hmiService.deviceStatuses[prefixDevice];
+                        if (!prefixDevice || (!status || status === 'connect-ok') && this.projectService.getDeviceFromId(prefixDevice)?.enabled) {
+                            variables = variables.concat(this.gaugesManager.getBindSignalsValue(items[key]));
+                        }
                         if (variables.length) {
                             let svgeles = FuxaViewComponent.getSvgElements(gaugeSetting.id);
                             for (let y = 0; y < svgeles.length; y++) {

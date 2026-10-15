@@ -58,11 +58,21 @@ export class HtmlImageComponent extends GaugeBaseComponent {
             if (svgImageContainer) {
                 let svgContent = gaugeSettings.property.svgContent ?? localStorage.getItem(gaugeSettings.property.address);
                 if (SvgUtils.isSVG(gaugeSettings.property.address) && svgContent) {
+                    const previousModule = svgImageContainer.getAttribute('data-fuxa-module');
+                    if (previousModule) window[previousModule] = undefined;
                     svgImageContainer.innerHTML = '';
                     svgImageContainer.setAttribute('type', HtmlImageComponent.propertyWidgetType);
                     const parser = new DOMParser();
                     const svgDocument = parser.parseFromString(svgContent, 'image/svg+xml');
                     const svgElement = svgDocument.querySelector('svg');
+                    const profile = svgElement.querySelector('metadata[data-fuxa-binding-profile]');
+                    if (profile && !gaugeSettings.property.bindingProfile) {
+                        try {
+                            gaugeSettings.property.bindingProfile = JSON.parse(profile.textContent);
+                        } catch {
+                            console.error('Invalid Widget Binding Profile JSON');
+                        }
+                    }
                     const originSize = SvgUtils.getSvgSize(svgElement);
                     SvgUtils.resizeSvgNodes(svgImageContainer.parentElement.parentElement, originSize);
                     svgImageContainer.parentElement?.parentElement?.removeAttribute('stroke');
@@ -88,12 +98,26 @@ export class HtmlImageComponent extends GaugeBaseComponent {
                             varsToBind: Utils.mergeArray([widgetResult?.vars, gaugeSettings.property.varsToBind], 'originalName')
                         };
                     } else {
+                        // Saved/duplicated Widgets must have independent DOM and script state.
+                        const guid = Utils.getShortGUID('', '_');
+                        const ids = SvgUtils.renameIdsInSvg(svgElement, guid, gaugeSettings.property.svgGuid);
+                        const script = gaugeSettings.property.scriptContent;
+                        if (script?.content) {
+                            const moduleId = `wModule_${guid}`;
+                            script.content = SvgUtils.replaceIdsInScript(script.content, ids)
+                                .replace(new RegExp(`\\b${script.moduleId}\\b`, 'g'), moduleId);
+                            script.moduleId = moduleId;
+                        }
                         svgImageContainer.appendChild(svgElement);
+                        gaugeSettings.property.svgGuid = guid;
+                        gaugeSettings.property.svgContent = svgImageContainer.innerHTML;
                     }
                     if (gaugeSettings.property.scriptContent) {
                         const newScript = document.createElement('script');
                         newScript.textContent = SvgUtils.initWidget(gaugeSettings.property.scriptContent.content, gaugeSettings.property.varsToBind);
                         document.body.appendChild(newScript);
+                        newScript.remove();
+                        svgImageContainer.setAttribute('data-fuxa-module', gaugeSettings.property.scriptContent.moduleId);
                     }
                 } else {
                     svgImageContainer.innerHTML = '';
@@ -222,8 +246,8 @@ export class HtmlImageComponent extends GaugeBaseComponent {
                     if (ga.property.type === HtmlImageComponent.propertyWidgetType && ga.property.scriptContent && ga.property.varsToBind?.length) {
                         const scriptContent = ga.property.scriptContent;
                         if (window[scriptContent.moduleId]['putValue']) {
-                            const widgetVar = <WidgetPropertyVariable>ga.property.varsToBind?.find((varToBind: WidgetPropertyVariable) => varToBind.variableId === sig.id);
-                            if (widgetVar) {
+                            const widgetVars = ga.property.varsToBind.filter((varToBind: WidgetPropertyVariable) => varToBind.variableId === sig.id);
+                            for (const widgetVar of widgetVars) {
                                 window[scriptContent.moduleId]['putValue'](widgetVar.name, sig.value);
                             }
                         }
@@ -236,7 +260,7 @@ export class HtmlImageComponent extends GaugeBaseComponent {
     }
 
     static bindEvents(ga: GaugeSettings, callback?: any): Event {
-        if (ga.property.type === HtmlImageComponent.propertyWidgetType && ga.property.scriptContent && ga.property.varsToBind?.length) {
+        if (!ga.property.prefixBinding && ga.property.type === HtmlImageComponent.propertyWidgetType && ga.property.scriptContent && ga.property.varsToBind?.length) {
             const scriptContent = ga.property.scriptContent;
             if (window[scriptContent.moduleId]?.['postValue']) {
                 window[scriptContent.moduleId]['postValue'] = (varName, value) => {
