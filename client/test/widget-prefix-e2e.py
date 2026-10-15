@@ -19,16 +19,20 @@ def run_browser(url, server):
         server.stdin.flush()
 
     def values(prefix, active):
-        emit('device-value:changed', dict(id=DEVICE, values=[dict(id=f't_fixture_{prefix}_{i}', value=i == active)
+        active = {active} if isinstance(active, int) else set(active)
+        emit('device-value:changed', dict(id=DEVICE, values=[dict(id=f't_fixture_{prefix}_{i}', value=i in active)
                                                           for i in range(6)]))
 
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
-        page = browser.new_page(viewport=dict(width=1366, height=768))
+        # Pin a valid BCP 47 locale instead of inheriting the runner's POSIX locale.
+        page = browser.new_page(viewport=dict(width=1366, height=768), locale='en-US')
         initial_tags = page.request.get(url + '/api/project').json()['devices'][DEVICE]['tags']
         errors = []
         page.on('pageerror', lambda error: errors.append(str(error)))
         page.goto(url + '/home/Prefix%20Binding%20Fixture')
+        assert page.evaluate('navigator.language') == 'en-US'
+        assert page.evaluate('new Intl.Locale(navigator.language).baseName') == 'en-US'
         a = page.locator('#widget_V101 [id^="statusText_"]')
         b = page.locator('#widget_V102 [id^="statusText_"]')
         expect(a).to_have_text('WAITING FOR DATA')
@@ -38,12 +42,33 @@ def run_browser(url, server):
         values('V102', 1)
         expect(a).to_have_text('EXTENDED')
         expect(b).to_have_text('RETRACTED')
-        emit('device-value:changed', dict(id=DEVICE, values=[dict(id='t_fixture_V101_4', value=True)]))
-        expect(a).to_have_text('FAULT')
-        expect(b).to_have_text('RETRACTED')
+        for state, active in [('EXTENDED', {0}), ('FAULT', {0, 1, 4}), ('CONFLICT', {0, 1})]:
+            values('V101', active)
+            expect(a).to_have_text(state)
+            # A tag-data outage is local to V101 even on the same PLC Device.
+            emit('device-value:changed', dict(id=DEVICE, values=[dict(id=f't_fixture_V101_{i}', value=None) for i in range(6)]))
+            expect(a).to_have_text('WAITING FOR DATA')
+            expect(b).to_have_text('RETRACTED')
+            emit('device-value:changed', dict(id=DEVICE, values=[dict(id=f't_fixture_V101_{i}', value=i in active) for i in range(5)]))
+            expect(a).to_have_text('WAITING FOR DATA')
+            emit('device-value:changed', dict(id=DEVICE, values=[dict(id='t_fixture_V101_5', value=False)]))
+            expect(a).to_have_text(state)
+            expect(b).to_have_text('RETRACTED')
+            # An actual Device disconnect invalidates both Widgets on that Device.
+            emit('device-status:changed', dict(id=DEVICE, status='connect-error'))
+            expect(a).to_have_text('WAITING FOR DATA')
+            expect(b).to_have_text('WAITING FOR DATA')
+            emit('device-status:changed', dict(id=DEVICE, status='connect-ok'))
+            expect(a).to_have_text('WAITING FOR DATA')
+            values('V101', active)
+            expect(a).to_have_text(state)
+            expect(b).to_have_text('WAITING FOR DATA')
+            values('V102', 1)
+            expect(b).to_have_text('RETRACTED')
         ids = page.locator('app-fuxa-view svg [id]').evaluate_all('(nodes) => nodes.map(n => n.id)')
         assert len(ids) == len(set(ids)), 'duplicate DOM IDs'
         emit('device-status:changed', dict(id=DEVICE, status='connect-error'))
+        expect(a).to_have_text('WAITING FOR DATA')
         expect(b).to_have_text('WAITING FOR DATA')
         page.reload()
         expect(b).to_have_text('WAITING FOR DATA')

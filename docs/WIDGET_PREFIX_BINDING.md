@@ -24,7 +24,7 @@ Ordinary controls continue using `GaugeProperty.variableId`; Shapes collect thei
 
 Saved/copied SVG instances receive fresh DOM IDs and script module IDs. Reinitialization replaces suffixes instead of growing them, updates SVG references, stores matching SVG/script content, removes temporary script elements, and releases the previous module attached to the same container. No second ADS connection or new binding registry exists.
 
-Device/server disconnection invalidates received prefix values; the valve returns to WAITING FOR DATA instead of retaining a normal indication. Existing FAULT/CONFLICT priority remains conservative. A fresh complete set of valid BOOL values restores state. The editor separately shows server connection, PLC status or disabled-device information.
+Device/server disconnection invalidates received prefix values; the valve returns to WAITING FOR DATA instead of retaining any live status, including FAULT or CONFLICT. The complete six-value validity check precedes all state decisions. After all valid BOOL values arrive, the original FAULT → CONFLICT → motion → end-position priority applies. Cached BOOLs are retained internally but never used as live feedback while the status set is incomplete. The editor separately shows server connection, PLC status or disabled-device information.
 
 ## Phase 3B naming
 
@@ -107,3 +107,15 @@ Host: Windows, Node **24.15.0**, npm **11.12.1**. The existing CI continues to u
 | `git diff --check` | Passed |
 
 The Docker storage check used existing local image `sha256:9269cd6a97e935b69eb01993921b25aa96e36944db13a58435be57cfb0f68f01`. It was not deployed or rebuilt. Angular reports existing `qrcode` CommonJS and unused environment-file warnings. The existing scheduled-script fixture prints a caught mock subscription TypeError while its tests pass. No remaining local test failures; real TwinCAT ADS online acceptance is outstanding.
+
+## PR #6 follow-up: CI locale and stale fault feedback
+
+The original GitHub Actions run `38667321119` passed the PLC, server and Docker jobs but failed the final Widget browser check. Its retained `assert not errors` reported five `Invalid language tag: en-US@posix` exceptions. The browser page had no explicit locale and inherited the runner's POSIX locale; `en-US@posix` is not a valid BCP 47 language tag for browser `Intl` APIs. The Widget Playwright page now explicitly uses `locale='en-US'` and verifies both `navigator.language` and `new Intl.Locale(navigator.language)` after navigation. No application exception is filtered or ignored, and the final JavaScript-error assertion remains intact.
+
+The valve previously removed `received` flags on invalid data but checked the cached `_pb_error` and conflicting BOOLs before checking those flags. Consequently stale FAULT/CONFLICT could remain red after disconnection. The validity gate now wraps every PLC state decision. Invalid or partially recovered data render WAITING FOR DATA with neutral geometry/status colors; fully recovered data preserve the original priority.
+
+`npm run test:widget-binding` now passes **27 tests**. Three additional state-specific cases cover EXTENDED/FAULT/CONFLICT → invalidation of each signal → partial recovery → complete recovery with the exact pre-outage BOOL values, plus a new subsequent state and V101/V102 isolation. The browser check exercises the same states through real HmiService/Socket.IO: V101-only invalid Tag values leave V102 unchanged; a shared PLC Device disconnect correctly invalidates both Widgets, and each independently recovers when its full feedback arrives. Existing change-filter invalidation is verified by resending unchanged BOOLs without reloading the View.
+
+Existing View items contain an SVG/script snapshot: reimport the updated valve SVG to adopt this fix in an already saved project. This change does not implement automatic template propagation or alter production project data. Real TwinCAT disconnect/reconnect and PLC state behavior still require manual online verification.
+
+Follow-up local validation: 27 Widget tests, 40 existing client tests, 38 PLC model tests and 309 server tests passed. Client production build (external temporary output) and server build passed. The production browser test passed all reconnect/unchanged-feedback/isolation cases plus the existing import/edit/save/reload and three viewport checks with explicit `en-US`; its JavaScript exception assertion remains enabled. No Phase 3B, ADS driver, Tag definition or production Docker/database changes were needed.

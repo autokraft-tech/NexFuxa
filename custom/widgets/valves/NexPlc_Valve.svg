@@ -85,14 +85,15 @@ function render() {
 
   let text = 'WAITING FOR DATA';
   let color = '#64748b';
-  if (_pb_error) {
-    text = 'FAULT';
-    color = '#b91c1c';
-  } else if ((_pb_extended && _pb_retracted) || (_pb_extending && _pb_retracting)) {
-    text = 'CONFLICT';
-    color = '#b91c1c';
-  } else if (signals.every(signal => received[signal])) {
-    if (_pb_extending) {
+  // Cached BOOLs are not live feedback until the complete status set is valid.
+  if (signals.every(signal => received[signal])) {
+    if (_pb_error) {
+      text = 'FAULT';
+      color = '#b91c1c';
+    } else if ((_pb_extended && _pb_retracted) || (_pb_extending && _pb_retracting)) {
+      text = 'CONFLICT';
+      color = '#b91c1c';
+    } else if (_pb_extending) {
       text = 'EXTENDING';
       color = '#d97706';
     } else if (_pb_retracting) {
