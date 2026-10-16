@@ -107,7 +107,7 @@ Use the restoration block above with this `$snapshotPath` to populate the host r
 
 ## Optional prefix binding (Phase 4A.1)
 
-The SVG now carries a six-status Binding Profile in non-executable metadata. After importing the updated asset, choose Prefix Binding in Properties, select an existing PLC Device and enter `#1` (for example `V101` or `V105_1_5`). The preview resolves actual saved Tag IDs; templates can be adapted to existing names. Manual remains the default. Equipment geometry, source attribution and license are unchanged. See [the binding guide](../../../docs/WIDGET_PREFIX_BINDING.md) for architecture, tests, limitations and Docker editor acceptance steps.
+The SVG now carries a six-status Binding Profile in non-executable metadata. After importing the updated asset, choose Prefix Binding in Properties, select an existing PLC Device and enter `#1` (for example `V101` or `V105_1_5`). The preview resolves actual saved Tag IDs; templates can be adapted to existing names. Manual remains the default. Equipment geometry, source attribution and license are unchanged. See [Widget binding](../../../docs/HowTo-Widgets.md#prefix-binding) and [reusable Faceplates](../../../docs/HowTo-use-same-view.md#faceplate-prefix-inheritance) for configuration.
 
 All six status values must be valid before any live state, including FAULT or CONFLICT, is displayed. Disconnection or invalid feedback displays WAITING FOR DATA until the complete status set is received again. Reimport this updated SVG to apply the behavior to previously saved Widget snapshots; saved instances do not automatically synchronize their script with the library.
 

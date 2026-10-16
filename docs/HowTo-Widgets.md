@@ -81,3 +81,19 @@ You can also use CSS in the SVG and full JS and access the elements/ids using st
 
 For full working examples, see the examples in the widget section https://github.com/frangoteam/FUXA/tree/master/server/_widgets 
  
+
+## Prefix binding
+
+SVG Widgets can include a portable, non-executable binding profile:
+
+```xml
+<metadata data-fuxa-binding-profile="1"><![CDATA[
+{"version":1,"bindings":{"_pb_extended":"{#1}_sts_extended"}}
+]]></metadata>
+```
+
+Import the SVG, select **Prefix Binding** in Properties, choose an existing PLC Device and enter each numbered parameter, such as `#1=V101`. Validate the preview before saving. Templates match exact, case-sensitive Tag names within that Device ID and check uniqueness and variable type. Missing parameters, Devices, Tags, ambiguous names or wrong types invalidate the binding without reverting to old manual IDs or static defaults. No Tags are created or renamed, and ADS addresses are not inferred. Use the complete saved prefix, such as `V105_1_5`, unchanged; edit the instance's Tag templates if its project uses different names.
+
+Manual remains available. Switching into Prefix mode preserves a manual-binding snapshot; returning to Manual restores it. Variables outside the profile, such as a static label, remain manually configurable. Prefix and inherited bindings are read-only and do not install the Widget `postValue` bridge. A disabled/offline Device is a communication condition, separate from binding validation.
+
+Profiles, scripts and geometry are saved per Widget instance. Reimport an updated SVG to adopt asset changes; saved Widgets do not automatically synchronize with the library. Saved/copied Widgets use independent runtime DOM IDs and script modules. Implement an exported `destroy()` hook to release custom timers, observers and listeners; arbitrary script globals are not sandboxed. See [Faceplate prefix inheritance](HowTo-use-same-view.md#faceplate-prefix-inheritance) for shared detail Views and [the Valve documentation](../custom/widgets/valves/README.md) for asset-specific status behavior.
