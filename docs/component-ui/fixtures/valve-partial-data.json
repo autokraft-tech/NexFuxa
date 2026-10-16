@@ -1,0 +1,153 @@
+{
+  "profileVersion": "1.0.0",
+  "scope": "Design expectations only. null represents invalid/missing input; source quality/binding details remain in diagnostics.",
+  "cases": [
+    {
+      "name": "only H missing",
+      "connected": true,
+      "inputs": {
+        "Sts.Extended": true,
+        "Sts.Retracted": false,
+        "Sts.Extending": false,
+        "Sts.Retracting": false,
+        "Sts.Error": false,
+        "Sts.IsManualMode": null
+      },
+      "expected": {
+        "primary": "EXTENDED",
+        "position": "extended",
+        "motion": "stopped",
+        "fault": false,
+        "hmiControl": "unknown",
+        "quality": "good",
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "name": "only H binding missing",
+      "connected": true,
+      "inputs": {
+        "Sts.Extended": true,
+        "Sts.Retracted": false,
+        "Sts.Extending": false,
+        "Sts.Retracting": false,
+        "Sts.Error": false,
+        "Sts.IsManualMode": null
+      },
+      "expected": {
+        "primary": "EXTENDED",
+        "position": "extended",
+        "motion": "stopped",
+        "fault": false,
+        "hmiControl": "unknown",
+        "quality": "good",
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "name": "position pair incomplete",
+      "connected": true,
+      "inputs": {
+        "Sts.Extended": null,
+        "Sts.Retracted": false,
+        "Sts.Extending": false,
+        "Sts.Retracting": false,
+        "Sts.Error": false,
+        "Sts.IsManualMode": true
+      },
+      "expected": {
+        "primary": "WAITING",
+        "position": "unknown",
+        "motion": "stopped",
+        "fault": false,
+        "hmiControl": "available",
+        "quality": "partial",
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "name": "motion pair incomplete",
+      "connected": true,
+      "inputs": {
+        "Sts.Extended": true,
+        "Sts.Retracted": false,
+        "Sts.Extending": null,
+        "Sts.Retracting": false,
+        "Sts.Error": false,
+        "Sts.IsManualMode": true
+      },
+      "expected": {
+        "primary": "EXTENDED",
+        "position": "extended",
+        "motion": "unknown",
+        "fault": false,
+        "hmiControl": "available",
+        "quality": "partial",
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "name": "Fault missing; position still valid",
+      "connected": true,
+      "inputs": {
+        "Sts.Extended": true,
+        "Sts.Retracted": false,
+        "Sts.Extending": false,
+        "Sts.Retracting": false,
+        "Sts.Error": null,
+        "Sts.IsManualMode": true
+      },
+      "expected": {
+        "primary": "EXTENDED",
+        "position": "extended",
+        "motion": "stopped",
+        "fault": null,
+        "hmiControl": "available",
+        "quality": "partial",
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "name": "Fault TRUE and position incomplete",
+      "connected": true,
+      "inputs": {
+        "Sts.Extended": null,
+        "Sts.Retracted": false,
+        "Sts.Extending": false,
+        "Sts.Retracting": false,
+        "Sts.Error": true,
+        "Sts.IsManualMode": true
+      },
+      "expected": {
+        "primary": "FAULT",
+        "position": "unknown",
+        "motion": "stopped",
+        "fault": true,
+        "hmiControl": "available",
+        "quality": "partial",
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "name": "disconnected",
+      "connected": false,
+      "inputs": {
+        "Sts.Extended": true,
+        "Sts.Retracted": false,
+        "Sts.Extending": false,
+        "Sts.Retracting": false,
+        "Sts.Error": false,
+        "Sts.IsManualMode": true
+      },
+      "expected": {
+        "primary": "COMM_LOST",
+        "position": "unknown",
+        "motion": "unknown",
+        "fault": null,
+        "hmiControl": "unknown",
+        "quality": "commLost",
+        "resetRestrictedByHmi": false
+      }
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="560" height="680" viewBox="0 0 560 680" role="img" aria-labelledby="title desc"><!--
+  Source: frangoteam/FUXA-SVG-Widgets
+  Asset: Proc. Engineering/Proc. Eng. Valves/25_Gate Valve (Double Acting Cylinder).svg
+  Source SHA-256: 3706a8b63f5481af2f983f526da2cae297f62ba46b78370627aec8e6554f1e82
+  Adapted equipment geometry; retained under the following license:
+
+  MIT License
+
+  Copyright (c) 2019-2025 frangoteam info@frangoteam.org
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+  --><title id="title">Valve Faceplate operation v1.0</title><desc id="desc">Static design only; no live PLC values or executable controls. Reuses library Valve25 geometry where shown.</desc><g font-family="Segoe UI, Microsoft YaHei, Arial, sans-serif"><rect x="0" y="0" width="560" height="680" rx="2" fill="#F7F8FA" stroke="#7B8794" stroke-width="1" /><rect x="0" y="0" width="560" height="72" rx="2" fill="#EEF0F3" stroke="none" stroke-width="1" /><text x="16" y="28" font-size="20" fill="#20262E" font-weight="600" text-anchor="start">V101 / Valve</text><text x="16" y="54" font-size="16" fill="#56616F" font-weight="400" text-anchor="start">双向执行器 · Extend/Open 含义未指定</text><rect x="440" y="12" width="64" height="20" rx="2" fill="#EEF0F3" stroke="none" stroke-width="1" /><text x="472.0" y="26.0" font-size="12" fill="#20262E" font-weight="600" text-anchor="middle">GOOD</text><text x="526" y="36" font-size="24" fill="#20262E" font-weight="400" text-anchor="start">×</text><rect x="0" y="72" width="560" height="32" rx="2" fill="#E6E8EB" stroke="none" stroke-width="1" /><text x="16" y="94" font-size="14" fill="#20262E" font-weight="400" text-anchor="start">目标交互示意 · v1.0 · 未接入运行时，无 PLC 写入</text><text x="16" y="132" font-size="16" fill="#245C9F" font-weight="600" text-anchor="start">Operation</text><rect x="12" y="144" width="108" height="3" rx="2" fill="#245C9F" stroke="none" stroke-width="1" /><text x="148" y="132" font-size="16" fill="#56616F" font-weight="400" text-anchor="start">Configuration</text><text x="306" y="132" font-size="16" fill="#56616F" font-weight="400" text-anchor="start">Diagnostics</text><rect x="0" y="624" width="560" height="56" rx="2" fill="#EEF0F3" stroke="none" stroke-width="1" /><text x="16" y="177" font-size="18" fill="#20262E" font-weight="600" text-anchor="start">设备实际状态 / PLC feedback</text><rect x="16" y="190" width="528" height="142" rx="2" fill="#EEF0F3" stroke="none" stroke-width="1" /><g xmlns="http://www.w3.org/2000/svg" id="valveSymbol" transform="translate(36 202) scale(1.10891)">
+    <defs id="defs1" />
+    <g data-cell-id="b54Z_1cSVq9n6jkFMYGL-26" id="g71" style="fill:none" transform="translate(0,-30)">
+      <g id="cell-b54Z_1cSVq9n6jkFMYGL-26" style="fill:none">
+        <g transform="translate(0.5,0.5)" id="g70" style="fill:none">
+          <rect x="35" y="30" width="29.9" height="32.200001" fill="#ffffff" stroke="#20262E" pointer-events="all" style="fill:none" id="rect68" stroke-width="1.5" vector-effect="non-scaling-stroke" />
+          <path d="M 49.95,62.2 V 100 M 64.9,38.05 H 100 m -14.95,-5.6 -5.2,11.2 m 8.45,-11.2 -5.2,11.2 M 64.9,54.15 H 100 m -14.95,-5.6 -5.2,11.2 m 8.45,-11.2 -5.2,11.2" fill="none" stroke="#20262E" stroke-linejoin="round" stroke-miterlimit="10" pointer-events="all" style="fill:none" id="path68" stroke-width="1.5" vector-effect="non-scaling-stroke" />
+          <path d="m 0,70 50,30 -50,30 z m 100,0 -50,30 50,30 z" fill="#F7F8FA" stroke="#20262E" stroke-linejoin="round" stroke-miterlimit="10" pointer-events="all" id="valveBody" stroke-width="1.5" vector-effect="non-scaling-stroke" />
+          <path d="M 49.95,46.1 V 62.2 M 35,46.1 h 29.9" fill="none" stroke="#20262E" stroke-linejoin="round" stroke-miterlimit="10" pointer-events="all" style="fill:none" id="path70" stroke-width="1.5" vector-effect="non-scaling-stroke" />
+        </g>
+      </g>
+    </g>
+  </g>
+  <text x="176" y="220" font-size="24" fill="#304F75" font-weight="600" text-anchor="start">EXTENDED</text><text x="176" y="250" font-size="18" fill="#20262E" font-weight="600" text-anchor="start">HMI Control (MAN)</text><text x="176" y="278" font-size="16" fill="#20262E" font-weight="400" text-anchor="start">允许 Extend / Retract</text><text x="176" y="307" font-size="16" fill="#304F75" font-weight="400" text-anchor="start">Extend elapsed   1.200 s</text><text x="16" y="365" font-size="16" fill="#56616F" font-weight="400" text-anchor="start">Extended / Retracted</text><text x="338" y="365" font-size="16" fill="#304F75" font-weight="400" text-anchor="start">TRUE / FALSE</text><text x="16" y="395" font-size="16" fill="#56616F" font-weight="400" text-anchor="start">Extending / Retracting</text><text x="338" y="395" font-size="16" fill="#304F75" font-weight="400" text-anchor="start">FALSE / FALSE</text><text x="16" y="425" font-size="16" fill="#56616F" font-weight="400" text-anchor="start">PLC Error</text><text x="338" y="425" font-size="16" fill="#304F75" font-weight="400" text-anchor="start">FALSE</text><text x="16" y="455" font-size="16" fill="#56616F" font-weight="400" text-anchor="start">Feedback source</text><text x="338" y="455" font-size="16" fill="#304F75" font-weight="400" text-anchor="start">Sensor configured</text><rect x="16" y="478" width="528" height="1" rx="2" fill="#C8CDD4" stroke="none" stroke-width="1" /><text x="16" y="509" font-size="18" fill="#20262E" font-weight="600" text-anchor="start">操作 / Commands</text><rect x="16" y="527" width="160" height="44" rx="2" fill="#F7F8FA" stroke="#245C9F" stroke-width="1" /><text x="96" y="555" font-size="16" fill="#245C9F" font-weight="600" text-anchor="middle">Extend</text><rect x="192" y="527" width="160" height="44" rx="2" fill="#F7F8FA" stroke="#245C9F" stroke-width="1" /><text x="272" y="555" font-size="16" fill="#245C9F" font-weight="600" text-anchor="middle">Retract</text><rect x="368" y="527" width="160" height="44" rx="2" fill="#F7F8FA" stroke="#245C9F" stroke-width="1" /><text x="448" y="555" font-size="16" fill="#245C9F" font-weight="600" text-anchor="middle">Reset</text><text x="16" y="597" font-size="14" fill="#56616F" font-weight="400" text-anchor="start">单次写 TRUE · PLC 清零 · Reset 不受 HMI Locked 限制</text><text x="16" y="649" font-size="14" fill="#20262E" font-weight="400" text-anchor="start">命令已发送（提示示例） · 不表示执行机构已到位</text><text x="16" y="671" font-size="12" fill="#56616F" font-weight="400" text-anchor="start">动作状态只读取 PLC Sts；按钮不直接改变 Symbol</text></g></svg>

@@ -1,0 +1,727 @@
+{
+  "contractVersion": "1.0.0",
+  "templateId": "NexFuxa.Valve.NexPlc",
+  "templateVersion": "1.0.0",
+  "modelRef": {
+    "name": "Valve",
+    "version": "1.0.0",
+    "rootType": "ST_Valve_HMI",
+    "sourceCommit": "04b27f25dce1b1be335c5f51f539496f195e3708"
+  },
+  "componentType": "valve",
+  "shape": {
+    "asset": "custom/widgets/valves/NexPlc_Valve.svg",
+    "geometryId": "valveSymbol",
+    "provenance": "assets/PROVENANCE.md"
+  },
+  "metadata": {
+    "labelSource": "instance",
+    "descriptionSource": "instance",
+    "extendedMeaning": "instanceOrUnspecified"
+  },
+  "signals": {
+    "Cmd.Extend": {
+      "member": "Cmd.Extend",
+      "tagNameTemplate": "{#1}_cmd_extend",
+      "plcType": "BOOL",
+      "runtimeType": "boolean",
+      "access": "write",
+      "requiredForStatus": false
+    },
+    "Cmd.Retract": {
+      "member": "Cmd.Retract",
+      "tagNameTemplate": "{#1}_cmd_retract",
+      "plcType": "BOOL",
+      "runtimeType": "boolean",
+      "access": "write",
+      "requiredForStatus": false
+    },
+    "Cmd.Reset": {
+      "member": "Cmd.Reset",
+      "tagNameTemplate": "{#1}_cmd_reset",
+      "plcType": "BOOL",
+      "runtimeType": "boolean",
+      "access": "write",
+      "requiredForStatus": false
+    },
+    "Cmd.LifetimeReset": {
+      "member": "Cmd.LifetimeReset",
+      "tagNameTemplate": "{#1}_cmd_lifetime_reset",
+      "plcType": "BOOL",
+      "runtimeType": "boolean",
+      "access": "write",
+      "requiredForStatus": false
+    },
+    "Sts.Extended": {
+      "member": "Sts.Extended",
+      "tagNameTemplate": "{#1}_sts_extended",
+      "plcType": "BOOL",
+      "runtimeType": "boolean",
+      "access": "read",
+      "requiredForStatus": true
+    },
+    "Sts.Retracted": {
+      "member": "Sts.Retracted",
+      "tagNameTemplate": "{#1}_sts_retracted",
+      "plcType": "BOOL",
+      "runtimeType": "boolean",
+      "access": "read",
+      "requiredForStatus": true
+    },
+    "Sts.Extending": {
+      "member": "Sts.Extending",
+      "tagNameTemplate": "{#1}_sts_extending",
+      "plcType": "BOOL",
+      "runtimeType": "boolean",
+      "access": "read",
+      "requiredForStatus": true
+    },
+    "Sts.Retracting": {
+      "member": "Sts.Retracting",
+      "tagNameTemplate": "{#1}_sts_retracting",
+      "plcType": "BOOL",
+      "runtimeType": "boolean",
+      "access": "read",
+      "requiredForStatus": true
+    },
+    "Sts.Error": {
+      "member": "Sts.Error",
+      "tagNameTemplate": "{#1}_sts_error",
+      "plcType": "BOOL",
+      "runtimeType": "boolean",
+      "access": "read",
+      "requiredForStatus": true
+    },
+    "Sts.IsManualMode": {
+      "member": "Sts.IsManualMode",
+      "tagNameTemplate": "{#1}_sts_is_manual_mode",
+      "plcType": "BOOL",
+      "runtimeType": "boolean",
+      "access": "read",
+      "requiredForStatus": false
+    },
+    "Sts.ExtendTime": {
+      "member": "Sts.ExtendTime",
+      "tagNameTemplate": "{#1}_sts_extend_time",
+      "plcType": "LREAL",
+      "runtimeType": "number",
+      "access": "read",
+      "requiredForStatus": false
+    },
+    "Sts.RetractTime": {
+      "member": "Sts.RetractTime",
+      "tagNameTemplate": "{#1}_sts_retract_time",
+      "plcType": "LREAL",
+      "runtimeType": "number",
+      "access": "read",
+      "requiredForStatus": false
+    },
+    "Sts.CurrentLifetimeCount": {
+      "member": "Sts.CurrentLifetimeCount",
+      "tagNameTemplate": "{#1}_sts_current_lifetime_count",
+      "plcType": "UDINT",
+      "runtimeType": "number",
+      "access": "read",
+      "requiredForStatus": false
+    },
+    "Cfg.HaveExtendedSensor": {
+      "member": "Cfg.HaveExtendedSensor",
+      "tagNameTemplate": "{#1}_cfg_have_extended_sensor",
+      "plcType": "BOOL",
+      "runtimeType": "boolean",
+      "access": "readWrite",
+      "requiredForStatus": false
+    },
+    "Cfg.HaveRetractedSensor": {
+      "member": "Cfg.HaveRetractedSensor",
+      "tagNameTemplate": "{#1}_cfg_have_retracted_sensor",
+      "plcType": "BOOL",
+      "runtimeType": "boolean",
+      "access": "readWrite",
+      "requiredForStatus": false
+    },
+    "Cfg.ExtendTimeOut": {
+      "member": "Cfg.ExtendTimeOut",
+      "tagNameTemplate": "{#1}_cfg_extend_time_out",
+      "plcType": "LREAL",
+      "runtimeType": "number",
+      "access": "readWrite",
+      "requiredForStatus": false
+    },
+    "Cfg.RetractTimeOut": {
+      "member": "Cfg.RetractTimeOut",
+      "tagNameTemplate": "{#1}_cfg_retract_time_out",
+      "plcType": "LREAL",
+      "runtimeType": "number",
+      "access": "readWrite",
+      "requiredForStatus": false
+    },
+    "Cfg.SimExtendTime": {
+      "member": "Cfg.SimExtendTime",
+      "tagNameTemplate": "{#1}_cfg_sim_extend_time",
+      "plcType": "LREAL",
+      "runtimeType": "number",
+      "access": "readWrite",
+      "requiredForStatus": false
+    },
+    "Cfg.SimRetractTime": {
+      "member": "Cfg.SimRetractTime",
+      "tagNameTemplate": "{#1}_cfg_sim_retract_time",
+      "plcType": "LREAL",
+      "runtimeType": "number",
+      "access": "readWrite",
+      "requiredForStatus": false
+    },
+    "Cfg.MaxLifeTimeCount": {
+      "member": "Cfg.MaxLifeTimeCount",
+      "tagNameTemplate": "{#1}_cfg_max_life_time_count",
+      "plcType": "UDINT",
+      "runtimeType": "number",
+      "access": "readWrite",
+      "requiredForStatus": false
+    }
+  },
+  "semantics": {
+    "kind": "nexplcValveSixBool",
+    "profileId": "NexPlc.Valve.sixBool.hmiControl",
+    "profileVersion": "1.0.0",
+    "inputs": {
+      "extended": "Sts.Extended",
+      "retracted": "Sts.Retracted",
+      "extending": "Sts.Extending",
+      "retracting": "Sts.Retracting",
+      "fault": "Sts.Error",
+      "hmiControlAvailable": "Sts.IsManualMode"
+    },
+    "required": [
+      "Sts.Extended",
+      "Sts.Retracted",
+      "Sts.Extending",
+      "Sts.Retracting",
+      "Sts.Error"
+    ],
+    "qualityPolicy": "connectionThenPerDimension",
+    "hmiControl": {
+      "trueLabel": "MAN",
+      "trueDescription": "HMI Control",
+      "falseLabel": "HMI Locked",
+      "falseShortLabel": "LOCK",
+      "unknownLabel": "HMI ?",
+      "meaning": "Sts.IsManualMode equals HMIControlAvailable. TRUE permits HMI Extend/Retract; FALSE locks them. Does not identify Auto/Program/Operator. Reset is not gated by this signal."
+    }
+  },
+  "stateDisplay": {
+    "EXTENDED": {
+      "text": "EXTENDED",
+      "fillToken": "stateActive",
+      "marker": "endpoint",
+      "motion": "none",
+      "shortText": "EXT"
+    },
+    "RETRACTED": {
+      "text": "RETRACTED",
+      "fillToken": "stateIdle",
+      "marker": "endpoint",
+      "motion": "none",
+      "shortText": "RET"
+    },
+    "EXTENDING": {
+      "text": "EXTENDING",
+      "fillToken": "transition",
+      "marker": "arrowRight",
+      "motion": "directionPulse",
+      "shortText": "EXT →"
+    },
+    "RETRACTING": {
+      "text": "RETRACTING",
+      "fillToken": "transition",
+      "marker": "arrowLeft",
+      "motion": "directionPulse",
+      "shortText": "← RET"
+    },
+    "FAULT": {
+      "text": "FAULT",
+      "fillToken": "surface",
+      "marker": "faultBadge",
+      "motion": "none",
+      "shortText": "FAULT"
+    },
+    "CONFLICT": {
+      "text": "CONFLICT",
+      "fillToken": "surface",
+      "marker": "conflictBadge",
+      "motion": "none",
+      "shortText": "CONFLICT"
+    },
+    "UNKNOWN": {
+      "text": "UNKNOWN",
+      "fillToken": "surface",
+      "marker": "question",
+      "motion": "none",
+      "shortText": "STATE ?"
+    },
+    "BINDING_ERROR": {
+      "text": "BINDING_ERROR",
+      "fillToken": "surface",
+      "marker": "tagQuestion",
+      "motion": "none",
+      "shortText": "TAG ?"
+    },
+    "COMM_LOST": {
+      "text": "COMM_LOST",
+      "fillToken": "surface",
+      "marker": "comCross",
+      "motion": "none",
+      "shortText": "COM LOST"
+    },
+    "WAITING": {
+      "text": "WAITING",
+      "fillToken": "surface",
+      "marker": "dataQuestion",
+      "motion": "none",
+      "shortText": "WAITING"
+    },
+    "STALE": {
+      "text": "STALE",
+      "fillToken": "surface",
+      "marker": "hatch",
+      "motion": "none",
+      "shortText": "STALE"
+    }
+  },
+  "alarms": {
+    "adapter": "none",
+    "faultSignal": "Sts.Error",
+    "faultIsAlarmLifecycle": false
+  },
+  "icons": [
+    {
+      "id": "hmiControl",
+      "capability": "supported",
+      "source": "semantic.hmiControl",
+      "visibility": "alwaysWhenSupported"
+    },
+    {
+      "id": "commandSource",
+      "capability": "unsupported",
+      "source": null,
+      "visibility": "alwaysWhenSupported"
+    },
+    {
+      "id": "interlock",
+      "capability": "unsupported",
+      "source": null,
+      "visibility": "abnormalOnly"
+    },
+    {
+      "id": "permissive",
+      "capability": "unsupported",
+      "source": null,
+      "visibility": "abnormalOnly"
+    },
+    {
+      "id": "bypass",
+      "capability": "unsupported",
+      "source": null,
+      "visibility": "abnormalOnly"
+    },
+    {
+      "id": "override",
+      "capability": "unsupported",
+      "source": null,
+      "visibility": "abnormalOnly"
+    },
+    {
+      "id": "simulation",
+      "capability": "unsupported",
+      "source": null,
+      "visibility": "abnormalOnly"
+    },
+    {
+      "id": "quality",
+      "capability": "supported",
+      "source": "runtime.quality",
+      "visibility": "abnormalOnly"
+    }
+  ],
+  "processValues": [
+    {
+      "signal": "Sts.ExtendTime",
+      "label": "Extend elapsed",
+      "unit": "s",
+      "capability": "supported"
+    },
+    {
+      "signal": "Sts.RetractTime",
+      "label": "Retract elapsed",
+      "unit": "s",
+      "capability": "supported"
+    },
+    {
+      "signal": "Sts.CurrentLifetimeCount",
+      "label": "Lifetime count",
+      "unit": "cycles",
+      "capability": "unverified"
+    }
+  ],
+  "commands": {
+    "Extend": {
+      "signal": "Cmd.Extend",
+      "label": "Extend",
+      "capability": "supported",
+      "permission": {
+        "source": "existingProject"
+      },
+      "write": {
+        "kind": "constant",
+        "value": true,
+        "delivery": "onlineOnceNoRestore"
+      },
+      "requiresHmiControl": true,
+      "confirmation": "none",
+      "enabled": true,
+      "note": "One TRUE write; PLC clears; result is transport only. No FALSE, retry or PLC ACK."
+    },
+    "Retract": {
+      "signal": "Cmd.Retract",
+      "label": "Retract",
+      "capability": "supported",
+      "permission": {
+        "source": "existingProject"
+      },
+      "write": {
+        "kind": "constant",
+        "value": true,
+        "delivery": "onlineOnceNoRestore"
+      },
+      "requiresHmiControl": true,
+      "confirmation": "none",
+      "enabled": true,
+      "note": "One TRUE write; PLC clears; result is transport only. No FALSE, retry or PLC ACK."
+    },
+    "Reset": {
+      "signal": "Cmd.Reset",
+      "label": "Reset",
+      "capability": "supported",
+      "permission": {
+        "source": "existingProject"
+      },
+      "write": {
+        "kind": "constant",
+        "value": true,
+        "delivery": "onlineOnceNoRestore"
+      },
+      "requiresHmiControl": false,
+      "confirmation": "none",
+      "enabled": true,
+      "note": "One TRUE write; PLC clears; result is transport only. No FALSE, retry or PLC ACK."
+    },
+    "LifetimeReset": {
+      "signal": "Cmd.LifetimeReset",
+      "label": "LifetimeReset",
+      "capability": "unverified",
+      "permission": {
+        "source": "existingProject"
+      },
+      "write": {
+        "kind": "constant",
+        "value": true,
+        "delivery": "onlineOnceNoRestore"
+      },
+      "requiresHmiControl": false,
+      "confirmation": "confirm",
+      "enabled": false,
+      "note": "Declaration only; no consumer verified; excluded from v1 writable targets."
+    }
+  },
+  "parameters": [
+    {
+      "signal": "Cfg.HaveExtendedSensor",
+      "label": "HaveExtendedSensor",
+      "group": "feedback",
+      "description": "Selects physical sensor or timed endpoint estimation. Changes feedback meaning.",
+      "unit": null,
+      "defaultValue": null,
+      "precision": 0,
+      "permission": {
+        "source": "existingProject"
+      },
+      "save": "explicitItemSave",
+      "writable": true,
+      "confirmation": "confirm"
+    },
+    {
+      "signal": "Cfg.HaveRetractedSensor",
+      "label": "HaveRetractedSensor",
+      "group": "feedback",
+      "description": "Selects physical sensor or timed endpoint estimation. Changes feedback meaning.",
+      "unit": null,
+      "defaultValue": null,
+      "precision": 0,
+      "permission": {
+        "source": "existingProject"
+      },
+      "save": "explicitItemSave",
+      "writable": true,
+      "confirmation": "confirm"
+    },
+    {
+      "signal": "Cfg.ExtendTimeOut",
+      "label": "ExtendTimeOut",
+      "group": "travelTimeout",
+      "description": "Travel timeout; seconds inferred from FB conversion. Fractional behavior needs PLC validation.",
+      "unit": "s",
+      "defaultValue": null,
+      "precision": 3,
+      "permission": {
+        "source": "existingProject"
+      },
+      "save": "explicitItemSave",
+      "writable": true,
+      "confirmation": "confirm"
+    },
+    {
+      "signal": "Cfg.RetractTimeOut",
+      "label": "RetractTimeOut",
+      "group": "travelTimeout",
+      "description": "Travel timeout; seconds inferred from FB conversion. Fractional behavior needs PLC validation.",
+      "unit": "s",
+      "defaultValue": null,
+      "precision": 3,
+      "permission": {
+        "source": "existingProject"
+      },
+      "save": "explicitItemSave",
+      "writable": true,
+      "confirmation": "confirm"
+    },
+    {
+      "signal": "Cfg.SimExtendTime",
+      "label": "SimExtendTime",
+      "group": "estimatedTravel",
+      "description": "Delay used without sensor / during simulation; not a simulation enable flag.",
+      "unit": "s",
+      "defaultValue": null,
+      "precision": 3,
+      "permission": {
+        "source": "existingProject"
+      },
+      "save": "explicitItemSave",
+      "writable": true,
+      "confirmation": "confirm"
+    },
+    {
+      "signal": "Cfg.SimRetractTime",
+      "label": "SimRetractTime",
+      "group": "estimatedTravel",
+      "description": "Delay used without sensor / during simulation; not a simulation enable flag.",
+      "unit": "s",
+      "defaultValue": null,
+      "precision": 3,
+      "permission": {
+        "source": "existingProject"
+      },
+      "save": "explicitItemSave",
+      "writable": true,
+      "confirmation": "confirm"
+    },
+    {
+      "signal": "Cfg.MaxLifeTimeCount",
+      "label": "MaxLifeTimeCount",
+      "group": "lifetime",
+      "description": "Declared configuration member. May be saved as a value; operational lifetime-limit behavior remains unverified.",
+      "unit": "cycles",
+      "defaultValue": null,
+      "precision": 0,
+      "permission": {
+        "source": "existingProject"
+      },
+      "save": "explicitItemSave",
+      "writable": true,
+      "confirmation": "confirm"
+    }
+  ],
+  "faceplate": {
+    "tabs": [
+      {
+        "id": "operation",
+        "requires": "always"
+      },
+      {
+        "id": "configuration",
+        "requires": "hasParameters"
+      },
+      {
+        "id": "diagnostics",
+        "requires": "bindingReport"
+      },
+      {
+        "id": "alarms",
+        "requires": "alarmAdapterConfigured"
+      },
+      {
+        "id": "trends",
+        "requires": "trendSourceConfigured"
+      }
+    ]
+  },
+  "binding": {
+    "adapter": "fuxaPrefixV1",
+    "parameters": [
+      "#1"
+    ],
+    "exactDeviceAndTagName": true,
+    "missing": "invalidateNoFallback"
+  },
+  "upgrade": {
+    "policy": "pinnedExplicitMigration",
+    "legacyWidget": "preserve",
+    "minimumRendererVersion": "1.0.0"
+  },
+  "layouts": {
+    "defaultVariant": "standard",
+    "variants": {
+      "compact": {
+        "viewBox": [
+          0,
+          0,
+          96,
+          112
+        ],
+        "geometryBox": [
+          16,
+          8,
+          64,
+          32
+        ],
+        "statusBox": [
+          8,
+          44,
+          80,
+          18
+        ],
+        "iconBox": [
+          8,
+          64,
+          80,
+          16
+        ],
+        "labelBox": [
+          8,
+          92,
+          80,
+          20
+        ],
+        "alarmBox": [
+          4,
+          4,
+          88,
+          80
+        ],
+        "labelBaseline": 108,
+        "iconSlots": 2,
+        "iconSize": 16,
+        "slotWidth": 32,
+        "slotGap": 4,
+        "statusText": "short"
+      },
+      "standard": {
+        "viewBox": [
+          0,
+          0,
+          144,
+          152
+        ],
+        "geometryBox": [
+          24,
+          12,
+          96,
+          60
+        ],
+        "statusBox": [
+          8,
+          78,
+          128,
+          20
+        ],
+        "iconBox": [
+          8,
+          100,
+          128,
+          20
+        ],
+        "labelBox": [
+          8,
+          132,
+          128,
+          20
+        ],
+        "alarmBox": [
+          4,
+          4,
+          136,
+          120
+        ],
+        "labelBaseline": 148,
+        "iconSlots": 3,
+        "iconSize": 20,
+        "slotWidth": 40,
+        "slotGap": 4,
+        "statusText": "full"
+      },
+      "detailed": {
+        "viewBox": [
+          0,
+          0,
+          192,
+          184
+        ],
+        "geometryBox": [
+          32,
+          12,
+          128,
+          88
+        ],
+        "statusBox": [
+          8,
+          104,
+          176,
+          20
+        ],
+        "iconBox": [
+          8,
+          128,
+          176,
+          20
+        ],
+        "labelBox": [
+          8,
+          164,
+          176,
+          20
+        ],
+        "alarmBox": [
+          4,
+          4,
+          184,
+          148
+        ],
+        "labelBaseline": 180,
+        "iconSlots": 4,
+        "iconSize": 20,
+        "slotWidth": 40,
+        "slotGap": 4,
+        "statusText": "full"
+      }
+    },
+    "symbolBackground": "transparent",
+    "faceplateBackground": "opaque"
+  },
+  "writeAdapter": {
+    "kind": "fuxaPrefixWriteV1",
+    "optIn": true,
+    "targets": "declaredCommandsAndWritableParameters",
+    "result": "driverWriteResult"
+  },
+  "faultEmphasis": "staticDashedWhenNoAlarmBorder"
+}

@@ -1,0 +1,6 @@
+interface:
+  display_name: "NexFuxa Component UI"
+  short_description: "Create and validate NexFuxa Symbols and Faceplates"
+  default_prompt: "Use $nexfuxa-component-ui to create or review a Component UI using the frozen project specifications."
+policy:
+  allow_implicit_invocation: true

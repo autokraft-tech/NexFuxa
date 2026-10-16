@@ -16,3 +16,7 @@ Follow [docs/SVG_REUSE_POLICY.md](docs/SVG_REUSE_POLICY.md) for license review, 
 - Keep production and development Docker data, databases, logs, and backups out of Git; preserve `.local/fuxa-dev` and existing runtime volumes.
 
 See [docs/GIT_WORKFLOW.md](docs/GIT_WORKFLOW.md) for synchronization, conflict resolution, and releases.
+
+# Component UI
+
+For Component, Symbol, or Faceplate generation/modification, use the [nexfuxa-component-ui skill](.agents/skills/nexfuxa-component-ui/SKILL.md) and read only the relevant authoritative specifications in [docs/component-ui/](docs/component-ui/README.md). Prioritize FUXA-SVG-Widgets under the existing [SVG reuse policy](docs/SVG_REUSE_POLICY.md). Preserve Prefix/Inherit binding, multiple-instance isolation, and command no-Restore/no-replay restrictions. Do not change the frozen UI Contract during ordinary component development; semantic changes require an explicit versioned specification change.

@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="144" height="152" viewBox="0 0 144 152" role="img" aria-labelledby="title desc"><!--
+  Source: frangoteam/FUXA-SVG-Widgets
+  Asset: Proc. Engineering/Proc. Eng. Valves/25_Gate Valve (Double Acting Cylinder).svg
+  Source SHA-256: 3706a8b63f5481af2f983f526da2cae297f62ba46b78370627aec8e6554f1e82
+  Adapted equipment geometry; retained under the following license:
+
+  MIT License
+
+  Copyright (c) 2019-2025 frangoteam info@frangoteam.org
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+  --><title id="title">Valve standard EXTENDED</title><desc id="desc">Design-only v1.0. HMI Locked; does not imply Auto or Program.</desc><g font-family="Segoe UI, Microsoft YaHei, Arial, sans-serif"><g id="valveSymbol" transform="translate(42 12) scale(0.594059)">
+    <defs id="defs1" />
+    <g data-cell-id="b54Z_1cSVq9n6jkFMYGL-26" id="g71" style="fill:none" transform="translate(0,-30)">
+      <g id="cell-b54Z_1cSVq9n6jkFMYGL-26" style="fill:none">
+        <g transform="translate(0.5,0.5)" id="g70" style="fill:none">
+          <rect x="35" y="30" width="29.9" height="32.200001" fill="#ffffff" stroke="#20262E" pointer-events="all" style="fill:none" id="rect68" stroke-width="1.5" vector-effect="non-scaling-stroke" />
+          <path d="M 49.95,62.2 V 100 M 64.9,38.05 H 100 m -14.95,-5.6 -5.2,11.2 m 8.45,-11.2 -5.2,11.2 M 64.9,54.15 H 100 m -14.95,-5.6 -5.2,11.2 m 8.45,-11.2 -5.2,11.2" fill="none" stroke="#20262E" stroke-linejoin="round" stroke-miterlimit="10" pointer-events="all" style="fill:none" id="path68" stroke-width="1.5" vector-effect="non-scaling-stroke" />
+          <path d="m 0,70 50,30 -50,30 z m 100,0 -50,30 50,30 z" fill="#F7F8FA" stroke="#20262E" stroke-linejoin="round" stroke-miterlimit="10" pointer-events="all" id="valveBody" stroke-width="1.5" vector-effect="non-scaling-stroke" />
+          <path d="M 49.95,46.1 V 62.2 M 35,46.1 h 29.9" fill="none" stroke="#20262E" stroke-linejoin="round" stroke-miterlimit="10" pointer-events="all" style="fill:none" id="path70" stroke-width="1.5" vector-effect="non-scaling-stroke" />
+        </g>
+      </g>
+    </g>
+  </g>
+  <text x="72.0" y="93.0" font-size="14" fill="#20262E" font-weight="600" text-anchor="middle">EXTENDED</text><rect x="8" y="100" width="40" height="20" rx="2" fill="#EEF0F3" stroke="none" stroke-width="1" /><text x="28.0" y="114.0" font-size="12" fill="#20262E" font-weight="600" text-anchor="middle">LOCK</text><text x="72.0" y="148" font-size="14" fill="#20262E" font-weight="600" text-anchor="middle">V101</text></g></svg>

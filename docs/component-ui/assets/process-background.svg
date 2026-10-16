@@ -1,0 +1,121 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="340" viewBox="0 0 960 340" role="img" aria-labelledby="processTitle processDesc"><title id="processTitle">透明Valve Symbol置于普通工艺管线背景</title><desc id="processDesc">Three library Valve25 symbols: valid position with HMI Locked, valid position with HMI unknown, and Fault-only static frame. Background and pipe belong to the process view, not the transparent symbol.</desc><rect width="960" height="340" fill="#E6E8EB"/><g font-family="Segoe UI, Microsoft YaHei, Arial, sans-serif" fill="#20262E"><text x="24" y="36" font-size="22">透明 Symbol · 普通工艺管线背景</text><path d="M32 124 H928" fill="none" stroke="#7B8794" stroke-width="6"/><svg xmlns="http://www.w3.org/2000/svg" width="144" height="152" viewBox="0 0 144 152" role="img" aria-labelledby="title_process_demo_0 desc_process_demo_0" x="130" y="70"><!--
+  Source: frangoteam/FUXA-SVG-Widgets
+  Asset: Proc. Engineering/Proc. Eng. Valves/25_Gate Valve (Double Acting Cylinder).svg
+  Source SHA-256: 3706a8b63f5481af2f983f526da2cae297f62ba46b78370627aec8e6554f1e82
+  Adapted equipment geometry; retained under the following license:
+
+  MIT License
+
+  Copyright (c) 2019-2025 frangoteam info@frangoteam.org
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+  --><title id="title_process_demo_0">Valve standard EXTENDED</title><desc id="desc_process_demo_0">Design-only v1.0. HMI Locked; does not imply Auto or Program.</desc><g font-family="Segoe UI, Microsoft YaHei, Arial, sans-serif"><g id="valveSymbol_process_demo_0" transform="translate(42 12) scale(0.594059)">
+    <defs id="defs1_process_demo_0"/>
+    <g data-cell-id="b54Z_1cSVq9n6jkFMYGL-26" id="g71_process_demo_0" style="fill:none" transform="translate(0,-30)">
+      <g id="cell-b54Z_1cSVq9n6jkFMYGL-26_process_demo_0" style="fill:none">
+        <g transform="translate(0.5,0.5)" id="g70_process_demo_0" style="fill:none">
+          <rect x="35" y="30" width="29.9" height="32.200001" fill="#ffffff" stroke="#20262E" pointer-events="all" style="fill:none" id="rect68_process_demo_0" stroke-width="1.5" vector-effect="non-scaling-stroke"/>
+          <path d="M 49.95,62.2 V 100 M 64.9,38.05 H 100 m -14.95,-5.6 -5.2,11.2 m 8.45,-11.2 -5.2,11.2 M 64.9,54.15 H 100 m -14.95,-5.6 -5.2,11.2 m 8.45,-11.2 -5.2,11.2" fill="none" stroke="#20262E" stroke-linejoin="round" stroke-miterlimit="10" pointer-events="all" style="fill:none" id="path68_process_demo_0" stroke-width="1.5" vector-effect="non-scaling-stroke"/>
+          <path d="m 0,70 50,30 -50,30 z m 100,0 -50,30 50,30 z" fill="#F7F8FA" stroke="#20262E" stroke-linejoin="round" stroke-miterlimit="10" pointer-events="all" id="valveBody_process_demo_0" stroke-width="1.5" vector-effect="non-scaling-stroke"/>
+          <path d="M 49.95,46.1 V 62.2 M 35,46.1 h 29.9" fill="none" stroke="#20262E" stroke-linejoin="round" stroke-miterlimit="10" pointer-events="all" style="fill:none" id="path70_process_demo_0" stroke-width="1.5" vector-effect="non-scaling-stroke"/>
+        </g>
+      </g>
+    </g>
+  </g>
+  <text x="72.0" y="93.0" font-size="14" fill="#20262E" font-weight="600" text-anchor="middle">EXTENDED</text><rect x="8" y="100" width="40" height="20" rx="2" fill="#EEF0F3" stroke="none" stroke-width="1"/><text x="28.0" y="114.0" font-size="12" fill="#20262E" font-weight="600" text-anchor="middle">LOCK</text><text x="72.0" y="148" font-size="14" fill="#20262E" font-weight="600" text-anchor="middle">V101</text></g></svg><svg xmlns="http://www.w3.org/2000/svg" width="144" height="152" viewBox="0 0 144 152" role="img" aria-labelledby="title_process_demo_1 desc_process_demo_1" x="410" y="70"><!--
+  Source: frangoteam/FUXA-SVG-Widgets
+  Asset: Proc. Engineering/Proc. Eng. Valves/25_Gate Valve (Double Acting Cylinder).svg
+  Source SHA-256: 3706a8b63f5481af2f983f526da2cae297f62ba46b78370627aec8e6554f1e82
+  Adapted equipment geometry; retained under the following license:
+
+  MIT License
+
+  Copyright (c) 2019-2025 frangoteam info@frangoteam.org
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+  --><title id="title_process_demo_1">Valve position valid, HMI Control unknown</title><desc id="desc_process_demo_1">Static final design. Extended position remains valid when only Sts.IsManualMode is missing. HMI ? disables Extend/Retract; Reset is independent.</desc><g font-family="Segoe UI, Microsoft YaHei, Arial, sans-serif"><g id="valveSymbol_process_demo_1" transform="translate(42 12) scale(0.594059)">
+    <defs id="defs1_process_demo_1"/>
+    <g data-cell-id="b54Z_1cSVq9n6jkFMYGL-26" id="g71_process_demo_1" style="fill:none" transform="translate(0,-30)">
+      <g id="cell-b54Z_1cSVq9n6jkFMYGL-26_process_demo_1" style="fill:none">
+        <g transform="translate(0.5,0.5)" id="g70_process_demo_1" style="fill:none">
+          <rect x="35" y="30" width="29.9" height="32.200001" fill="#ffffff" stroke="#20262E" pointer-events="all" style="fill:none" id="rect68_process_demo_1" stroke-width="1.5" vector-effect="non-scaling-stroke"/>
+          <path d="M 49.95,62.2 V 100 M 64.9,38.05 H 100 m -14.95,-5.6 -5.2,11.2 m 8.45,-11.2 -5.2,11.2 M 64.9,54.15 H 100 m -14.95,-5.6 -5.2,11.2 m 8.45,-11.2 -5.2,11.2" fill="none" stroke="#20262E" stroke-linejoin="round" stroke-miterlimit="10" pointer-events="all" style="fill:none" id="path68_process_demo_1" stroke-width="1.5" vector-effect="non-scaling-stroke"/>
+          <path d="m 0,70 50,30 -50,30 z m 100,0 -50,30 50,30 z" fill="#F7F8FA" stroke="#20262E" stroke-linejoin="round" stroke-miterlimit="10" pointer-events="all" id="valveBody_process_demo_1" stroke-width="1.5" vector-effect="non-scaling-stroke"/>
+          <path d="M 49.95,46.1 V 62.2 M 35,46.1 h 29.9" fill="none" stroke="#20262E" stroke-linejoin="round" stroke-miterlimit="10" pointer-events="all" style="fill:none" id="path70_process_demo_1" stroke-width="1.5" vector-effect="non-scaling-stroke"/>
+        </g>
+      </g>
+    </g>
+  </g>
+  <text x="72.0" y="93.0" font-size="14" fill="#20262E" font-weight="600" text-anchor="middle">EXTENDED</text><rect x="8" y="100" width="40" height="20" rx="2" fill="#EEF0F3" stroke="none" stroke-width="1"/><text x="28.0" y="114.0" font-size="12" fill="#20262E" font-weight="600" text-anchor="middle">HMI ?</text><text x="72.0" y="148" font-size="14" fill="#20262E" font-weight="600" text-anchor="middle">V102</text></g></svg><svg xmlns="http://www.w3.org/2000/svg" width="144" height="152" viewBox="0 0 144 152" role="img" aria-labelledby="title_process_demo_2 desc_process_demo_2" x="690" y="70"><!--
+  Source: frangoteam/FUXA-SVG-Widgets
+  Asset: Proc. Engineering/Proc. Eng. Valves/25_Gate Valve (Double Acting Cylinder).svg
+  Source SHA-256: 3706a8b63f5481af2f983f526da2cae297f62ba46b78370627aec8e6554f1e82
+  Adapted equipment geometry; retained under the following license:
+
+  MIT License
+
+  Copyright (c) 2019-2025 frangoteam info@frangoteam.org
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+  --><title id="title_process_demo_2">Valve Fault-only static emphasis, not an alarm</title><desc id="desc_process_demo_2">Valid real-time PLC Fault TRUE. Static dark dashed fault frame only: no priority, acknowledgement, flashing or returned-to-normal lifecycle. Transparent Symbol background.</desc><g font-family="Segoe UI, Microsoft YaHei, Arial, sans-serif"><rect x="4" y="4" width="136" height="120" rx="2" fill="none" stroke="#20262E" stroke-width="2" stroke-dasharray="4 3" data-part="fault-frame"/><g id="valveSymbol_process_demo_2" transform="translate(42 12) scale(0.594059)">
+    <defs id="defs1_process_demo_2"/>
+    <g data-cell-id="b54Z_1cSVq9n6jkFMYGL-26" id="g71_process_demo_2" style="fill:none" transform="translate(0,-30)">
+      <g id="cell-b54Z_1cSVq9n6jkFMYGL-26_process_demo_2" style="fill:none">
+        <g transform="translate(0.5,0.5)" id="g70_process_demo_2" style="fill:none">
+          <rect x="35" y="30" width="29.9" height="32.200001" fill="#ffffff" stroke="#20262E" pointer-events="all" style="fill:none" id="rect68_process_demo_2" stroke-width="1.5" vector-effect="non-scaling-stroke"/>
+          <path d="M 49.95,62.2 V 100 M 64.9,38.05 H 100 m -14.95,-5.6 -5.2,11.2 m 8.45,-11.2 -5.2,11.2 M 64.9,54.15 H 100 m -14.95,-5.6 -5.2,11.2 m 8.45,-11.2 -5.2,11.2" fill="none" stroke="#20262E" stroke-linejoin="round" stroke-miterlimit="10" pointer-events="all" style="fill:none" id="path68_process_demo_2" stroke-width="1.5" vector-effect="non-scaling-stroke"/>
+          <path d="m 0,70 50,30 -50,30 z m 100,0 -50,30 50,30 z" fill="#F7F8FA" stroke="#20262E" stroke-linejoin="round" stroke-miterlimit="10" pointer-events="all" id="valveBody_process_demo_2" stroke-width="1.5" vector-effect="non-scaling-stroke"/>
+          <path d="M 49.95,46.1 V 62.2 M 35,46.1 h 29.9" fill="none" stroke="#20262E" stroke-linejoin="round" stroke-miterlimit="10" pointer-events="all" style="fill:none" id="path70_process_demo_2" stroke-width="1.5" vector-effect="non-scaling-stroke"/>
+        </g>
+      </g>
+    </g>
+  </g>
+  <rect x="8" y="78" width="128" height="20" rx="2" fill="#20262E" stroke="none" stroke-width="1"/><text x="72.0" y="93.0" font-size="14" fill="white" font-weight="600" text-anchor="middle">FAULT</text><rect x="8" y="100" width="40" height="20" rx="2" fill="#EEF0F3" stroke="none" stroke-width="1"/><text x="28.0" y="114.0" font-size="12" fill="#20262E" font-weight="600" text-anchor="middle">MAN</text><text x="72.0" y="148" font-size="14" fill="#20262E" font-weight="600" text-anchor="middle">V103</text></g></svg><text x="202" y="264" text-anchor="middle" font-size="14">位置有效 · HMI Locked</text><text x="482" y="264" text-anchor="middle" font-size="14">位置有效 · HMI ?</text><text x="762" y="264" text-anchor="middle" font-size="14">Fault-only · 无确认生命周期</text><text x="24" y="310" font-size="14">管线与画面底色属于工艺画面；Symbol 无整块背景。Faceplate 继续使用不透明底色。</text></g></svg>
