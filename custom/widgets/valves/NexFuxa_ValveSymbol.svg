@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" id="nexfuxaValveSymbol" width="144" height="152" viewBox="0 0 144 152">
+  <!--
+  Source: frangoteam/FUXA-SVG-Widgets
+  Asset: Proc. Engineering/Proc. Eng. Valves/25_Gate Valve (Double Acting Cylinder).svg
+  Source SHA-256: 3706a8b63f5481af2f983f526da2cae297f62ba46b78370627aec8e6554f1e82
+  Adapted equipment geometry; retained under the following license:
+
+  MIT License
+
+  Copyright (c) 2019-2025 frangoteam info@frangoteam.org
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+  -->
+
+  <metadata data-nexfuxa-valve-symbol="1"><![CDATA[{"contractVersion": "1.0.0", "templateId": "NexFuxa.Valve.NexPlc", "templateVersion": "1.0.0", "semantics": {"kind": "nexplcValveSixBool", "profileId": "NexPlc.Valve.sixBool.hmiControl", "profileVersion": "1.0.0", "inputs": {"extended": "Sts.Extended", "retracted": "Sts.Retracted", "extending": "Sts.Extending", "retracting": "Sts.Retracting", "fault": "Sts.Error", "hmiControlAvailable": "Sts.IsManualMode"}, "required": ["Sts.Extended", "Sts.Retracted", "Sts.Extending", "Sts.Retracting", "Sts.Error"], "qualityPolicy": "connectionThenPerDimension", "hmiControl": {"trueLabel": "MAN", "trueDescription": "HMI Control", "falseLabel": "HMI Locked", "falseShortLabel": "LOCK", "unknownLabel": "HMI ?", "meaning": "Sts.IsManualMode equals HMIControlAvailable. TRUE permits HMI Extend/Retract; FALSE locks them. Does not identify Auto/Program/Operator. Reset is not gated by this signal."}}, "stateDisplay": {"EXTENDED": {"text": "EXTENDED", "fillToken": "stateActive", "marker": "endpoint", "motion": "none", "shortText": "EXT"}, "RETRACTED": {"text": "RETRACTED", "fillToken": "stateIdle", "marker": "endpoint", "motion": "none", "shortText": "RET"}, "EXTENDING": {"text": "EXTENDING", "fillToken": "transition", "marker": "arrowRight", "motion": "directionPulse", "shortText": "EXT →"}, "RETRACTING": {"text": "RETRACTING", "fillToken": "transition", "marker": "arrowLeft", "motion": "directionPulse", "shortText": "← RET"}, "FAULT": {"text": "FAULT", "fillToken": "surface", "marker": "faultBadge", "motion": "none", "shortText": "FAULT"}, "CONFLICT": {"text": "CONFLICT", "fillToken": "surface", "marker": "conflictBadge", "motion": "none", "shortText": "CONFLICT"}, "UNKNOWN": {"text": "UNKNOWN", "fillToken": "surface", "marker": "question", "motion": "none", "shortText": "STATE ?"}, "BINDING_ERROR": {"text": "BINDING_ERROR", "fillToken": "surface", "marker": "tagQuestion", "motion": "none", "shortText": "TAG ?"}, "COMM_LOST": {"text": "COMM_LOST", "fillToken": "surface", "marker": "comCross", "motion": "none", "shortText": "COM LOST"}, "WAITING": {"text": "WAITING", "fillToken": "surface", "marker": "dataQuestion", "motion": "none", "shortText": "WAITING"}, "STALE": {"text": "STALE", "fillToken": "surface", "marker": "hatch", "motion": "none", "shortText": "STALE"}}, "layouts": {"defaultVariant": "standard", "variants": {"compact": {"viewBox": [0, 0, 96, 112], "geometryBox": [16, 8, 64, 32], "statusBox": [8, 44, 80, 18], "iconBox": [8, 64, 80, 16], "labelBox": [8, 92, 80, 20], "alarmBox": [4, 4, 88, 80], "labelBaseline": 108, "iconSlots": 2, "iconSize": 16, "slotWidth": 32, "slotGap": 4, "statusText": "short"}, "standard": {"viewBox": [0, 0, 144, 152], "geometryBox": [24, 12, 96, 60], "statusBox": [8, 78, 128, 20], "iconBox": [8, 100, 128, 20], "labelBox": [8, 132, 128, 20], "alarmBox": [4, 4, 136, 120], "labelBaseline": 148, "iconSlots": 3, "iconSize": 20, "slotWidth": 40, "slotGap": 4, "statusText": "full"}, "detailed": {"viewBox": [0, 0, 192, 184], "geometryBox": [32, 12, 128, 88], "statusBox": [8, 104, 176, 20], "iconBox": [8, 128, 176, 20], "labelBox": [8, 164, 176, 20], "alarmBox": [4, 4, 184, 148], "labelBaseline": 180, "iconSlots": 4, "iconSize": 20, "slotWidth": 40, "slotGap": 4, "statusText": "full"}}, "symbolBackground": "transparent", "faceplateBackground": "opaque"}, "tokens": {"version": "1.0.0", "color": {"canvas": "#E6E8EB", "surface": "#F7F8FA", "surfaceInset": "#EEF0F3", "text": "#20262E", "textMuted": "#56616F", "line": "#7B8794", "lineSubtle": "#C8CDD4", "live": "#304F75", "focus": "#245C9F", "stateIdle": "#7B8794", "stateActive": "#F7F8FA", "transition": "#D7E4F0", "fault": "#20262E", "alarmP1": "#B4232C", "alarmP2": "#9B4700", "alarmP3": "#E5C100", "alarmP4": "#70529B", "onAlarmDark": "#FFFFFF", "onAlarmLight": "#20262E", "quality": "#56616F", "alarmEdge": "#20262E"}, "font": {"family": "Segoe UI, Microsoft YaHei, Noto Sans CJK SC, Arial, sans-serif", "label": 14, "body": 16, "caption": 12, "section": 18, "title": 20, "value": 24, "lineHeight": 1.4}, "space": [4, 8, 12, 16, 24, 32], "size": {"icon": 20, "iconCompact": 16, "buttonHeight": 44, "inputHeight": 40, "focusRing": 2, "stroke": 2, "alarmStroke": 3, "symbolCompact": [96, 112], "symbolStandard": [144, 152], "symbolDetailed": [192, 184], "faceplate": [560, 680], "faceplateMinWidth": 320, "alarmEdgeStroke": 5, "alarmLabelMinGap": 4, "faultStroke": 2}, "motion": {"alarmPeriodMs": 1000, "alarmDutyPercent": 50, "transitionPeriodMs": 1200, "defaultEquipmentMotion": false, "reducedMotion": "static-marker-and-text", "faultFlashing": false}}, "bindings": {"_pb_extended": "Sts.Extended", "_pb_retracted": "Sts.Retracted", "_pb_extending": "Sts.Extending", "_pb_retracting": "Sts.Retracting", "_pb_error": "Sts.Error", "_pb_isManualMode": "Sts.IsManualMode"}}]]></metadata>
+  <metadata data-fuxa-binding-profile="1"><![CDATA[{"version": 1, "bindings": {"_pb_extended": "{#1}_sts_extended", "_pb_retracted": "{#1}_sts_retracted", "_pb_extending": "{#1}_sts_extending", "_pb_retracting": "{#1}_sts_retracting", "_pb_error": "{#1}_sts_error", "_pb_isManualMode": "{#1}_sts_is_manual_mode"}}]]></metadata>
+  <title id="valveTitle" data-part="title">Valve Symbol</title>
+  <rect data-part="hit" fill="transparent" width="144" height="152"/>
+  <rect data-part="fault" fill="none" stroke="#20262E" stroke-width="2" stroke-dasharray="4 3" visibility="hidden"/>
+  <g id="valveSymbol" data-part="geometry">
+    <defs id="defs1"/>
+    <g data-cell-id="b54Z_1cSVq9n6jkFMYGL-26" id="g71" style="fill:none" transform="translate(0,-30)">
+      <g id="cell-b54Z_1cSVq9n6jkFMYGL-26" style="fill:none">
+        <g transform="translate(0.5,0.5)" id="g70" style="fill:none">
+          <rect x="35" y="30" width="29.9" height="32.200001" fill="#ffffff" stroke="#7B8794" stroke-width="2" vector-effect="non-scaling-stroke" pointer-events="all" style="fill:none" id="rect68"/>
+          <path d="M 49.95,62.2 V 100 M 64.9,38.05 H 100 m -14.95,-5.6 -5.2,11.2 m 8.45,-11.2 -5.2,11.2 M 64.9,54.15 H 100 m -14.95,-5.6 -5.2,11.2 m 8.45,-11.2 -5.2,11.2" fill="none" stroke="#7B8794" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round" stroke-miterlimit="10" pointer-events="all" style="fill:none" id="path68"/>
+          <path d="m 0,70 50,30 -50,30 z m 100,0 -50,30 50,30 z" fill="#ffffff" stroke="#7B8794" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round" stroke-miterlimit="10" pointer-events="all" id="valveBody" data-part="body"/>
+          <path d="M 49.95,46.1 V 62.2 M 35,46.1 h 29.9" fill="none" stroke="#7B8794" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round" stroke-miterlimit="10" pointer-events="all" style="fill:none" id="path70"/>
+        </g>
+      </g>
+    </g>
+  </g>
+  <text data-part="marker" font-size="14" fill="#304F75" visibility="hidden"/>
+  <text data-part="status" text-anchor="middle" font-weight="600">WAITING</text>
+  <g data-part="icons"/>
+  <text data-part="label" text-anchor="middle" font-size="14">Valve</text>
+  <script><![CDATA[
+//!export-start
+let _ps_label = 'Valve';
+let _pb_extended = null;
+let _pb_retracted = null;
+let _pb_extending = null;
+let _pb_retracting = null;
+let _pb_error = null;
+let _pb_isManualMode = null;
+//!export-end
+// The native, versioned runtime owns rendering; this module keeps Widget bindings.
+function putValue(id, value) {}
+  ]]></script>
+</svg>

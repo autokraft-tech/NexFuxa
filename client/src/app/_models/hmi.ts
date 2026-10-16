@@ -241,6 +241,11 @@ export interface PermissionRoles {
 }
 
 export class WidgetProperty extends GaugeProperty {
+    layout?: { symbolVariant: 'compact' | 'standard' | 'detailed' };
+    componentUi?: {
+        layout?: { symbolVariant: 'compact' | 'standard' | 'detailed' };
+        metadata?: { label?: string; description?: string; direction?: 0 | 90 | 180 | 270 };
+    };
     inheritFaceplateBinding?: boolean;
     bindingProfile?: WidgetBindingProfile;
     prefixBinding?: WidgetPrefixBinding;

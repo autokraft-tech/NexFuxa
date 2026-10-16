@@ -214,6 +214,7 @@ export class EditorComponent implements OnInit, AfterViewInit, OnDestroy {
             console.error(e);
         }
         this.onSaveProject();
+        HtmlImageComponent.destroyValveSymbols(document.getElementById('svgroot'));
         this.destroy$.next(null);
         this.destroy$.complete();
     }
@@ -654,6 +655,7 @@ export class EditorComponent implements OnInit, AfterViewInit, OnDestroy {
      * clear svg-editor and the canvas
      */
     private clearEditor() {
+        HtmlImageComponent.destroyValveSymbols(document.getElementById('svgroot'));
         if (this.winRef.nativeWindow.svgEditor) {
             this.winRef.nativeWindow.svgEditor.clickClearAll();
         }
@@ -769,6 +771,7 @@ export class EditorComponent implements OnInit, AfterViewInit, OnDestroy {
      * @param ele svg element
      */
     private onRemoveElement(ele: any) {
+        ele?.forEach(node => HtmlImageComponent.destroyValveSymbols(node));
         if (this.currentView && this.currentView.items && ele) {
             for (let i = 0; i < ele.length; i++) {
                 if (this.currentView.items[ele[i].id]) {

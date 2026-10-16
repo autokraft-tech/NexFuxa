@@ -36,6 +36,12 @@ gh pr create --repo autokraft-tech/NexFuxa --base nexfuxa --head feature/my-feat
 
 Review the diff and relevant test evidence before merging. Regular feature PRs may use squash merge. Keep the feature branch until the merged result has been verified. A GitHub default branch of `nexfuxa` helps new PRs select the correct base, but always check the base explicitly.
 
+### Commit Scope / Artifact Hygiene
+
+Follow the [repository artifact policy](../AGENTS.md#repository-artifact--documentation-policy): retain source, formal assets, reusable tests/fixtures and necessary long-term documentation. Keep one-off reports, screenshots, logs, temporary databases/builds and acceptance evidence in ignored `_reports/` or outside the repository unless the user explicitly requests those files in Git. Summarize tests and acceptance in the final chat reply and PR description; update existing usage documentation when needed instead of adding Phase reports.
+
+Before each commit inspect `git status`, `git diff`, `git diff --cached --name-status`, `git diff --cached --check` and `git ls-files`. Review each intended path and justify every addition, including whether it has lasting product or test value. Stage explicit reviewed paths; do not use unreviewed `git add .`, `git add -A` or `git add --all`. An ignore rule does not remove an already tracked artifact. Do not include unrelated cleanup or automatically push, merge or deploy.
+
 ### PR checks
 
 The [NexFuxa CI workflow](../.github/workflows/nexfuxa-ci.yml) runs for PRs targeting `nexfuxa`, pushes to `nexfuxa`, and manual dispatch. Before merging a customization PR, require all four checks to pass on its current head: `plc-model-tests` (Phase 3A/3B/3B.1), `server-tests` (server tests and TypeScript build), `client-build` (script and Tag Generator race tests plus Angular production build), and `docker-runtime-package` (final image build, runtime module load, and disposable-volume restart persistence). Review any failure and fix the cause on the PR branch; do not skip a failing check. The workflow tests with Node.js 20 in isolated GitHub-hosted Ubuntu 24.04 jobs with no production credentials or PLC connection. The Docker check uses `INSTALL_ODBC=false`, an isolated temporary volume removed after the test, and no registry push. Node.js 22 and Docker runtime upgrades need separate planning and validation.
