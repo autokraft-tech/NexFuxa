@@ -1,0 +1,1159 @@
+{
+  "profileId": "NexPlc.Valve.sixBool.hmiControl",
+  "profileVersion": "1.0.0",
+  "scope": "Design review vectors with all six BOOL inputs valid; not executed runtime acceptance.",
+  "cases": [
+    {
+      "inputs": {
+        "Sts.Extended": false,
+        "Sts.Retracted": false,
+        "Sts.Extending": false,
+        "Sts.Retracting": false,
+        "Sts.Error": false,
+        "Sts.IsManualMode": false
+      },
+      "expected": {
+        "primary": "UNKNOWN",
+        "hmiControl": "locked",
+        "symbolControlLabel": "LOCK",
+        "faceplateControlLabel": "HMI Locked",
+        "extendRetractAllowedByHmi": false,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": false,
+        "Sts.Retracted": false,
+        "Sts.Extending": false,
+        "Sts.Retracting": false,
+        "Sts.Error": false,
+        "Sts.IsManualMode": true
+      },
+      "expected": {
+        "primary": "UNKNOWN",
+        "hmiControl": "available",
+        "symbolControlLabel": "MAN",
+        "faceplateControlLabel": "HMI Control",
+        "extendRetractAllowedByHmi": true,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": false,
+        "Sts.Retracted": false,
+        "Sts.Extending": false,
+        "Sts.Retracting": false,
+        "Sts.Error": true,
+        "Sts.IsManualMode": false
+      },
+      "expected": {
+        "primary": "FAULT",
+        "hmiControl": "locked",
+        "symbolControlLabel": "LOCK",
+        "faceplateControlLabel": "HMI Locked",
+        "extendRetractAllowedByHmi": false,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": false,
+        "Sts.Retracted": false,
+        "Sts.Extending": false,
+        "Sts.Retracting": false,
+        "Sts.Error": true,
+        "Sts.IsManualMode": true
+      },
+      "expected": {
+        "primary": "FAULT",
+        "hmiControl": "available",
+        "symbolControlLabel": "MAN",
+        "faceplateControlLabel": "HMI Control",
+        "extendRetractAllowedByHmi": true,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": false,
+        "Sts.Retracted": false,
+        "Sts.Extending": false,
+        "Sts.Retracting": true,
+        "Sts.Error": false,
+        "Sts.IsManualMode": false
+      },
+      "expected": {
+        "primary": "RETRACTING",
+        "hmiControl": "locked",
+        "symbolControlLabel": "LOCK",
+        "faceplateControlLabel": "HMI Locked",
+        "extendRetractAllowedByHmi": false,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": false,
+        "Sts.Retracted": false,
+        "Sts.Extending": false,
+        "Sts.Retracting": true,
+        "Sts.Error": false,
+        "Sts.IsManualMode": true
+      },
+      "expected": {
+        "primary": "RETRACTING",
+        "hmiControl": "available",
+        "symbolControlLabel": "MAN",
+        "faceplateControlLabel": "HMI Control",
+        "extendRetractAllowedByHmi": true,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": false,
+        "Sts.Retracted": false,
+        "Sts.Extending": false,
+        "Sts.Retracting": true,
+        "Sts.Error": true,
+        "Sts.IsManualMode": false
+      },
+      "expected": {
+        "primary": "FAULT",
+        "hmiControl": "locked",
+        "symbolControlLabel": "LOCK",
+        "faceplateControlLabel": "HMI Locked",
+        "extendRetractAllowedByHmi": false,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": false,
+        "Sts.Retracted": false,
+        "Sts.Extending": false,
+        "Sts.Retracting": true,
+        "Sts.Error": true,
+        "Sts.IsManualMode": true
+      },
+      "expected": {
+        "primary": "FAULT",
+        "hmiControl": "available",
+        "symbolControlLabel": "MAN",
+        "faceplateControlLabel": "HMI Control",
+        "extendRetractAllowedByHmi": true,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": false,
+        "Sts.Retracted": false,
+        "Sts.Extending": true,
+        "Sts.Retracting": false,
+        "Sts.Error": false,
+        "Sts.IsManualMode": false
+      },
+      "expected": {
+        "primary": "EXTENDING",
+        "hmiControl": "locked",
+        "symbolControlLabel": "LOCK",
+        "faceplateControlLabel": "HMI Locked",
+        "extendRetractAllowedByHmi": false,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": false,
+        "Sts.Retracted": false,
+        "Sts.Extending": true,
+        "Sts.Retracting": false,
+        "Sts.Error": false,
+        "Sts.IsManualMode": true
+      },
+      "expected": {
+        "primary": "EXTENDING",
+        "hmiControl": "available",
+        "symbolControlLabel": "MAN",
+        "faceplateControlLabel": "HMI Control",
+        "extendRetractAllowedByHmi": true,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": false,
+        "Sts.Retracted": false,
+        "Sts.Extending": true,
+        "Sts.Retracting": false,
+        "Sts.Error": true,
+        "Sts.IsManualMode": false
+      },
+      "expected": {
+        "primary": "FAULT",
+        "hmiControl": "locked",
+        "symbolControlLabel": "LOCK",
+        "faceplateControlLabel": "HMI Locked",
+        "extendRetractAllowedByHmi": false,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": false,
+        "Sts.Retracted": false,
+        "Sts.Extending": true,
+        "Sts.Retracting": false,
+        "Sts.Error": true,
+        "Sts.IsManualMode": true
+      },
+      "expected": {
+        "primary": "FAULT",
+        "hmiControl": "available",
+        "symbolControlLabel": "MAN",
+        "faceplateControlLabel": "HMI Control",
+        "extendRetractAllowedByHmi": true,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": false,
+        "Sts.Retracted": false,
+        "Sts.Extending": true,
+        "Sts.Retracting": true,
+        "Sts.Error": false,
+        "Sts.IsManualMode": false
+      },
+      "expected": {
+        "primary": "CONFLICT",
+        "hmiControl": "locked",
+        "symbolControlLabel": "LOCK",
+        "faceplateControlLabel": "HMI Locked",
+        "extendRetractAllowedByHmi": false,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": false,
+        "Sts.Retracted": false,
+        "Sts.Extending": true,
+        "Sts.Retracting": true,
+        "Sts.Error": false,
+        "Sts.IsManualMode": true
+      },
+      "expected": {
+        "primary": "CONFLICT",
+        "hmiControl": "available",
+        "symbolControlLabel": "MAN",
+        "faceplateControlLabel": "HMI Control",
+        "extendRetractAllowedByHmi": true,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": false,
+        "Sts.Retracted": false,
+        "Sts.Extending": true,
+        "Sts.Retracting": true,
+        "Sts.Error": true,
+        "Sts.IsManualMode": false
+      },
+      "expected": {
+        "primary": "FAULT",
+        "hmiControl": "locked",
+        "symbolControlLabel": "LOCK",
+        "faceplateControlLabel": "HMI Locked",
+        "extendRetractAllowedByHmi": false,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": false,
+        "Sts.Retracted": false,
+        "Sts.Extending": true,
+        "Sts.Retracting": true,
+        "Sts.Error": true,
+        "Sts.IsManualMode": true
+      },
+      "expected": {
+        "primary": "FAULT",
+        "hmiControl": "available",
+        "symbolControlLabel": "MAN",
+        "faceplateControlLabel": "HMI Control",
+        "extendRetractAllowedByHmi": true,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": false,
+        "Sts.Retracted": true,
+        "Sts.Extending": false,
+        "Sts.Retracting": false,
+        "Sts.Error": false,
+        "Sts.IsManualMode": false
+      },
+      "expected": {
+        "primary": "RETRACTED",
+        "hmiControl": "locked",
+        "symbolControlLabel": "LOCK",
+        "faceplateControlLabel": "HMI Locked",
+        "extendRetractAllowedByHmi": false,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": false,
+        "Sts.Retracted": true,
+        "Sts.Extending": false,
+        "Sts.Retracting": false,
+        "Sts.Error": false,
+        "Sts.IsManualMode": true
+      },
+      "expected": {
+        "primary": "RETRACTED",
+        "hmiControl": "available",
+        "symbolControlLabel": "MAN",
+        "faceplateControlLabel": "HMI Control",
+        "extendRetractAllowedByHmi": true,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": false,
+        "Sts.Retracted": true,
+        "Sts.Extending": false,
+        "Sts.Retracting": false,
+        "Sts.Error": true,
+        "Sts.IsManualMode": false
+      },
+      "expected": {
+        "primary": "FAULT",
+        "hmiControl": "locked",
+        "symbolControlLabel": "LOCK",
+        "faceplateControlLabel": "HMI Locked",
+        "extendRetractAllowedByHmi": false,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": false,
+        "Sts.Retracted": true,
+        "Sts.Extending": false,
+        "Sts.Retracting": false,
+        "Sts.Error": true,
+        "Sts.IsManualMode": true
+      },
+      "expected": {
+        "primary": "FAULT",
+        "hmiControl": "available",
+        "symbolControlLabel": "MAN",
+        "faceplateControlLabel": "HMI Control",
+        "extendRetractAllowedByHmi": true,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": false,
+        "Sts.Retracted": true,
+        "Sts.Extending": false,
+        "Sts.Retracting": true,
+        "Sts.Error": false,
+        "Sts.IsManualMode": false
+      },
+      "expected": {
+        "primary": "RETRACTING",
+        "hmiControl": "locked",
+        "symbolControlLabel": "LOCK",
+        "faceplateControlLabel": "HMI Locked",
+        "extendRetractAllowedByHmi": false,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": false,
+        "Sts.Retracted": true,
+        "Sts.Extending": false,
+        "Sts.Retracting": true,
+        "Sts.Error": false,
+        "Sts.IsManualMode": true
+      },
+      "expected": {
+        "primary": "RETRACTING",
+        "hmiControl": "available",
+        "symbolControlLabel": "MAN",
+        "faceplateControlLabel": "HMI Control",
+        "extendRetractAllowedByHmi": true,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": false,
+        "Sts.Retracted": true,
+        "Sts.Extending": false,
+        "Sts.Retracting": true,
+        "Sts.Error": true,
+        "Sts.IsManualMode": false
+      },
+      "expected": {
+        "primary": "FAULT",
+        "hmiControl": "locked",
+        "symbolControlLabel": "LOCK",
+        "faceplateControlLabel": "HMI Locked",
+        "extendRetractAllowedByHmi": false,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": false,
+        "Sts.Retracted": true,
+        "Sts.Extending": false,
+        "Sts.Retracting": true,
+        "Sts.Error": true,
+        "Sts.IsManualMode": true
+      },
+      "expected": {
+        "primary": "FAULT",
+        "hmiControl": "available",
+        "symbolControlLabel": "MAN",
+        "faceplateControlLabel": "HMI Control",
+        "extendRetractAllowedByHmi": true,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": false,
+        "Sts.Retracted": true,
+        "Sts.Extending": true,
+        "Sts.Retracting": false,
+        "Sts.Error": false,
+        "Sts.IsManualMode": false
+      },
+      "expected": {
+        "primary": "EXTENDING",
+        "hmiControl": "locked",
+        "symbolControlLabel": "LOCK",
+        "faceplateControlLabel": "HMI Locked",
+        "extendRetractAllowedByHmi": false,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": false,
+        "Sts.Retracted": true,
+        "Sts.Extending": true,
+        "Sts.Retracting": false,
+        "Sts.Error": false,
+        "Sts.IsManualMode": true
+      },
+      "expected": {
+        "primary": "EXTENDING",
+        "hmiControl": "available",
+        "symbolControlLabel": "MAN",
+        "faceplateControlLabel": "HMI Control",
+        "extendRetractAllowedByHmi": true,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": false,
+        "Sts.Retracted": true,
+        "Sts.Extending": true,
+        "Sts.Retracting": false,
+        "Sts.Error": true,
+        "Sts.IsManualMode": false
+      },
+      "expected": {
+        "primary": "FAULT",
+        "hmiControl": "locked",
+        "symbolControlLabel": "LOCK",
+        "faceplateControlLabel": "HMI Locked",
+        "extendRetractAllowedByHmi": false,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": false,
+        "Sts.Retracted": true,
+        "Sts.Extending": true,
+        "Sts.Retracting": false,
+        "Sts.Error": true,
+        "Sts.IsManualMode": true
+      },
+      "expected": {
+        "primary": "FAULT",
+        "hmiControl": "available",
+        "symbolControlLabel": "MAN",
+        "faceplateControlLabel": "HMI Control",
+        "extendRetractAllowedByHmi": true,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": false,
+        "Sts.Retracted": true,
+        "Sts.Extending": true,
+        "Sts.Retracting": true,
+        "Sts.Error": false,
+        "Sts.IsManualMode": false
+      },
+      "expected": {
+        "primary": "CONFLICT",
+        "hmiControl": "locked",
+        "symbolControlLabel": "LOCK",
+        "faceplateControlLabel": "HMI Locked",
+        "extendRetractAllowedByHmi": false,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": false,
+        "Sts.Retracted": true,
+        "Sts.Extending": true,
+        "Sts.Retracting": true,
+        "Sts.Error": false,
+        "Sts.IsManualMode": true
+      },
+      "expected": {
+        "primary": "CONFLICT",
+        "hmiControl": "available",
+        "symbolControlLabel": "MAN",
+        "faceplateControlLabel": "HMI Control",
+        "extendRetractAllowedByHmi": true,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": false,
+        "Sts.Retracted": true,
+        "Sts.Extending": true,
+        "Sts.Retracting": true,
+        "Sts.Error": true,
+        "Sts.IsManualMode": false
+      },
+      "expected": {
+        "primary": "FAULT",
+        "hmiControl": "locked",
+        "symbolControlLabel": "LOCK",
+        "faceplateControlLabel": "HMI Locked",
+        "extendRetractAllowedByHmi": false,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": false,
+        "Sts.Retracted": true,
+        "Sts.Extending": true,
+        "Sts.Retracting": true,
+        "Sts.Error": true,
+        "Sts.IsManualMode": true
+      },
+      "expected": {
+        "primary": "FAULT",
+        "hmiControl": "available",
+        "symbolControlLabel": "MAN",
+        "faceplateControlLabel": "HMI Control",
+        "extendRetractAllowedByHmi": true,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": true,
+        "Sts.Retracted": false,
+        "Sts.Extending": false,
+        "Sts.Retracting": false,
+        "Sts.Error": false,
+        "Sts.IsManualMode": false
+      },
+      "expected": {
+        "primary": "EXTENDED",
+        "hmiControl": "locked",
+        "symbolControlLabel": "LOCK",
+        "faceplateControlLabel": "HMI Locked",
+        "extendRetractAllowedByHmi": false,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": true,
+        "Sts.Retracted": false,
+        "Sts.Extending": false,
+        "Sts.Retracting": false,
+        "Sts.Error": false,
+        "Sts.IsManualMode": true
+      },
+      "expected": {
+        "primary": "EXTENDED",
+        "hmiControl": "available",
+        "symbolControlLabel": "MAN",
+        "faceplateControlLabel": "HMI Control",
+        "extendRetractAllowedByHmi": true,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": true,
+        "Sts.Retracted": false,
+        "Sts.Extending": false,
+        "Sts.Retracting": false,
+        "Sts.Error": true,
+        "Sts.IsManualMode": false
+      },
+      "expected": {
+        "primary": "FAULT",
+        "hmiControl": "locked",
+        "symbolControlLabel": "LOCK",
+        "faceplateControlLabel": "HMI Locked",
+        "extendRetractAllowedByHmi": false,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": true,
+        "Sts.Retracted": false,
+        "Sts.Extending": false,
+        "Sts.Retracting": false,
+        "Sts.Error": true,
+        "Sts.IsManualMode": true
+      },
+      "expected": {
+        "primary": "FAULT",
+        "hmiControl": "available",
+        "symbolControlLabel": "MAN",
+        "faceplateControlLabel": "HMI Control",
+        "extendRetractAllowedByHmi": true,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": true,
+        "Sts.Retracted": false,
+        "Sts.Extending": false,
+        "Sts.Retracting": true,
+        "Sts.Error": false,
+        "Sts.IsManualMode": false
+      },
+      "expected": {
+        "primary": "RETRACTING",
+        "hmiControl": "locked",
+        "symbolControlLabel": "LOCK",
+        "faceplateControlLabel": "HMI Locked",
+        "extendRetractAllowedByHmi": false,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": true,
+        "Sts.Retracted": false,
+        "Sts.Extending": false,
+        "Sts.Retracting": true,
+        "Sts.Error": false,
+        "Sts.IsManualMode": true
+      },
+      "expected": {
+        "primary": "RETRACTING",
+        "hmiControl": "available",
+        "symbolControlLabel": "MAN",
+        "faceplateControlLabel": "HMI Control",
+        "extendRetractAllowedByHmi": true,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": true,
+        "Sts.Retracted": false,
+        "Sts.Extending": false,
+        "Sts.Retracting": true,
+        "Sts.Error": true,
+        "Sts.IsManualMode": false
+      },
+      "expected": {
+        "primary": "FAULT",
+        "hmiControl": "locked",
+        "symbolControlLabel": "LOCK",
+        "faceplateControlLabel": "HMI Locked",
+        "extendRetractAllowedByHmi": false,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": true,
+        "Sts.Retracted": false,
+        "Sts.Extending": false,
+        "Sts.Retracting": true,
+        "Sts.Error": true,
+        "Sts.IsManualMode": true
+      },
+      "expected": {
+        "primary": "FAULT",
+        "hmiControl": "available",
+        "symbolControlLabel": "MAN",
+        "faceplateControlLabel": "HMI Control",
+        "extendRetractAllowedByHmi": true,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": true,
+        "Sts.Retracted": false,
+        "Sts.Extending": true,
+        "Sts.Retracting": false,
+        "Sts.Error": false,
+        "Sts.IsManualMode": false
+      },
+      "expected": {
+        "primary": "EXTENDING",
+        "hmiControl": "locked",
+        "symbolControlLabel": "LOCK",
+        "faceplateControlLabel": "HMI Locked",
+        "extendRetractAllowedByHmi": false,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": true,
+        "Sts.Retracted": false,
+        "Sts.Extending": true,
+        "Sts.Retracting": false,
+        "Sts.Error": false,
+        "Sts.IsManualMode": true
+      },
+      "expected": {
+        "primary": "EXTENDING",
+        "hmiControl": "available",
+        "symbolControlLabel": "MAN",
+        "faceplateControlLabel": "HMI Control",
+        "extendRetractAllowedByHmi": true,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": true,
+        "Sts.Retracted": false,
+        "Sts.Extending": true,
+        "Sts.Retracting": false,
+        "Sts.Error": true,
+        "Sts.IsManualMode": false
+      },
+      "expected": {
+        "primary": "FAULT",
+        "hmiControl": "locked",
+        "symbolControlLabel": "LOCK",
+        "faceplateControlLabel": "HMI Locked",
+        "extendRetractAllowedByHmi": false,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": true,
+        "Sts.Retracted": false,
+        "Sts.Extending": true,
+        "Sts.Retracting": false,
+        "Sts.Error": true,
+        "Sts.IsManualMode": true
+      },
+      "expected": {
+        "primary": "FAULT",
+        "hmiControl": "available",
+        "symbolControlLabel": "MAN",
+        "faceplateControlLabel": "HMI Control",
+        "extendRetractAllowedByHmi": true,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": true,
+        "Sts.Retracted": false,
+        "Sts.Extending": true,
+        "Sts.Retracting": true,
+        "Sts.Error": false,
+        "Sts.IsManualMode": false
+      },
+      "expected": {
+        "primary": "CONFLICT",
+        "hmiControl": "locked",
+        "symbolControlLabel": "LOCK",
+        "faceplateControlLabel": "HMI Locked",
+        "extendRetractAllowedByHmi": false,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": true,
+        "Sts.Retracted": false,
+        "Sts.Extending": true,
+        "Sts.Retracting": true,
+        "Sts.Error": false,
+        "Sts.IsManualMode": true
+      },
+      "expected": {
+        "primary": "CONFLICT",
+        "hmiControl": "available",
+        "symbolControlLabel": "MAN",
+        "faceplateControlLabel": "HMI Control",
+        "extendRetractAllowedByHmi": true,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": true,
+        "Sts.Retracted": false,
+        "Sts.Extending": true,
+        "Sts.Retracting": true,
+        "Sts.Error": true,
+        "Sts.IsManualMode": false
+      },
+      "expected": {
+        "primary": "FAULT",
+        "hmiControl": "locked",
+        "symbolControlLabel": "LOCK",
+        "faceplateControlLabel": "HMI Locked",
+        "extendRetractAllowedByHmi": false,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": true,
+        "Sts.Retracted": false,
+        "Sts.Extending": true,
+        "Sts.Retracting": true,
+        "Sts.Error": true,
+        "Sts.IsManualMode": true
+      },
+      "expected": {
+        "primary": "FAULT",
+        "hmiControl": "available",
+        "symbolControlLabel": "MAN",
+        "faceplateControlLabel": "HMI Control",
+        "extendRetractAllowedByHmi": true,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": true,
+        "Sts.Retracted": true,
+        "Sts.Extending": false,
+        "Sts.Retracting": false,
+        "Sts.Error": false,
+        "Sts.IsManualMode": false
+      },
+      "expected": {
+        "primary": "CONFLICT",
+        "hmiControl": "locked",
+        "symbolControlLabel": "LOCK",
+        "faceplateControlLabel": "HMI Locked",
+        "extendRetractAllowedByHmi": false,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": true,
+        "Sts.Retracted": true,
+        "Sts.Extending": false,
+        "Sts.Retracting": false,
+        "Sts.Error": false,
+        "Sts.IsManualMode": true
+      },
+      "expected": {
+        "primary": "CONFLICT",
+        "hmiControl": "available",
+        "symbolControlLabel": "MAN",
+        "faceplateControlLabel": "HMI Control",
+        "extendRetractAllowedByHmi": true,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": true,
+        "Sts.Retracted": true,
+        "Sts.Extending": false,
+        "Sts.Retracting": false,
+        "Sts.Error": true,
+        "Sts.IsManualMode": false
+      },
+      "expected": {
+        "primary": "FAULT",
+        "hmiControl": "locked",
+        "symbolControlLabel": "LOCK",
+        "faceplateControlLabel": "HMI Locked",
+        "extendRetractAllowedByHmi": false,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": true,
+        "Sts.Retracted": true,
+        "Sts.Extending": false,
+        "Sts.Retracting": false,
+        "Sts.Error": true,
+        "Sts.IsManualMode": true
+      },
+      "expected": {
+        "primary": "FAULT",
+        "hmiControl": "available",
+        "symbolControlLabel": "MAN",
+        "faceplateControlLabel": "HMI Control",
+        "extendRetractAllowedByHmi": true,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": true,
+        "Sts.Retracted": true,
+        "Sts.Extending": false,
+        "Sts.Retracting": true,
+        "Sts.Error": false,
+        "Sts.IsManualMode": false
+      },
+      "expected": {
+        "primary": "CONFLICT",
+        "hmiControl": "locked",
+        "symbolControlLabel": "LOCK",
+        "faceplateControlLabel": "HMI Locked",
+        "extendRetractAllowedByHmi": false,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": true,
+        "Sts.Retracted": true,
+        "Sts.Extending": false,
+        "Sts.Retracting": true,
+        "Sts.Error": false,
+        "Sts.IsManualMode": true
+      },
+      "expected": {
+        "primary": "CONFLICT",
+        "hmiControl": "available",
+        "symbolControlLabel": "MAN",
+        "faceplateControlLabel": "HMI Control",
+        "extendRetractAllowedByHmi": true,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": true,
+        "Sts.Retracted": true,
+        "Sts.Extending": false,
+        "Sts.Retracting": true,
+        "Sts.Error": true,
+        "Sts.IsManualMode": false
+      },
+      "expected": {
+        "primary": "FAULT",
+        "hmiControl": "locked",
+        "symbolControlLabel": "LOCK",
+        "faceplateControlLabel": "HMI Locked",
+        "extendRetractAllowedByHmi": false,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": true,
+        "Sts.Retracted": true,
+        "Sts.Extending": false,
+        "Sts.Retracting": true,
+        "Sts.Error": true,
+        "Sts.IsManualMode": true
+      },
+      "expected": {
+        "primary": "FAULT",
+        "hmiControl": "available",
+        "symbolControlLabel": "MAN",
+        "faceplateControlLabel": "HMI Control",
+        "extendRetractAllowedByHmi": true,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": true,
+        "Sts.Retracted": true,
+        "Sts.Extending": true,
+        "Sts.Retracting": false,
+        "Sts.Error": false,
+        "Sts.IsManualMode": false
+      },
+      "expected": {
+        "primary": "CONFLICT",
+        "hmiControl": "locked",
+        "symbolControlLabel": "LOCK",
+        "faceplateControlLabel": "HMI Locked",
+        "extendRetractAllowedByHmi": false,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": true,
+        "Sts.Retracted": true,
+        "Sts.Extending": true,
+        "Sts.Retracting": false,
+        "Sts.Error": false,
+        "Sts.IsManualMode": true
+      },
+      "expected": {
+        "primary": "CONFLICT",
+        "hmiControl": "available",
+        "symbolControlLabel": "MAN",
+        "faceplateControlLabel": "HMI Control",
+        "extendRetractAllowedByHmi": true,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": true,
+        "Sts.Retracted": true,
+        "Sts.Extending": true,
+        "Sts.Retracting": false,
+        "Sts.Error": true,
+        "Sts.IsManualMode": false
+      },
+      "expected": {
+        "primary": "FAULT",
+        "hmiControl": "locked",
+        "symbolControlLabel": "LOCK",
+        "faceplateControlLabel": "HMI Locked",
+        "extendRetractAllowedByHmi": false,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": true,
+        "Sts.Retracted": true,
+        "Sts.Extending": true,
+        "Sts.Retracting": false,
+        "Sts.Error": true,
+        "Sts.IsManualMode": true
+      },
+      "expected": {
+        "primary": "FAULT",
+        "hmiControl": "available",
+        "symbolControlLabel": "MAN",
+        "faceplateControlLabel": "HMI Control",
+        "extendRetractAllowedByHmi": true,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": true,
+        "Sts.Retracted": true,
+        "Sts.Extending": true,
+        "Sts.Retracting": true,
+        "Sts.Error": false,
+        "Sts.IsManualMode": false
+      },
+      "expected": {
+        "primary": "CONFLICT",
+        "hmiControl": "locked",
+        "symbolControlLabel": "LOCK",
+        "faceplateControlLabel": "HMI Locked",
+        "extendRetractAllowedByHmi": false,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": true,
+        "Sts.Retracted": true,
+        "Sts.Extending": true,
+        "Sts.Retracting": true,
+        "Sts.Error": false,
+        "Sts.IsManualMode": true
+      },
+      "expected": {
+        "primary": "CONFLICT",
+        "hmiControl": "available",
+        "symbolControlLabel": "MAN",
+        "faceplateControlLabel": "HMI Control",
+        "extendRetractAllowedByHmi": true,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": true,
+        "Sts.Retracted": true,
+        "Sts.Extending": true,
+        "Sts.Retracting": true,
+        "Sts.Error": true,
+        "Sts.IsManualMode": false
+      },
+      "expected": {
+        "primary": "FAULT",
+        "hmiControl": "locked",
+        "symbolControlLabel": "LOCK",
+        "faceplateControlLabel": "HMI Locked",
+        "extendRetractAllowedByHmi": false,
+        "resetRestrictedByHmi": false
+      }
+    },
+    {
+      "inputs": {
+        "Sts.Extended": true,
+        "Sts.Retracted": true,
+        "Sts.Extending": true,
+        "Sts.Retracting": true,
+        "Sts.Error": true,
+        "Sts.IsManualMode": true
+      },
+      "expected": {
+        "primary": "FAULT",
+        "hmiControl": "available",
+        "symbolControlLabel": "MAN",
+        "faceplateControlLabel": "HMI Control",
+        "extendRetractAllowedByHmi": true,
+        "resetRestrictedByHmi": false
+      }
+    }
+  ]
+}

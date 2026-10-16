@@ -1,0 +1,58 @@
+[
+  {
+    "instanceId": "V101",
+    "templateId": "NexFuxa.Valve.NexPlc",
+    "templateVersion": "1.0.0",
+    "prefixBinding": {
+      "deviceId": "d_b6ba9d1c-2b054dc3",
+      "parameters": {
+        "#1": "V101"
+      }
+    },
+    "metadata": {
+      "label": "V101",
+      "description": "Valve design example; Extend/Open mapping unspecified",
+      "extendedMeaning": "unspecified",
+      "direction": 0
+    },
+    "sourceEvidence": {
+      "adsRoot": "GVL.g_aValve_HMI",
+      "indices": [
+        1,
+        1
+      ],
+      "naming": "phase3a"
+    },
+    "layout": {
+      "symbolVariant": "standard"
+    }
+  },
+  {
+    "instanceId": "V102",
+    "templateId": "NexFuxa.Valve.NexPlc",
+    "templateVersion": "1.0.0",
+    "prefixBinding": {
+      "deviceId": "d_b6ba9d1c-2b054dc3",
+      "parameters": {
+        "#1": "V102"
+      }
+    },
+    "metadata": {
+      "label": "V102",
+      "description": "Valve design example; Extend/Open mapping unspecified",
+      "extendedMeaning": "unspecified",
+      "direction": 0
+    },
+    "sourceEvidence": {
+      "adsRoot": "GVL.g_aValve_HMI",
+      "indices": [
+        1,
+        2
+      ],
+      "naming": "phase3a"
+    },
+    "layout": {
+      "symbolVariant": "standard"
+    }
+  }
+]
