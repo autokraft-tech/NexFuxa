@@ -5,5 +5,8 @@
 **/node_modules
 **/dist
 app/electron
-docs
+docs/**
+!docs/component-ui/
+!docs/component-ui/contract.ts
+_reports/
 screenshot
