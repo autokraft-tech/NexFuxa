@@ -11,7 +11,7 @@ const { createManager } = require('../../api/plc-device-models/manager');
 function loadModule(filename, overrides, extra = '') {
     const localRequire = createRequire(filename);
     const context = { module: { exports: {} }, require: id => overrides[id] || localRequire(id),
-        setInterval: () => 1, clearInterval: () => {}, console, Buffer };
+        setInterval: () => 1, clearInterval: () => {}, setTimeout, clearTimeout, console, Buffer };
     vm.runInNewContext(fs.readFileSync(filename, 'utf8') + extra, context, { filename });
     return context.module.exports;
 }
@@ -64,7 +64,7 @@ describe('Generator reload Restore safety (real runtime and Device state machine
         };
         runtime = loadModule(require.resolve('../../runtime'), { './devices': devices },
             '\nalarmsMgr = { reset() {} }; logger = { error() {} };');
-        devices.init({ project, plugins: { manager: {} }, events: {},
+        devices.init({ project, plugins: { manager: {} }, events: { emit() {} },
             settings: { daqEnabled: true }, logger: { info() {}, warn() {}, error() {} },
             daqStorage: { reset() {}, addDaqNode: () => () => {}, getCurrentStorageFnc: () => () => {
                 restoreReads++;
