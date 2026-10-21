@@ -107,6 +107,18 @@ describe('Generator reload Restore safety (real runtime and Device state machine
         assert.deepEqual(driver.writes, [{ id: 'existing', value: false }]);
     });
 
+    it('does not overlap delayed connection attempts or replay ordinary Restore twice', async function () {
+        active.start();
+        const firstConnect = connectResolve;
+        active.checkStatus();
+        active.checkStatus();
+        assert.equal(connectResolve, firstConnect, 'status checks must reuse the pending connection');
+        firstConnect();
+        await settle();
+        assert.equal(restoreReads, 1);
+        assert.deepEqual(driver.writes, [{ id: 'existing', value: false }]);
+    });
+
     it('Apply refreshes Tags but suppresses all Restore writes after delayed connection and repeated Apply', async function () {
         const original = structuredClone(data.tags.existing);
         for (let i = 0; i < 2; i++) {

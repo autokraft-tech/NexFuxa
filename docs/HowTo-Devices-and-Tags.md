@@ -41,3 +41,9 @@ Here is the write script returning the actual tag value
 ## PLC Tag Generator
 
 For ADS device model generation, saved tasks, versioned models, Preview/Apply and import/export, see the [PLC Tag Generator guide](https://github.com/autokraft-tech/NexFuxa/blob/nexfuxa/tools/plc-device-model/README.md#online-plc-tag-generator).
+
+## Generic EtherNet/IP
+
+Install the optional `st-ethernet-ip` connection plugin in **Plugins**, then select **Generic EtherNet/IP** when adding a Device. This is separate from the existing Allen Bradley and Omron device types. Configure the device address and, where needed, routing/module options. Discovery requires administrator access and queries the server network, not the browser network.
+
+The Tag editor supports symbolic, explicit and assembly I/O sources. Select the source and its corresponding address/type fields for the actual device; discovery alone does not prove that Tag reads or writes are supported. An absent optional plugin does not prevent FUXA startup. Existing ADS Devices retain their PLC Tag Generator entry and naming/binding rules.

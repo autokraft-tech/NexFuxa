@@ -68,6 +68,10 @@ jobs:
         run: npm ci
       - name: Client script tests
         run: npm run test:scripts
+      - name: Upstream internal Tag initialization regression
+        run: npm run test:internal-tags
+      - name: Upstream single input confirmation regression
+        run: npm run test:input-confirm
       - name: Phase 3B client race tests
         run: node --test test/plc-device-models-race.test.cjs
       - name: Angular production build

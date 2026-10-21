@@ -48,6 +48,7 @@ import { DeviceComponent } from './device/device.component';
 import { PlcDeviceModelsComponent } from './device/plc-device-models/plc-device-models.component';
 import { PlcTagPropertiesComponent } from './device/plc-device-models/plc-tag-properties.component';
 import { DevicePropertyComponent } from './device/device-property/device-property.component';
+import { DeviceEnipmoduleComponent } from './device/device-enipmodule/device-enipmodule.component';
 import { TagOptionsComponent } from './device/tag-options/tag-options.component';
 import { TopicPropertyComponent } from './device/topic-property/topic-property.component';
 import { DeviceListComponent } from './device/device-list/device-list.component';
@@ -192,6 +193,7 @@ import { TagPropertyEditOpcuaComponent } from './device/tag-property/tag-propert
 import { TagPropertyEditBacnetComponent } from './device/tag-property/tag-property-edit-bacnet/tag-property-edit-bacnet.component';
 import { TagPropertyEditWebapiComponent } from './device/tag-property/tag-property-edit-webapi/tag-property-edit-webapi.component';
 import { TagPropertyEditEthernetipComponent } from './device/tag-property/tag-property-edit-ethernetip/tag-property-edit-ethernetip.component';
+import { TagPropertyEditGenericEthernetIPComponent } from './device/tag-property/tag-property-edit-generic-ethernetip/tag-property-edit-generic-ethernetip.component';
 import { ViewPropertyComponent } from './editor/view-property/view-property.component';
 import { ResizeDirective } from './_directives/resize.directive';
 import { EditorViewsListComponent } from './editor/editor-views-list/editor-views-list.component';
@@ -280,12 +282,14 @@ export const myCustomTooltipDefaults: MatTooltipDefaultOptions = {
         TagPropertyEditBacnetComponent,
         TagPropertyEditWebapiComponent,
         TagPropertyEditEthernetipComponent,
+        TagPropertyEditGenericEthernetIPComponent,
         TagPropertyEditADSclientComponent,
         TagPropertyEditGpioComponent,
         TagPropertyEditMelsecComponent,
         TagOptionsComponent,
         TopicPropertyComponent,
         DevicePropertyComponent,
+        DeviceEnipmoduleComponent,
         DeviceWebapiPropertyDialogComponent,
         LayoutPropertyComponent,
         TagsIdsConfigComponent,
