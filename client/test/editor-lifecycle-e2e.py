@@ -116,6 +116,14 @@ def run_browser(url, server):
         page.locator('#svgroot').click(position=dict(x=300, y=450))
         expect(page.locator('#svgroot ngx-gauge')).to_have_count(1)
         bag_id = page.locator('#svgroot ngx-gauge').evaluate("n => n.closest('g[type=\"svg-ext-html_bag\"]').id")
+        # SVG Editor commits creation history after its fade-in animation.
+        # Finish Add before testing Delete/Undo, or that delayed command can
+        # overwrite the Delete redo entry while the test is already undoing it.
+        page.wait_for_function("""id => {
+            const history = window.svgCanvas.undoMgr;
+            const command = history.undoStack[history.undoStackPointer - 1];
+            return command?.elem?.id === id && history.getRedoStackSize() === 0;
+        }""", arg=bag_id)
         page.evaluate("window.svgEditor.clickToSetMode('select')")
         active_resize = page.evaluate('window.editorResizeListeners()')
         assert active_resize > resize_baseline
