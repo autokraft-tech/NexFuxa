@@ -10,6 +10,7 @@ var BACNETclient = require('./bacnet');
 var HTTPclient = require('./httprequest');
 var MQTTclient = require('./mqtt');
 var EthernetIPclient = require('./ethernetip');
+var GenericEthernetIPclient = require('./genericethernetip');
 var OmronEthernetIPclient = require('./omron-ethernetip');
 var FuxaServer = require('./fuxaserver');
 var ODBCclient = require('./odbc');
@@ -40,6 +41,12 @@ function Device(data, runtime) {
     var currentCmd = null;                                  // Current Command (StateMachine)
     var deviceCheckStatus = null;                           // TimerInterval to check Device status (connection)
     var devicePolling = null;                               // TimerInterval to polling read device value
+    var replaceComm = false;                               // Retire a driver with an abandoned connect
+    var stopping = null;
+    var saveDaqValue = null;
+    var getProperty = null;
+    var deviceConnecting = false;                           // Prevent overlapping connection attempts
+    var connectGeneration = 0;                               // Invalidate in-flight connect after stop
     var connectionStatus = ConnectionStatusEnum.OFF;        // Connection status depending of read tag value response
     var pollingInterval = DEVICE_POLLING_INTERVAL;
     var sharedDevices = data.sharedDevices;
@@ -51,89 +58,101 @@ function Device(data, runtime) {
                                                             // getValues, getStatus, setValue, bindAddDaq, getTagProperty,
     fncGetDeviceProperty = runtime.project.getDeviceProperty;
 
-    if (data.type === DeviceEnum.S7) {
-        if (!S7client) {
-            return null;
+    const createComm = () => {
+        let driver;
+        const driverEvents = Object.create(events);
+        driverEvents.emit = (...args) => driver === comm && currentCmd !== DeviceCmdEnum.STOP ? events.emit(...args) : false;
+        if (data.type === DeviceEnum.S7) {
+            if (!S7client) {
+                return null;
+            }
+            driver = S7client.create(data, logger, driverEvents, manager, runtime);
+        } else if (data.type === DeviceEnum.OPCUA) {
+            if (!OpcUAclient) {
+                return null;
+            }
+            driver = OpcUAclient.create(data, logger, driverEvents, manager, runtime);
+        } else if (data.type === DeviceEnum.ModbusRTU || data.type === DeviceEnum.ModbusTCP) {
+            if (!MODBUSclient) {
+                return null;
+            }
+            driver = MODBUSclient.create(data, logger, driverEvents, manager, runtime);
+        } else if (data.type === DeviceEnum.BACnet) {
+            if (!BACNETclient) {
+                return null;
+            }
+            driver = BACNETclient.create(data, logger, driverEvents, manager, runtime);
+        } else if (data.type === DeviceEnum.WebAPI) {
+            if (!HTTPclient) {
+                return null;
+            }
+            driver = HTTPclient.create(data, logger, driverEvents, runtime);
+        } else if (data.type === DeviceEnum.MQTTclient) {
+            if (!MQTTclient) {
+                return null;
+            }
+            data.certificatesDir = path.resolve(runtime.settings.appDir, '_certificates');
+            driver = MQTTclient.create(data, logger, driverEvents, runtime);
+        } else if (data.type === DeviceEnum.EthernetIP) {
+            if (!EthernetIPclient) {
+                return null;
+            }
+            driver = EthernetIPclient.create(data, logger, driverEvents, manager, runtime);
+        } else if (data.type === DeviceEnum.GenericEthernetIP) {
+            if (!GenericEthernetIPclient) {
+                return null;
+            }
+            driver = GenericEthernetIPclient.create(data, logger, driverEvents, manager, runtime);
+        } else if (data.type === DeviceEnum.OmronEthernetIP) {
+            if (!OmronEthernetIPclient) {
+                return null;
+            }
+            driver = OmronEthernetIPclient.create(data, logger, driverEvents, manager, runtime);
+        } else if (data.type === DeviceEnum.FuxaServer) {
+            if (!FuxaServer) {
+                return null;
+            }
+            driver = FuxaServer.create(data, logger, driverEvents, manager);
+        } else if (data.type === DeviceEnum.ODBC) {
+            if (!ODBCclient) {
+                return null;
+            }
+            driver = ODBCclient.create(data, logger, driverEvents, manager);
+        } else if (data.type === DeviceEnum.ADSclient) {
+            if (!ADSclient) {
+                return null;
+            }
+            driver = ADSclient.create(data, logger, driverEvents, manager, runtime);
+        } else if (data.type === DeviceEnum.GPIO) {
+            if (!GpioClient) {
+                return null;
+            }
+            driver = GpioClient.create(data, logger, driverEvents, manager, runtime);
+        } else if (data.type === DeviceEnum.WebCam) {
+            if (!WebCamClient) {
+                return null;
+            }
+            driver = WebCamClient.create(data, logger, driverEvents, manager, runtime);
+        } else if (data.type === DeviceEnum.MELSEC) {
+            if (!MELSECclient) {
+                return null;
+            }
+            driver = MELSECclient.create(data, logger, driverEvents, manager, runtime);
+        } else if (data.type === DeviceEnum.REDIS) {
+            if (!REDISclient) {
+                return null;
+            }
+            driver = REDISclient.create(data, logger, driverEvents, manager, runtime);
         }
-        comm = S7client.create(data, logger, events, manager, runtime);
-    } else if (data.type === DeviceEnum.OPCUA) {
-        if (!OpcUAclient) {
-            return null;
-        }
-        comm = OpcUAclient.create(data, logger, events, manager, runtime);
-    } else if (data.type === DeviceEnum.ModbusRTU || data.type === DeviceEnum.ModbusTCP) {
-        if (!MODBUSclient) {
-            return null;
-        }
-        comm = MODBUSclient.create(data, logger, events, manager, runtime);
-    } else if (data.type === DeviceEnum.BACnet) {
-        if (!BACNETclient) {
-            return null;
-        }
-        comm = BACNETclient.create(data, logger, events, manager, runtime);
-    } else if (data.type === DeviceEnum.WebAPI) {
-        if (!HTTPclient) {
-            return null;
-        }
-        comm = HTTPclient.create(data, logger, events, runtime);
-    } else if (data.type === DeviceEnum.MQTTclient) {
-        if (!MQTTclient) {
-            return null;
-        }
-        data.certificatesDir = path.resolve(runtime.settings.appDir, '_certificates');
-        comm = MQTTclient.create(data, logger, events, runtime);
-    } else if (data.type === DeviceEnum.EthernetIP) {
-        if (!EthernetIPclient) {
-            return null;
-        }
-        comm = EthernetIPclient.create(data, logger, events, manager, runtime);
-    } else if (data.type === DeviceEnum.OmronEthernetIP) {
-        if (!OmronEthernetIPclient) {
-            return null;
-        }
-        comm = OmronEthernetIPclient.create(data, logger, events, manager, runtime);
-    } else if (data.type === DeviceEnum.FuxaServer) {
-        if (!FuxaServer) {
-            return null;
-        }
-        comm = FuxaServer.create(data, logger, events, manager);
-    } else if (data.type === DeviceEnum.ODBC) {
-        if (!ODBCclient) {
-            return null;
-        }
-        comm = ODBCclient.create(data, logger, events, manager);
-    } else if (data.type === DeviceEnum.ADSclient) {
-        if (!ADSclient) {
-            return null;
-        }
-        comm = ADSclient.create(data, logger, events, manager, runtime);
-    } else if (data.type === DeviceEnum.GPIO) {
-        if (!GpioClient) {
-            return null;
-        }
-        comm = GpioClient.create(data, logger, events, manager, runtime);
-    } else if (data.type === DeviceEnum.WebCam) {
-        if (!WebCamClient) {
-            return null;
-        }
-        comm = WebCamClient.create(data, logger, events, manager, runtime);
-    } else if (data.type === DeviceEnum.MELSEC) {
-        if (!MELSECclient) {
-            return null;
-        }
-        comm = MELSECclient.create(data, logger, events, manager, runtime);
-    } else if (data.type === DeviceEnum.REDIS) {
-        if (!REDISclient) {
-            return null;
-        }
-        comm = REDISclient.create(data, logger, events, manager, runtime);
-    }
-    // else if (data.type === DeviceEnum.Template) {
-    //     if (!TEMPLATEclient) {
-    //         return null;
-    //     }
-    //     comm = TEMPLATEclient.create(data, logger, events, manager);
-    // }
+        // else if (data.type === DeviceEnum.Template) {
+        //     if (!TEMPLATEclient) {
+        //         return null;
+        //     }
+        //     driver = TEMPLATEclient.create(data, logger, driverEvents, manager);
+        // }
+        return driver;
+    };
+    comm = createComm();
     if (!comm) {
         return null;
     }
@@ -141,6 +160,20 @@ function Device(data, runtime) {
      * Start StateMachine, init and start TimerInterval to check Device status
      */
     this.start = function (options) {
+        if (stopping) {
+            const session = restoreSession;
+            return stopping.then(() => {
+                if (session === restoreSession) return this.start(options);
+            });
+        }
+        if (currentCmd === DeviceCmdEnum.START) return;
+        if (replaceComm) {
+            comm = createComm();
+            replaceComm = false;
+            this.load(data);
+            if (saveDaqValue) this.bindSaveDaqValue(saveDaqValue);
+            if (getProperty) this.bindGetProperty(getProperty);
+        }
         suppressRestore = options?.suppressRestore === true;
         restoreSession++;
         currentCmd = DeviceCmdEnum.START;
@@ -159,45 +192,64 @@ function Device(data, runtime) {
      */
     this.stop = function () {
         restoreSession++;
-        return new Promise(function (resolve, reject) {
-            currentCmd = DeviceCmdEnum.STOP;
-            logger.info(`'${property.name}' stop`);
-            if (devicePolling) {
-                clearInterval(devicePolling);
-                devicePolling = null;
-            }
-            if (deviceCheckStatus) {
-                clearInterval(deviceCheckStatus);
-                deviceCheckStatus = null;
-            }
-            connectionStatus = ConnectionStatusEnum.OFF;
-            comm.disconnect().then(function () {
-                status = DeviceStatusEnum.INIT;
-                resolve();
-            }).catch(function (err) {
-                reject(err);
-            });;
-        });
+        const wasRunning = currentCmd === DeviceCmdEnum.START;
+        currentCmd = DeviceCmdEnum.STOP;
+        connectGeneration++;
+        replaceComm = replaceComm || deviceConnecting;
+        deviceConnecting = false;
+        logger.info(`'${property.name}' stop`);
+        if (devicePolling) {
+            clearInterval(devicePolling);
+            devicePolling = null;
+        }
+        if (deviceCheckStatus) {
+            clearInterval(deviceCheckStatus);
+            deviceCheckStatus = null;
+        }
+        connectionStatus = ConnectionStatusEnum.OFF;
+        if (wasRunning) events.emit('device-status:changed', { id: property.id, status: 'connect-off' });
+        status = DeviceStatusEnum.INIT;
+        if (!stopping) {
+            const disconnect = comm.disconnect();
+            let timeout;
+            // A retired connection must not block a replacement session indefinitely.
+            const stopped = replaceComm ? Promise.race([disconnect, new Promise(resolve => {
+                timeout = setTimeout(resolve, deviceCloseTimeout);
+            })]) : disconnect;
+            stopping = stopped.finally(() => {
+                clearTimeout(timeout);
+                stopping = null;
+            });
+        }
+        return stopping;
     }
 
     /**
      * Check the Device connection, Reconnect
      */
     this.checkStatus = function () {
-        if (status === DeviceStatusEnum.INIT && currentCmd === DeviceCmdEnum.START) {
+        if (status === DeviceStatusEnum.INIT && currentCmd === DeviceCmdEnum.START && !deviceConnecting) {
             const self = this;
             const session = restoreSession;
-            this.connect().then(() => {
+            const attempt = connectGeneration + 1;
+            deviceConnecting = true;
+            this.connect().then(connected => {
+                if (!connected) return;
                 if (session !== restoreSession || currentCmd !== DeviceCmdEnum.START) return;
                 tryToConnect = 0;
                 status = DeviceStatusEnum.IDLE;
                 self.restoreValues();
             }).catch(function (err) {
+                if (session !== restoreSession || currentCmd !== DeviceCmdEnum.START) {
+                    return;
+                }
                 logger.error(`'${property.name}' connect error! ${err} (${tryToConnect})`);
                 if (tryToConnect++ > 3) {
                     tryToConnect = 0;
                     self.disconnect().then(() => {});
                 }
+            }).finally(() => {
+                if (attempt === connectGeneration) deviceConnecting = false;
             });
         } else if (status === DeviceStatusEnum.IDLE && !comm.isConnected()) {
             status = DeviceStatusEnum.INIT;
@@ -225,7 +277,9 @@ function Device(data, runtime) {
      * Call Device to polling
      */
     this.polling = function () {
-        comm.polling();
+        if (currentCmd === DeviceCmdEnum.START && status === DeviceStatusEnum.IDLE) {
+            comm.polling();
+        }
     }
 
     /**
@@ -233,17 +287,28 @@ function Device(data, runtime) {
      */
     this.connect = function () {
         var self = this;
+        const attempt = ++connectGeneration;
+        const connection = comm;
         if (data.type === DeviceEnum.ModbusRTU) {
-            comm.init(MODBUSclient.ModbusTypes.RTU);
+            connection.init(MODBUSclient.ModbusTypes.RTU);
         } else if (data.type === DeviceEnum.ModbusTCP) {
-            comm.init(MODBUSclient.ModbusTypes.TCP);
+            connection.init(MODBUSclient.ModbusTypes.TCP);
         }
-        return comm.connect().then(function () {
+        return connection.connect().then(async function () {
+            if (attempt !== connectGeneration || currentCmd !== DeviceCmdEnum.START) {
+                await connection.disconnect();
+                return false;
+            }
+            if (devicePolling) {
+                clearInterval(devicePolling);
+                devicePolling = null;
+            }
             if (pollingInterval !== DISABLE_POLLING_INTERVAL){
                 devicePolling = setInterval(function () {
                     self.polling();
                 }, pollingInterval);
             }
+            return true;
         });
     }
 
@@ -257,7 +322,8 @@ function Device(data, runtime) {
     /**
      * Call Device to load Tags propperty in local for polling read values
      */
-    this.load = function (data) {
+    this.load = function (next) {
+        data = next;
         pollingInterval = data.polling || ((data.type === DeviceEnum.FuxaServer) ? SERVER_POLLING_INTERVAL : DEVICE_POLLING_INTERVAL);
         data.polling = pollingInterval;
         return comm.load(data);
@@ -327,10 +393,19 @@ function Device(data, runtime) {
                 }).catch(function (err) {
                     reject(err);
                 });
+            } else if (data.type === DeviceEnum.GenericEthernetIP) {
+                comm.browse(path, callback).then(resolve).catch(reject);
             } else {
                 reject('Browse not supported!');
             }
         });
+    }
+
+    this.browseForDevices = function (path, callback) {
+        if (data.type !== DeviceEnum.GenericEthernetIP || !comm.browseForDevices) {
+            return Promise.reject('Browse for devices not supported!');
+        }
+        return comm.browseForDevices(path, callback);
     }
 
     /**
@@ -371,6 +446,7 @@ function Device(data, runtime) {
      * Call Device to bind the DAQ store function
      */
     this.bindSaveDaqValue = function (fnc) {
+        saveDaqValue = fnc;
         comm.bindAddDaq(fnc);
         //return comm.addDaq = fnc;
     }
@@ -391,6 +467,7 @@ function Device(data, runtime) {
      * Bind function to ask project stored property (security)
      */
     this.bindGetProperty = function (fnc) {
+        getProperty = fnc;
         if (data.type === DeviceEnum.OPCUA || data.type === DeviceEnum.MQTTclient || data.type === DeviceEnum.ODBC) {
             comm.bindGetProperty(fnc);
         }
@@ -548,6 +625,8 @@ function loadPlugin(type, module) {
         MQTTclient = require(module);
     } else if (type === DeviceEnum.EthernetIP) {
         EthernetIPclient = require(module);
+    } else if (type === DeviceEnum.GenericEthernetIP) {
+        GenericEthernetIPclient = require(module);
     } else if (type === DeviceEnum.OmronEthernetIP) {
         OmronEthernetIPclient = require(module);
     } else if (type === DeviceEnum.FuxaServer) {
@@ -569,6 +648,13 @@ function isInternal(device) {
     return (device.type === DeviceEnum.internal);
 }
 
+function browseEthernetIPDevices(manager, logger) {
+    if (GenericEthernetIPclient && GenericEthernetIPclient.browseForDevices) {
+        return GenericEthernetIPclient.browseForDevices(manager, logger);
+    }
+    return Promise.reject('Generic EtherNet/IP plugin is not installed');
+}
+
 module.exports = {
     init: function (settings) {
         // deviceCloseTimeout = settings.deviceCloseTimeout || 15000;
@@ -579,6 +665,7 @@ module.exports = {
     getSupportedProperty: getSupportedProperty,
     getRequestResult: getRequestResult,
     loadPlugin: loadPlugin,
+    browseEthernetIPDevices: browseEthernetIPDevices,
     isInternal: isInternal,
 
     get DeviceType() { return DeviceEnum }
@@ -596,6 +683,7 @@ var DeviceEnum = {
     WebAPI: 'WebAPI',
     MQTTclient: 'MQTTclient',
     EthernetIP: 'EthernetIP',
+    GenericEthernetIP: 'GenericEthernetIP',
     OmronEthernetIP: 'OmronEthernetIP',
     FuxaServer: 'FuxaServer',
     ODBC: 'ODBC',

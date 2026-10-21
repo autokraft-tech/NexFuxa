@@ -20,6 +20,4 @@ The widgets will be displayed in the editor panel and can be used from there dir
 ```
 Please Include a description in the How to Use section of the SVG file, how your SVG control/indicator/dynamicSVG works and how to use it in Fuxa
 
-For more details on building SVG widgets and using them please see the Wiki
-
-https://github.com/frangoteam/FUXA/wiki/HowTo-Widgets
+For more details on building SVG widgets and using them see the [Widget guide](../../docs/HowTo-Widgets.md).

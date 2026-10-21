@@ -1,6 +1,6 @@
 # NexFuxa Component UI Design System v1.0
 
-状态：**Design Frozen / Runtime Implementation Pending**。冻结日期：2026-10-16。规范版本v1.0；Contract、Valve模板、有限profile、Tokens和实例引用版本为`1.0.0`。
+状态：**Design Frozen / Read-only Valve Symbol Implemented**。冻结日期：2026-10-16。规范版本v1.0；Contract、Valve模板、有限profile、Tokens和实例引用版本为`1.0.0`。
 
 本目录是Component UI唯一权威规范，覆盖新建/修改Symbol、Faceplate及组件生成、状态、绑定和配置页面。冻结自本地最终设计，不是旧归档包；它不是当前FUXA可直接导入/运行的组件包。已有Widget/Faceplate、PLC和旧工程不自动迁移。
 
@@ -15,8 +15,8 @@
 | 类型/字段形状 | [contract.ts](contract.ts) |
 | 实际Valve设计输入 | [模板](examples/valve.json)、[多实例](examples/valve-instances.json) |
 | 设计预期向量 | [64组完整输入](fixtures/valve-states.json)、[7组缺值输入](fixtures/valve-partial-data.json) |
-| 代表性静态图与素材证据 | [SYMBOL静态示意](SYMBOL.md#6-静态设计稿)、[FACEPLATE静态示意](FACEPLATE.md#5-静态示意)、[PROVENANCE](assets/PROVENANCE.md) |
-| 生成/维护流程 | [项目Skill](../../.agents/skills/nexfuxa-component-ui/SKILL.md) |
+| 代表性静态图与素材证据 | [SYMBOL静态示意](SYMBOL.md#symbol-examples)、[FACEPLATE静态示意](FACEPLATE.md#faceplate-examples)、[PROVENANCE](assets/PROVENANCE.md) |
+| 生成/维护流程 | [项目Skill](https://github.com/autokraft-tech/NexFuxa/blob/nexfuxa/.agents/skills/nexfuxa-component-ui/SKILL.md) |
 
 许可/素材工作流以[SVG_REUSE_POLICY](../SVG_REUSE_POLICY.md)为准。素材库为本地`D:/Will/Documents/source/repos/FUXA-SVG-Widgets` / [frangoteam/FUXA-SVG-Widgets](https://github.com/frangoteam/FUXA-SVG-Widgets)，当前Valve25保持选定，不用编辑器内置Shape重新比较。
 
@@ -37,20 +37,22 @@
 
 现场仍需确定设备型式/Extend物理含义、厂内报警理念和屏幕尺寸。未提供时采用Extend/Retract、Fault-only、standard；不把PLC改造或复杂审批作为基本UI前置。
 
+<a id="implementation-status"></a>
+
 ## 实施边界与路线
 
-本次仅冻结规范、迁移文件并建立Skill。共享reducer、新Symbol renderer、Faceplate壳层、Metadata注入、原生控件Prefix写入、服务端保存目标解析/结果回调、Restore出口过滤、Contract持久化验证/打包、报警adapter均未在本次实现。现有六BOOL Widget和只读继承不等于新能力。
+当前运行时已实现只读 Valve Symbol：有限状态 reducer、许可几何、三布局、Label/Description/方向、Prefix/Inherit 只读绑定和实例清理。使用入口与资产说明见[Valve guide](https://github.com/autokraft-tech/NexFuxa/blob/nexfuxa/custom/widgets/valves/README.md#nexfuxa-valve-symbol)。这不表示新 native Faceplate、命令、配置写入或报警 adapter 已实现；旧六BOOL Widget仍保持原契约。
 
-| 阶段 | 状态/下一步 | 验收位置 |
+| 能力 | 当前实现边界 | 验证/后续依据 |
 | --- | --- | --- |
-| A 规范冻结 | 本次完成设计归档；不是运行时交付 | 类型/JSON/向量/静态图/Skill文件检查 |
-| B Valve Symbol | 未开始：共享有限状态、许可几何与三布局 | CONTRACT §12、SYMBOL |
-| C Valve Faceplate状态 | 未开始：Operation/Configuration与Context | FACEPLATE、CONTRACT §12 |
-| D 最小写入 | 未开始：保存写列表、原权限、结果回调、命令禁止恢复 | CONTRACT §6/§10/§12 |
-| E 多实例独立读写 | 未开始：不同设备/同设备多窗、关闭/重连/导出兼容 | CONTRACT §12的I/ID/W用例 |
-| F 第二Component/生成 | 未开始：真实第二模型、有限profile扩展 | 不虚构Motor或Analog字段，显式更新契约版本 |
+| 冻结设计、类型、Tokens、模板与Skill | 已归档，语义保持v1.0 / 1.0.0 | 本目录权威文件 |
+| 只读Valve Symbol | 已实现有限状态、三布局、许可几何、动画/质量及实例清理 | `client/test/valve-symbol.test.cjs`、`client/test/valve-symbol-e2e.py`；CONTRACT §12、SYMBOL |
+| 既有Faceplate Prefix继承与多实例 | 已实现旧Widget只读继承、Dialog/Card隔离和owner清理 | `client/test/faceplate-binding.test.cjs`、`client/test/faceplate-e2e.py`；不等于新native Faceplate |
+| Native Faceplate状态页 | 尚未实现Operation/Configuration壳层与共享snapshot接入 | FACEPLATE、CONTRACT §12 |
+| 新Component写入 | 尚未实现保存目标解析、权限/结果回调、一次性Cmd Restore出口过滤与配置保存 | CONTRACT §6/§10/§12；不得由只读运行时推断可写 |
+| 第二Component与生成、完整报警adapter | 后续独立工作；须真实模型与明确版本变更 | 不虚构Motor/Analog字段或报警能力 |
 
-后续实现须按原Git workflow独立测试/评审，不自动启动Phase B。浏览器、工业屏幕/触摸、许可几何实际inline隔离、动画销毁、订阅清理、PLC命令帧、旧TRUE在服务重启/重连不恢复、权限与驱动失败、保存导入重启均需运行时验证。静态图/文件路由及现有回归测试不算这些功能已通过。
+后续实现须按原Git workflow独立测试/评审。现有回归覆盖只读Symbol状态、浏览器、实例关闭/重连及保存重载；它们不证明真实PLC通信、工业屏幕/触摸验收或未实现的写入链已经通过。现场命令帧、旧TRUE不恢复、权限/驱动失败及新Contract完整持久化仍需对应实现和验证。临时测试执行结果放在忽略的`_reports/`或PR中，不沉淀为本目录阶段报告。
 
 ## 规范变更
 

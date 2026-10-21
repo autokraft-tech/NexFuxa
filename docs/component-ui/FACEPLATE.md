@@ -22,7 +22,7 @@ Header 显示 Label、Description、设备类型、质量。Description 可两�
 
 上方：设备图、主状态、HMI 控制指示、真实反馈/时间。下方：Extend、Retract、Reset。当前 Valve 不生成 Auto/Manual 切换器、Operator/Program 来源选择器或 Interlock 操作。Extend/Open 物理含义未配置时保持 Extend/Retract。
 
-状态含义、独立维度与动作门控统一遵守[Contract §3](CONTRACT.md#3-valve-有限状态语义)，这里不另定义状态机。显示Fault/Conflict/端位/运动的独立证据；缺H仍显示有效位置、禁Extend/Retract，Reset仅按自己的有效绑定、连接和现有权限判断。无传感器端位标“计时到位”，不能暗示物理传感器已确认。
+状态含义、独立维度与动作门控统一遵守[Contract §3](CONTRACT.md#valve-state)，这里不另定义状态机。显示Fault/Conflict/端位/运动的独立证据；缺H仍显示有效位置、禁Extend/Retract，Reset仅按自己的有效绑定、连接和现有权限判断。无传感器端位标“计时到位”，不能暗示物理传感器已确认。
 
 ### 最小命令交互
 
@@ -38,7 +38,7 @@ UI 只显示：**写入中 → 写入成功（命令已发送）/写入失败**�
 
 现有项目权限继续适用，状态可见与控制enabled分别判断；不能只靠按钮 disabled。首版不因缺少 IL 诊断字段而造联锁或控制权系统，PLC 最终负责。项目需要某危险动作确认时使用已有确认方式，但普通 Extend/Retract/Reset 不默认新增普遍审批流程。
 
-**[源码确认]** 当前 Prefix/Inherit SVG Widget 没有 postValue，现有发送链也未给出可靠逐次驱动结果。以上是新 native control opt-in 适配的目标，不代表当前可写。准确目标、服务端保存配置解析及写结果补充见 [Contract §6](CONTRACT.md#6-最小-prefixinherit-写入适配方案冻结设计未实现)。
+**[源码确认]** 当前 Prefix/Inherit SVG Widget 没有 postValue，现有发送链也未给出可靠逐次驱动结果。以上是新 native control opt-in 适配的目标，不代表当前可写。准确目标、服务端保存配置解析及写结果补充见 [Contract §6](CONTRACT.md#prefix-write-adapter)。
 
 ## 3. Configuration：分类、逐项保存
 
@@ -69,6 +69,8 @@ UI 只显示：**写入中 → 写入成功（命令已发送）/写入失败**�
 Diagnostics 提供 deviceId、Prefix、Tag名/类型/解析错误、必要原始状态；缺时间戳显示不可用，不要求新建统一诊断引擎。Alarms 在 adapter配置后展示 active/returned/ack及可选suppression/shelving，不与 PLC Reset 合并；无 adapter只显示 Fault。
 
 现有 Dialog/Card 多实例行为和订阅owner保留。不同实例各自 Context，关闭A不影响B；同设备多个窗口独立观察/编辑，首版不新增设备级锁/仲裁。同一窗口保存请求的回调只更新该窗口本行提示，窗口已关闭就丢弃提示，不撤销/重放PLC写入。保存共享View不包含临时输入、pending/result或已解析运行ID。新实例去重/窗口上限不是首版任务。
+
+<a id="faceplate-examples"></a>
 
 ## 5. 静态示意
 

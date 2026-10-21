@@ -1,4 +1,21 @@
-## Welcome to the FUXA wiki!
+## NexFuxa documentation
+
+Start with the [installation guide](Installing-and-Running.md) and [getting started](Getting-Started.md). NexFuxa customizations use these maintained sources:
+
+| Scope | Authoritative guide |
+| --- | --- |
+| Branches, upstream synchronization, CI, releases and artifact review | [Git workflow](GIT_WORKFLOW.md) |
+| ADS models, Tag naming, Preview/Apply, persistence and Restore suppression | [PLC Device Model / Tag Generator](https://github.com/autokraft-tech/NexFuxa/blob/nexfuxa/tools/plc-device-model/README.md) |
+| Widget Prefix binding | [Widgets](HowTo-Widgets.md#prefix-binding) |
+| Faceplate inheritance and concurrent View isolation | [Reusable Views](HowTo-use-same-view.md#faceplate-prefix-inheritance) |
+| Valve assets, current read-only Symbol runtime and development Docker data | [Valve guide](https://github.com/autokraft-tech/NexFuxa/blob/nexfuxa/custom/widgets/valves/README.md) |
+| Frozen Component UI design requirements and capability boundaries | [Component UI specification index](component-ui/README.md) |
+| Equipment geometry reuse and licensing | [SVG reuse policy](SVG_REUSE_POLICY.md) |
+| Camera and marker-based Views | [AR mode](ar-mode.md) |
+
+The Component UI specifications describe the frozen design baseline; the Valve guide describes the delivered read-only Symbol. Native Faceplate commands/configuration writes and alarm adapters remain future implementation work. Development reports and test output belong in ignored `_reports/`, not this knowledge base.
+
+## FUXA overview
 
 FUXA is a powerful **web-based** software to rapidly build and deploy scalable SCADA, HMI, Dashboard or IIoT systems. With FUXA you can create modern process visualizations with individual designs for your machines and real-time data display, as well as control instrument of automated industrial plants.
 

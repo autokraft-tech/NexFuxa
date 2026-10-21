@@ -121,6 +121,10 @@ export class EditorComponent implements OnInit, AfterViewInit, OnDestroy {
     mapsViewType = ViewType.maps;
     shapesGrps = [];
     private gaugesRef = {};
+    private removedGaugeSettings: { [id: string]: GaugeSettings } = {};
+    private loadViewTimer: ReturnType<typeof setTimeout>;
+    private selectModeTimer: ReturnType<typeof setTimeout>;
+    private gaugeObserver: MutationObserver;
 
     private subscriptionSave: Subscription;
     private subscriptionLoad: Subscription;
@@ -214,6 +218,11 @@ export class EditorComponent implements OnInit, AfterViewInit, OnDestroy {
             console.error(e);
         }
         this.onSaveProject();
+        clearTimeout(this.selectModeTimer);
+        clearTimeout(this.loadViewTimer);
+        this.gaugeObserver?.disconnect();
+        this.destroyGauges();
+        this.removedGaugeSettings = {};
         HtmlImageComponent.destroyValveSymbols(document.getElementById('svgroot'));
         this.destroy$.next(null);
         this.destroy$.complete();
@@ -259,9 +268,21 @@ export class EditorComponent implements OnInit, AfterViewInit, OnDestroy {
                     }
                 },
                 (eleadded) => {
-                    let ga: GaugeSettings = this.getGaugeSettings(eleadded, this.ctrlInitParams);
+                    if (eleadded.restoreFromHistory) {
+                        const restoredSettings = this.removedGaugeSettings[eleadded.id];
+                        if (restoredSettings) {
+                            this.currentView.items[eleadded.id] = restoredSettings;
+                            delete this.removedGaugeSettings[eleadded.id];
+                            this.checkGaugeAdded(restoredSettings);
+                            this.checkSvgElementsMap(true);
+                        }
+                        return;
+                    }
+                    let ga: GaugeSettings = this.removedGaugeSettings[eleadded.id] || this.getGaugeSettings(eleadded, this.ctrlInitParams);
+                    delete this.removedGaugeSettings[eleadded.id];
                     this.checkGaugeAdded(ga);
-                    setTimeout(() => {
+                    clearTimeout(this.selectModeTimer);
+                    this.selectModeTimer = setTimeout(() => {
                         this.setMode('select', false);
                     }, 700);
                     this.checkSvgElementsMap(true);
@@ -285,6 +306,14 @@ export class EditorComponent implements OnInit, AfterViewInit, OnDestroy {
             );
 
             this.winRef.nativeWindow.svgEditor.init();
+            // SVG history Redo removes DOM nodes without the ordinary Delete callback.
+            this.gaugeObserver = new MutationObserver(() => {
+                Object.keys(this.gaugesRef).forEach(id => {
+                    const element = this.gaugesRef[id]?.element;
+                    if (element && !element.isConnected && !document.getElementById(id)) this.onRemoveElement([element]);
+                });
+            });
+            this.gaugeObserver.observe(document.getElementById('svgroot'), { childList: true, subtree: true });
             this.winRef.nativeWindow.svgEditor.setMoveStep(this.moveStep);
             $(initContextmenu);
 
@@ -396,6 +425,28 @@ export class EditorComponent implements OnInit, AfterViewInit, OnDestroy {
             return this.currentView.svgcontent;
         }
         return this.winRef.nativeWindow.svgEditor.getSvgString();
+    }
+
+    private destroyGauge(id: string) {
+        const gauge = this.gaugesRef[id];
+        if (gauge) {
+            HtmlImageComponent.destroyValveSymbols(gauge.element);
+            gauge.views.forEach(view => {
+                const index = this.viewContainerRef.indexOf(view);
+                if (index >= 0) this.viewContainerRef.remove(index);
+                else if (!view.destroyed) view.destroy();
+            });
+            if (!gauge.views.length && typeof gauge.ref?.ngOnDestroy === 'function') gauge.ref.ngOnDestroy();
+            delete this.gaugesRef[id];
+        }
+        delete this.gaugesManager.mapGauges[id];
+        delete this.gaugesManager.mapChart[id];
+        delete this.gaugesManager.mapTable[id];
+        delete this.gaugesManager.mapGaugeView[id];
+    }
+
+    private destroyGauges() {
+        Object.keys(this.gaugesRef).forEach(id => this.destroyGauge(id));
     }
 
     /**
@@ -542,10 +593,8 @@ export class EditorComponent implements OnInit, AfterViewInit, OnDestroy {
                     this.winRef.nativeWindow.svgEditor.setSvgString(svgcontent);
                 }
 
-                // check gauge to init
-                this.gaugesRef = {};
                 if (v) { this.projectService.cleanView(v); }
-                setTimeout(() => {
+                this.loadViewTimer = setTimeout(() => {
                     for (let key in v.items) {
                         let ga: GaugeSettings = this.getGaugeSettings(v.items[key]);
                         this.checkGaugeAdded(ga);
@@ -655,6 +704,10 @@ export class EditorComponent implements OnInit, AfterViewInit, OnDestroy {
      * clear svg-editor and the canvas
      */
     private clearEditor() {
+        clearTimeout(this.selectModeTimer);
+        clearTimeout(this.loadViewTimer);
+        this.destroyGauges();
+        this.removedGaugeSettings = {};
         HtmlImageComponent.destroyValveSymbols(document.getElementById('svgroot'));
         if (this.winRef.nativeWindow.svgEditor) {
             this.winRef.nativeWindow.svgEditor.clickClearAll();
@@ -775,16 +828,9 @@ export class EditorComponent implements OnInit, AfterViewInit, OnDestroy {
         if (this.currentView && this.currentView.items && ele) {
             for (let i = 0; i < ele.length; i++) {
                 if (this.currentView.items[ele[i].id]) {
+                    this.removedGaugeSettings[ele[i].id] = this.currentView.items[ele[i].id];
                     delete this.currentView.items[ele[i].id];
-                    if (this.gaugesRef.hasOwnProperty(ele[i].id)) {
-                        if (this.gaugesRef[ele[i].id].ref && this.gaugesRef[ele[i].id].ref['ngOnDestroy']) {
-                            try {
-                                this.gaugesRef[ele[i].id].ref['ngOnDestroy']();
-                            } catch (e) {
-                                console.error(e);
-                            }
-                        }
-                    }
+                    this.destroyGauge(ele[i].id);
                 }
             }
         }
@@ -984,11 +1030,15 @@ export class EditorComponent implements OnInit, AfterViewInit, OnDestroy {
      */
     checkGaugeAdded(ga: GaugeSettings) {
         this.gaugesManager.chackSetModeParamToAddedGauge(ga, this.setModeParam);
+        this.destroyGauge(ga.id);
+        const firstView = this.viewContainerRef.length;
         let gauge = this.gaugesManager.initElementAdded(ga, this.resolver, this.viewContainerRef, false);
         if (gauge) {
             if (gauge !== true) {
                 if (!this.gaugesRef.hasOwnProperty(ga.id)) {
-                    this.gaugesRef[ga.id] = { type: ga.type, ref: gauge };
+                    const views = [];
+                    for (let i = firstView; i < this.viewContainerRef.length; i++) views.push(this.viewContainerRef.get(i));
+                    this.gaugesRef[ga.id] = { type: ga.type, ref: gauge, views, element: document.getElementById(ga.id) };
                 }
             }
             this.setGaugeSettings(ga);

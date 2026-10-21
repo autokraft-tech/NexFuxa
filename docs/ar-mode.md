@@ -1,48 +1,15 @@
-# FUXA AR Mode
+# FUXA AR mode
 
-## Goal
-Browser-based AR mode for tablets.
-The camera detects physical plant markers and displays live FUXA cards/gauges linked to marker IDs.
+AR mode displays project Views over a browser camera feed at `/ar`. It uses existing FUXA Views and their normal runtime bindings; it is not a separate PLC communication path.
 
-## MVP Decision
-First pass uses a dedicated `/ar` route with camera feed and lightweight live tag cards.
-No full SVG View rendering.
-No backend changes.
-No native app.
+## Configuration and operation
 
-## Proposed MVP Stack
-- Angular fullscreen route
-- Browser `getUserMedia`
-- Browser `BarcodeDetector` for first QR/barcode prototype
-- FUXA `hmiService.viewsTagsSubscribe(tags, true)`
-- FUXA `hmiService.onVariableChanged`
+Configure marker IDs and their target Views in the AR marker management page. Each mapping stores `id`, `viewId`, optional `label` and `ttlMs` in project AR settings. The marker editor can generate a QR image for the configured ID. IDs are trimmed and must match the detected text.
 
-## Later AR Tracking
-Replace/extend BarcodeDetector with:
-- MindAR for image tracking
-- or AR.js for marker tracking
+Open `/ar` over HTTPS or localhost and allow camera access. The scanner uses the browser BarcodeDetector when available, with the bundled html5-qrcode scanner as a fallback. Detected configured markers show their mapped `app-fuxa-view`; a marker expires after its configured timeout (default 3000 ms). Missing mappings do not select another View. `?debug=true` displays scanner and mapping diagnostics.
 
-## Files
-- `client/src/app/_models/ar.ts`
-- `client/src/app/_models/project.ts`
-- `client/src/app/ar/ar.component.ts`
-- `client/src/app/ar/ar.component.html`
-- `client/src/app/ar/ar.component.scss`
-- `client/src/app/app.routing.ts`
-- `client/src/app/app.module.ts`
-- `client/src/app/app.component.ts`
+Leaving the page stops camera tracks and scanning and releases the page's subscriptions. Camera permission, QR detection and display readability require validation on the target device/browser; source support does not establish Safari/iPad or plant acceptance.
 
-## MVP Scope
-- `/ar` route
-- fullscreen camera
-- marker detection
-- markerId → tag card
-- live values update
-- no editor UI yet
+## Maintenance
 
-## Open Questions
-- Marker format
-- Operator auth behavior
-- Multi-marker behavior
-- Safari/iPad support
-- MindAR integration after MVP
+The implementation is in `client/src/app/ar/`, with persisted shapes in `client/src/app/_models/ar.ts`. `ar-view.service.ts` owns marker visibility and mapping reloads; `ar-view.component.ts` owns camera/scanner lifecycle. Preserve the existing View instance isolation when changing embedded rendering. Future tracking libraries or native applications are not part of the current interface.

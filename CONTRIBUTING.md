@@ -10,7 +10,7 @@ We welcome improvements to both the codebase and the documentation.
 
 ## Requirements
 
-- Node.js 18 LTS (recommended)
+- Node.js 20 for NexFuxa development and CI; see the [maintained test requirements](docs/GIT_WORKFLOW.md#pr-checks). The Docker runtime version is defined separately in the Dockerfile.
 - npm
 
 ## Setup Development Environment

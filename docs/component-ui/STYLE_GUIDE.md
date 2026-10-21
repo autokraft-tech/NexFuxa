@@ -97,4 +97,4 @@ Fault-only默认静态2px深色虚线框（4 3），复用alarmBox；与FAULT文
 | [Display Elements, RM014F, April 2023, Library 4.0](https://literature.rockwellautomation.com/idc/groups/literature/documents/rm/proces-rm014_-en-p.pdf) | p22–28、32–34、411–422；印刷p411对应PDF p415。Label/质量/报警分层和Faceplate是参考，不规定统一底部图标槽或第二页Configuration |
 | [ISA101委员会公开概述](https://www.isa.org/standards-and-publications/isa-standards/isa-standards-committees/isa101) | HMI生命周期；未获取付费标准全文，不宣称逐条符合 |
 
-设备有限状态的唯一规范定义见[Contract §3](CONTRACT.md#3-valve-有限状态语义)；本文件只定义显示语言。
+设备有限状态的唯一规范定义见[Contract §3](CONTRACT.md#valve-state)；本文件只定义显示语言。
