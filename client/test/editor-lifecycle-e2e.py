@@ -11,7 +11,7 @@ spec.loader.exec_module(runner)
 def run_browser(url, server):
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
-        page = browser.new_page(viewport=dict(width=1366, height=768))
+        page = browser.new_page(viewport=dict(width=1366, height=768), locale='en-US')
         page.add_init_script("""(() => {
             const listeners = new Set();
             const add = document.addEventListener.bind(document), remove = document.removeEventListener.bind(document);
