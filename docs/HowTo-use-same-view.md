@@ -30,7 +30,7 @@ Use exactly the same tag names under each device to keep data structure and refe
 Create two views:
 - **Device List Page**: displays all devices and contains the "View Details" buttons.
 - **Device Detail Page**: a reusable template for detailed device data.
-![](images/create-views.PNG)
+![](images/create-views.png)
 
 3. Configure navigation logic in list page buttons
 On each "View Details" button:

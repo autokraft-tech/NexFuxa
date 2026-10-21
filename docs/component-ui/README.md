@@ -15,8 +15,8 @@
 | 类型/字段形状 | [contract.ts](contract.ts) |
 | 实际Valve设计输入 | [模板](examples/valve.json)、[多实例](examples/valve-instances.json) |
 | 设计预期向量 | [64组完整输入](fixtures/valve-states.json)、[7组缺值输入](fixtures/valve-partial-data.json) |
-| 代表性静态图与素材证据 | [SYMBOL静态示意](SYMBOL.md#6-静态设计稿)、[FACEPLATE静态示意](FACEPLATE.md#5-静态示意)、[PROVENANCE](assets/PROVENANCE.md) |
-| 生成/维护流程 | [项目Skill](../../.agents/skills/nexfuxa-component-ui/SKILL.md) |
+| 代表性静态图与素材证据 | [SYMBOL静态示意](SYMBOL.md#symbol-examples)、[FACEPLATE静态示意](FACEPLATE.md#faceplate-examples)、[PROVENANCE](assets/PROVENANCE.md) |
+| 生成/维护流程 | [项目Skill](https://github.com/autokraft-tech/NexFuxa/blob/nexfuxa/.agents/skills/nexfuxa-component-ui/SKILL.md) |
 
 许可/素材工作流以[SVG_REUSE_POLICY](../SVG_REUSE_POLICY.md)为准。素材库为本地`D:/Will/Documents/source/repos/FUXA-SVG-Widgets` / [frangoteam/FUXA-SVG-Widgets](https://github.com/frangoteam/FUXA-SVG-Widgets)，当前Valve25保持选定，不用编辑器内置Shape重新比较。
 

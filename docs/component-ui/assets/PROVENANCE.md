@@ -6,7 +6,7 @@
 - 远程：[frangoteam/FUXA-SVG-Widgets](https://github.com/frangoteam/FUXA-SVG-Widgets)。
 - 选中资产：`Proc. Engineering/Proc. Eng. Valves/25_Gate Valve (Double Acting Cylinder).svg`。
 - 库HEAD：`70e7c4a656d111c0428c77eb4b0409fc3670b8d5`；实际源文件SHA-256：`3706a8b63f5481af2f983f526da2cae297f62ba46b78370627aec8e6554f1e82`。
-- 已有允许副本：[custom/widgets/valves/NexPlc_Valve.svg](../../../custom/widgets/valves/NexPlc_Valve.svg)，本轮读取valveSymbol组；既有Widget未修改。
+- 已有允许副本：[custom/widgets/valves/NexPlc_Valve.svg](https://github.com/autokraft-tech/NexFuxa/blob/nexfuxa/custom/widgets/valves/NexPlc_Valve.svg)，本轮读取valveSymbol组；既有Widget未修改。
 - 已比较同库01_Gate Valve（无执行器）、03_Ball Valve（球阀）、24_Gate Valve (Single Acting Cylinder)（单作用端口）和25（双端口）。当前保持25，与已有项目一致；不由Extend/Retract推断真实阀型/Open含义。
 
 三条path的d、执行器矩形尺寸与内部transform/拓扑保留；仅改外层统一缩放/平移、主体状态fill和轮廓样式（含non-scaling-stroke）。设备主体等比居中，状态与Label独立。源脚本不执行，旧Widget脚本不覆盖。

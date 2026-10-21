@@ -23,4 +23,4 @@ Each widget's README should distinguish equipment geometry retained from present
 
 Rendering tests should cover unknown data, movement, end positions, faults, and operating mode as applicable. Bind at least two instances independently and confirm that updates affect only the intended instance. Prefer temporary browser fixtures or an isolated test environment; do not save tests into an existing FUXA project database. Preserve source library files, PLC source, production Compose, and runtime data during asset adaptation.
 
-The first adaptation under this policy is documented in [the NexPlc valve README](../custom/widgets/valves/README.md#svg-source-and-adaptation).
+The first adaptation under this policy is documented in [the NexPlc valve README](https://github.com/autokraft-tech/NexFuxa/blob/nexfuxa/custom/widgets/valves/README.md#svg-source-and-adaptation).

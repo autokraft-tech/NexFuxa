@@ -23,10 +23,18 @@ theme:
 
 nav:
   - Home: index.md
+  - NexFuxa:
+      - Git Workflow: GIT_WORKFLOW.md
+      - SVG Reuse: SVG_REUSE_POLICY.md
+      - Component UI: component-ui/README.md
+      - AR Mode: ar-mode.md
   - Live Demo: https://frangoteam.github.io/
   - Getting Started:
+      - Tutorial: Getting-Started.md
       - Installing and Running: Installing-and-Running.md
   - HowTo:
+      - Create View: HowTo-View.md
+      - Bind Shapes: HowTo-bind-Shapes.md
       - Devices and Tags: HowTo-Devices-and-Tags.md
       - Bind Controls: HowTo-bind-Controls.md
       - Chart Control: HowTo-Chart-Control.md

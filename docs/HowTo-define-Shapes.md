@@ -1,4 +1,4 @@
-The shapes folder are located in: ‘client/dist/assets/lib/svgeditor/shapes’ (or ‘client/src/lib/svgeditor/shapes’ if you are debugging), you can add a new shape by creating a new javascript file (best copying it from ‘my-shapes.js’) or editing an existing file.
+The shapes folder are located in: ‘client/dist/assets/lib/svgeditor/shapes’ (or ‘client/src/assets/lib/svgeditor/shapes’ if you are debugging), you can add a new shape by creating a new javascript file (best copying it from ‘my-shapes.js’) or editing an existing file.
 
 In the javascript file you can change the following content:
 ```

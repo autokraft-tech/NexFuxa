@@ -248,7 +248,7 @@ The FUXA contrib package provides specialized nodes for SCADA integration, this 
 **Input**: Any message or override with `msg.deviceName`, `msg.enabled`
 **Output**: `msg.payload` contains operation result
 
-**Enable/Disable**: Check the box to enable device, uncheck to disablenterface for connecting devices, processing data, and controlling your industrial processes.
+**Enable/Disable**: Check the box to enable device, uncheck to disable the connection.
 
 #### get-device
 **Purpose**: Get information about a FUXA device
@@ -262,17 +262,6 @@ The FUXA contrib package provides specialized nodes for SCADA integration, this 
 **Output**: `msg.payload` contains device information object
 
 **Include Tags**: When checked, the response includes all tags associated with the device
-
-#### enable-device
-**Purpose**: Enable or disable a device connection
-
-**Parameters**:
-- **Name**: Optional node name for identification
-- **Device**: Device name (dropdown populated from FUXA devices)
-- **Enable**: Checkbox to enable/disable
-
-**Input**: Any message or override with `msg.enable`
-**Output**: `msg.payload` contains operation result
 
 #### get-device-property
 **Purpose**: Get a property value from a device
@@ -492,7 +481,7 @@ The FUXA contrib package provides specialized nodes for SCADA integration, this 
 1. Events are emitted to FUXA's internal event system
 2. Other FUXA components can listen for these events
 3. Events can trigger scripts, update displays, or initiate automation sequences
-4. Events persist until consumed or the system restarts
+4. Events are emitted to current listeners; the emit-event node does not persist or queue them for later consumption
 
 **Common Use Cases**:
 - **Machine Monitoring**: Emit events when equipment enters fault states

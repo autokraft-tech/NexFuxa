@@ -40,4 +40,4 @@ Here is the write script returning the actual tag value
 
 ## PLC Tag Generator
 
-For ADS device model generation, saved tasks, versioned models, Preview/Apply and import/export, see the [PLC Tag Generator guide](../tools/plc-device-model/README.md#online-plc-tag-generator).
+For ADS device model generation, saved tasks, versioned models, Preview/Apply and import/export, see the [PLC Tag Generator guide](https://github.com/autokraft-tech/NexFuxa/blob/nexfuxa/tools/plc-device-model/README.md#online-plc-tag-generator).

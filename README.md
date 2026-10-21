@@ -55,7 +55,7 @@ Official documentation is available at:
 
 👉 https://frangoteam.github.io/FUXA/
 
-The documentation source is located in the `/docs` directory of this repository.
+The documentation source is located in the `/docs` directory of this repository. See the [NexFuxa documentation index](docs/index.md) for customization guides and authoritative specifications.
 
 The site is built using MkDocs (Material theme) and automatically deployed via GitHub Actions.
 
@@ -175,8 +175,7 @@ Looking for ready-made, reusable SVG widgets?
 Check out the companion repository **FUXA-SVG-Widgets**:
 
 - Repository: https://github.com/frangoteam/FUXA-SVG-Widgets
-- Authoring guide & examples: see the repo README and the Wiki page:
-  https://github.com/frangoteam/FUXA/wiki/HowTo-Widgets
+- Authoring guide & examples: see the companion repository README and the [Widget guide](docs/HowTo-Widgets.md).
 
 ## 🧪 To Debug (Full Stack)
 Install and start to serve the frontend

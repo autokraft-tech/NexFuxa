@@ -28,7 +28,7 @@ Compact的状态使用stateDisplay.shortText，Standard/Detailed用text；同一
 
 ## 3. 共享有限Valve语义
 
-唯一状态规则见[Contract §3](CONTRACT.md#3-valve-有限状态语义)，输入映射见[Valve模板](examples/valve.json)。Symbol和Faceplate消费同一个RuntimeSnapshot，不在各自渲染器重新判定状态；三尺寸只选择full/short文案。
+唯一状态规则见[Contract §3](CONTRACT.md#valve-state)，输入映射见[Valve模板](examples/valve.json)。Symbol和Faceplate消费同一个RuntimeSnapshot，不在各自渲染器重新判定状态；三尺寸只选择full/short文案。
 
 位置、运动、Fault及HMI控制分别有效；缺H不抹掉已知位置，未知维度显示问号及原因。断线值不能作实时显示。运动数据无效或Fault/Conflict时停止设备动画，仅H缺失不停止有效运动反馈的显示。按钮不直接把Symbol改成到位。
 
@@ -71,6 +71,8 @@ flowchart LR
 
 写结果不直接修改U；只有PLC反馈更新状态。未来报警adapter可向snapshot补充可选alarmSummary，不阻塞此管线。
 
+<a id="symbol-examples"></a>
+
 ## 6. 静态设计稿
 
 ![Standard HMI Locked](assets/valve-normal.svg)
@@ -79,6 +81,8 @@ flowchart LR
 ![P3 深色底描边](assets/valve-alarm-p3.svg)
 
 三尺寸示例使用相同Extended+HMI Locked输入，仅布局不同。当前Valve没有IL绑定。许可/几何来源见 [PROVENANCE](assets/PROVENANCE.md)。
+
+<a id="svg-instance-isolation"></a>
 
 ## 7. SVG内部ID与实例隔离
 

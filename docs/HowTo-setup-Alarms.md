@@ -6,7 +6,7 @@ An alarm ist bind to one Tag to whitch can you define 4 types of conditions for 
 
 ![](images/fuxa-alarms.gif)
 
-The active alarms and the history can be displayed by configuring the view from the menu or the button on the header. [**Layout settings**](https://github.com/frangoteam/FUXA/wiki/HowTo-View-Layout).
+The active alarms and the history can be displayed by configuring the view from the menu or the button on the header. [**Layout settings**](HowTo-UI-Layout.md).
 
 ![](images/fuxa-alarms2.gif)
 

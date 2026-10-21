@@ -35,6 +35,8 @@ AI 输入为真实 Model + 有限语义 profile + 许可资产/工程 Metadata�
 
 不支持通用Expr、动作完成事务、统一风险审批、groupApply或共享写队列。首版没有通用 DSL，也没有 PLC Command ID/ACK。
 
+<a id="valve-state"></a>
+
 ## 3. Valve 有限状态语义
 
 **[已确认的PLC行为]** Extend/Retract 仅在 HMIControlAvailable 时处理，随后每周期无条件清零；Reset 独立处理并清零。无需修改 PLC，无需 HMI 写 FALSE/定时脉冲/自动重试。`Sts.IsManualMode` 等于 HMIControlAvailable。
@@ -85,6 +87,8 @@ LOCK 是 HMI Locked 的紧凑标签，不是另一种设备模式。没有 Auto/
 JSON 的 deviceId `d_b6ba9d1c-2b054dc3` 来自仓库 CSV，必须匹配当前项目已有 Device，不是已验证的在线设备。v2 Generator 默认把索引拼入名称；tagPrefix=V101、indices=[1,1] 产生 `V101_1_1_sts_extended`，则 #1=V101_1_1。只有批准 namingTemplate/Preview 后才可使用不含索引的命名；不改现有 Tag 名/ID。
 
 UI signal 与 Widget export 并非同名：Sts.Extended→已有 `_pb_extended`，Sts.IsManualMode→`_pb_isManualMode`。原 Widget 只有六读参数，不能把20成员强塞进去。新原生按钮/输入 adapter 可为 resolver 提供受控 synthetic WidgetPropertyVariable 声明（originalName=write slot、type=boolean/number）；使用相同 profile 模板和 resolve 结果，不扩充旧 Widget exports。配置读值与写目标同名成员，用同一解析计划。
+
+<a id="prefix-write-adapter"></a>
 
 ## 6. 最小 Prefix/Inherit 写入适配方案（冻结设计，未实现）
 
@@ -167,7 +171,7 @@ Command.write.delivery=onlineOnceNoRestore明确禁止HMI Restore、离线缓存
 
 ### SVG实例ID规则
 
-见 [Symbol实例隔离规则](SYMBOL.md#7-svg内部id与实例隔离)。复用SvgUtils.renameIdsInSvg、HtmlImage每实例svgGuid/wModule和ViewRuntimeContext，不另造ID注册中心。保存的是模板/定义ID，运行时DOM ID绝不作PLC实例键或写请求定义ID。静态SVG独立img展示与运行时内联是不同场景；未完成实例化的原始SVG不能直接多次inline后宣称隔离。
+见 [Symbol实例隔离规则](SYMBOL.md#svg-instance-isolation)。复用SvgUtils.renameIdsInSvg、HtmlImage每实例svgGuid/wModule和ViewRuntimeContext，不另造ID注册中心。保存的是模板/定义ID，运行时DOM ID绝不作PLC实例键或写请求定义ID。静态SVG独立img展示与运行时内联是不同场景；未完成实例化的原始SVG不能直接多次inline后宣称隔离。
 
 ## 11. 真实PLC结构与现有能力边界
 
@@ -185,13 +189,13 @@ Have*Sensor为false时端位可由计时产生；Sim*Time不表示Simulation act
 
 | 位置 | 已有机制与限制 |
 | --- | --- |
-| [WidgetBindingResolver](../../client/src/app/_helpers/widget-binding.ts) | 精确Device+Tag；number接受生成器归一的数值，不保证直接导入uint/udint/lreal名称可用。缺失清ID/default，不能自动建Tag |
-| [SvgUtils](../../client/src/app/_helpers/svg-utils.ts) / [HtmlImage](../../client/src/app/gauges/controls/html-image/html-image.component.ts) | export-start/end、ID映射、window模块；不是任意脚本沙箱。旧Valve六BOOL读接口，Prefix/Inherit禁止postValue |
-| [ViewRuntimeContext](../../client/src/app/_helpers/view-runtime-context.ts) / [FuxaView](../../client/src/app/fuxa-view/fuxa-view.component.ts) | 运行副本、冻结Context、独立窗口/订阅owner；普通Output/Input/Shape尚无相同Inherit能力，不能把计划当实现。_ps_label仍为静态文字，Metadata注入待实现 |
-| [HmiService](../../client/src/app/_services/hmi.service.ts) | owner订阅并集；旧set乐观缓存无逐次驱动回调。新写结果与Sts分开，不能复用缓存假成功 |
-| [generator.cjs](../../tools/plc-device-model/generator.cjs) / [model.cjs](../../tools/plc-device-model/model.cjs) | legacy v1 Valve和generic v2；ADS、每批最多500候选、1–2维数组；Preview/Apply冲突检查与现有ID复用。不验证在线符号；ENUM非原生通用类型 |
-| [project/index.js](../../server/runtime/project/index.js) | GENERAL保存plcDeviceModelInstances / plcTagGeneratorConfigurations / plcTagGeneratorModels；VIEWS保存View/SVG/items。不等于新Contract验证、迁移、资源打包已实现 |
-| [alarm.ts](../../client/src/app/_models/alarm.ts) | 现有事件时间/确认及类型；Component显式关联、P映射、suppression/shelving仍需adapter，不能猜测 |
+| [WidgetBindingResolver](https://github.com/autokraft-tech/NexFuxa/blob/nexfuxa/client/src/app/_helpers/widget-binding.ts) | 精确Device+Tag；number接受生成器归一的数值，不保证直接导入uint/udint/lreal名称可用。缺失清ID/default，不能自动建Tag |
+| [SvgUtils](https://github.com/autokraft-tech/NexFuxa/blob/nexfuxa/client/src/app/_helpers/svg-utils.ts) / [HtmlImage](https://github.com/autokraft-tech/NexFuxa/blob/nexfuxa/client/src/app/gauges/controls/html-image/html-image.component.ts) | export-start/end、ID映射、window模块；不是任意脚本沙箱。旧Valve六BOOL读接口，Prefix/Inherit禁止postValue |
+| [ViewRuntimeContext](https://github.com/autokraft-tech/NexFuxa/blob/nexfuxa/client/src/app/_helpers/view-runtime-context.ts) / [FuxaView](https://github.com/autokraft-tech/NexFuxa/blob/nexfuxa/client/src/app/fuxa-view/fuxa-view.component.ts) | 运行副本、冻结Context、独立窗口/订阅owner；普通Output/Input/Shape尚无相同Inherit能力，不能把计划当实现。_ps_label仍为静态文字，Metadata注入待实现 |
+| [HmiService](https://github.com/autokraft-tech/NexFuxa/blob/nexfuxa/client/src/app/_services/hmi.service.ts) | owner订阅并集；旧set乐观缓存无逐次驱动回调。新写结果与Sts分开，不能复用缓存假成功 |
+| [generator.cjs](https://github.com/autokraft-tech/NexFuxa/blob/nexfuxa/tools/plc-device-model/generator.cjs) / [model.cjs](https://github.com/autokraft-tech/NexFuxa/blob/nexfuxa/tools/plc-device-model/model.cjs) | legacy v1 Valve和generic v2；ADS、每批最多500候选、1–2维数组；Preview/Apply冲突检查与现有ID复用。不验证在线符号；ENUM非原生通用类型 |
+| [project/index.js](https://github.com/autokraft-tech/NexFuxa/blob/nexfuxa/server/runtime/project/index.js) | GENERAL保存plcDeviceModelInstances / plcTagGeneratorConfigurations / plcTagGeneratorModels；VIEWS保存View/SVG/items。不等于新Contract验证、迁移、资源打包已实现 |
+| [alarm.ts](https://github.com/autokraft-tech/NexFuxa/blob/nexfuxa/client/src/app/_models/alarm.ts) | 现有事件时间/确认及类型；Component显式关联、P映射、suppression/shelving仍需adapter，不能猜测 |
 
 ## 12. 必须覆盖的后续验收
 
