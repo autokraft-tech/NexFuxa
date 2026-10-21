@@ -67,3 +67,11 @@ Reference and images:
 
 
 
+
+## Faceplate prefix inheritance
+
+For SVG Widgets with a [Binding Profile](HowTo-Widgets.md#prefix-binding), configure the host Symbol with **Prefix Binding**, its PLC Device and a complete Tag Prefix. In its Events tab, select Click → **Open Faceplate (Dialog)** or **Open Faceplate (Card)** and choose the shared detail View. In that View, set participating Widgets to **Inherit Faceplate Binding**. Leave Variables Mapping empty for those Widgets; copy the host Symbol and change only its prefix for another equipment instance.
+
+Each opened View receives an immutable runtime copy of the source Device ID and parameters. The target's Binding Profile resolves existing Tags against that context; the effective values are not saved into the shared View definition. Inherit never falls back to fixed/manual targets when context or Tags are missing. Widgets configured with a fixed Prefix keep their own Device/parameters; Manual Widgets retain their existing bindings and Variables Mapping. Ordinary Output/Input/Shape controls retain their existing configuration and do not acquire Widget inheritance.
+
+Concurrent Dialogs, Cards and Panels have independent runtime DOM IDs, Widget modules and subscription ownership. Closing one releases its resources while other instances keep updating, including when they display the same PLC instance. Runtime DOM IDs are distinct from saved View/Gauge definition IDs. Client scripts using `$getObject()` or `$invokeObject()` from a View resolve objects within that originating View instance; arbitrary scripts querying global DOM IDs must handle their own scope and cleanup. This read-only inheritance does not add PLC commands or configuration writes.

@@ -16,6 +16,18 @@ export class FlexWidgetPropertyComponent implements OnInit {
     dataDevices = { devices: []};
     preview: WidgetBindingResult[] = [];
 
+    get isValveSymbol(): boolean { return this.property.svgContent?.includes('data-nexfuxa-valve-symbol'); }
+
+    setSymbolVariant(symbolVariant: 'compact' | 'standard' | 'detailed') {
+        this.property.layout = { symbolVariant };
+    }
+
+    setSymbolMetadata(key: 'label' | 'description' | 'direction', value: string | number) {
+        this.property.componentUi ||= {};
+        this.property.componentUi.metadata ||= {};
+        Object.assign(this.property.componentUi.metadata, { [key]: value });
+    }
+
     constructor(private projectService: ProjectService, public hmiService: HmiService) {
         this.dataDevices = {
             devices: Object.values(this.projectService.getDevices())

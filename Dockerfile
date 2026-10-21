@@ -4,6 +4,7 @@ WORKDIR /usr/src/app/client
 COPY client/package*.json ./
 RUN npm install --no-audit --no-fund
 COPY client/ ./
+COPY docs/component-ui/contract.ts ../docs/component-ui/contract.ts
 RUN npm run build -- --configuration production
 
 # --- STAGE 2: Server & Native Dependencies Builder ---

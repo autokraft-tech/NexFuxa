@@ -101,6 +101,12 @@ jobs:
         env:
           TMPDIR: ${{ runner.temp }}
         run: python test/faceplate-e2e.py
+      - name: Valve Symbol state and persistence regression
+        run: node --test test/valve-symbol.test.cjs
+      - name: Valve Symbol browser and editor regression
+        env:
+          TMPDIR: ${{ runner.temp }}
+        run: python test/valve-symbol-e2e.py
       - name: Upload browser evidence
         if: always()
         uses: actions/upload-artifact@v4

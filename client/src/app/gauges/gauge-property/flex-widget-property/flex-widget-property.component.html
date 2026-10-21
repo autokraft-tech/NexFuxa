@@ -1,4 +1,28 @@
 <div class="container">
+    <div *ngIf="isValveSymbol">
+        <mat-form-field>
+            <mat-label>Symbol layout</mat-label>
+            <mat-select [value]="property.layout?.symbolVariant || property.componentUi?.layout?.symbolVariant || 'standard'" (selectionChange)="setSymbolVariant($event.value)">
+                <mat-option value="compact">Compact · 96 × 112</mat-option>
+                <mat-option value="standard">Standard · 144 × 152</mat-option>
+                <mat-option value="detailed">Detailed · 192 × 184</mat-option>
+            </mat-select>
+        </mat-form-field>
+        <mat-form-field>
+            <mat-label>Symbol label</mat-label>
+            <input matInput maxlength="64" [ngModel]="property.componentUi?.metadata?.label" (ngModelChange)="setSymbolMetadata('label', $event)">
+        </mat-form-field>
+        <mat-form-field>
+            <mat-label>Symbol description</mat-label>
+            <input matInput maxlength="256" [ngModel]="property.componentUi?.metadata?.description" (ngModelChange)="setSymbolMetadata('description', $event)">
+        </mat-form-field>
+        <mat-form-field>
+            <mat-label>Equipment direction</mat-label>
+            <mat-select [value]="property.componentUi?.metadata?.direction || 0" (selectionChange)="setSymbolMetadata('direction', $event.value)">
+                <mat-option *ngFor="let direction of [0, 90, 180, 270]" [value]="direction">{{direction}}°</mat-option>
+            </mat-select>
+        </mat-form-field>
+    </div>
     <mat-form-field *ngIf="property.bindingProfile || property.prefixBinding || property.inheritFaceplateBinding">
         <mat-label>Binding Mode</mat-label>
         <mat-select [value]="property.inheritFaceplateBinding ? 'inherit' : !!property.prefixBinding" (selectionChange)="setMode($event.value)">

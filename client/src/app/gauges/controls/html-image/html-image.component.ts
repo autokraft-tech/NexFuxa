@@ -15,6 +15,7 @@ import { ShapesComponent } from '../../shapes/shapes.component';
 import { EndPointApi } from '../../../_helpers/endpointapi';
 import { SvgUtils, WidgetPropertyVariable } from '../../../_helpers/svg-utils';
 import { DeviceType } from '../../../_models/device';
+import { ValveSymbolRuntime } from '../../../_helpers/valve-symbol';
 
 declare var SVG: any;
 
@@ -49,6 +50,15 @@ export class HtmlImageComponent extends GaugeBaseComponent {
         super();
     }
 
+    static destroyValveSymbols(root: Element) {
+        root?.querySelectorAll('[data-fuxa-module]').forEach(node => {
+            if (!node.querySelector('metadata[data-nexfuxa-valve-symbol]')) return;
+            const id = node.getAttribute('data-fuxa-module');
+            try { (window[id] as any)?.destroy?.(); }
+            finally { delete window[id]; }
+        });
+    }
+
     static initElement(gaugeSettings: GaugeSettings, isview: boolean): HTMLElement {
         let svgImageContainer = null;
         let ele = document.getElementById(gaugeSettings.id);
@@ -60,6 +70,7 @@ export class HtmlImageComponent extends GaugeBaseComponent {
                 if (SvgUtils.isSVG(gaugeSettings.property.address) && svgContent) {
                     const previousModule = svgImageContainer.getAttribute('data-fuxa-module');
                     if (previousModule && Object.prototype.hasOwnProperty.call(window, previousModule)) {
+                        (window[previousModule] as any)?.destroy?.();
                         window[previousModule] = undefined;
                         Reflect.deleteProperty(window, previousModule);
                     }
@@ -74,6 +85,18 @@ export class HtmlImageComponent extends GaugeBaseComponent {
                             gaugeSettings.property.bindingProfile = JSON.parse(profile.textContent);
                         } catch {
                             console.error('Invalid Widget Binding Profile JSON');
+                        }
+                    }
+                    const symbolDefinition = svgElement.querySelector('metadata[data-nexfuxa-valve-symbol]');
+                    if (symbolDefinition) {
+                        const definition = JSON.parse(symbolDefinition.textContent);
+                        const variant = gaugeSettings.property.layout?.symbolVariant ?? gaugeSettings.property.componentUi?.layout?.symbolVariant ?? definition.layouts.defaultVariant;
+                        if (svgElement.getAttribute('data-symbol-variant') !== variant) {
+                            const layout = definition.layouts.variants[variant];
+                            if (!layout) throw Error(`Invalid Valve Symbol layout: ${variant}`);
+                            svgElement.setAttribute('width', String(layout.viewBox[2]));
+                            svgElement.setAttribute('height', String(layout.viewBox[3]));
+                            svgElement.setAttribute('data-symbol-variant', variant);
                         }
                     }
                     const originSize = SvgUtils.getSvgSize(svgElement);
@@ -121,6 +144,17 @@ export class HtmlImageComponent extends GaugeBaseComponent {
                         document.body.appendChild(newScript);
                         newScript.remove();
                         svgImageContainer.setAttribute('data-fuxa-module', gaugeSettings.property.scriptContent.moduleId);
+                        const definition = svgElement.querySelector('metadata[data-nexfuxa-valve-symbol]');
+                        if (definition) {
+                            const runtime = new ValveSymbolRuntime(svgElement, JSON.parse(definition.textContent), gaugeSettings.property);
+                            const module: any = window[gaugeSettings.property.scriptContent.moduleId];
+                            module.putValue = runtime.putValue.bind(runtime);
+                            module.putSample = runtime.putValue.bind(runtime);
+                            module.setContext = runtime.setContext.bind(runtime);
+                            module.getSnapshot = runtime.getSnapshot.bind(runtime);
+                            module.destroy = runtime.destroy.bind(runtime);
+                            runtime.setContext({});
+                        }
                     }
                 } else {
                     svgImageContainer.innerHTML = '';
@@ -251,7 +285,11 @@ export class HtmlImageComponent extends GaugeBaseComponent {
                         if (window[scriptContent.moduleId]['putValue']) {
                             const widgetVars = ga.property.varsToBind.filter((varToBind: WidgetPropertyVariable) => varToBind.variableId === sig.id);
                             for (const widgetVar of widgetVars) {
-                                window[scriptContent.moduleId]['putValue'](widgetVar.name, sig.value);
+                                if (ga.property.svgContent?.includes('data-nexfuxa-valve-symbol') && window[scriptContent.moduleId]['putSample']) {
+                                    window[scriptContent.moduleId]['putSample'](widgetVar.name, sig.value, sig.quality);
+                                } else {
+                                    window[scriptContent.moduleId]['putValue'](widgetVar.name, sig.value);
+                                }
                             }
                         }
                     }
@@ -263,6 +301,7 @@ export class HtmlImageComponent extends GaugeBaseComponent {
     }
 
     static bindEvents(ga: GaugeSettings, callback?: any): Event {
+        if (ga.property.svgContent?.includes('data-nexfuxa-valve-symbol')) return null;
         if (!ga.property.prefixBinding && !ga.property.inheritFaceplateBinding && ga.property.type === HtmlImageComponent.propertyWidgetType && ga.property.scriptContent && ga.property.varsToBind?.length) {
             const scriptContent = ga.property.scriptContent;
             if (window[scriptContent.moduleId]?.['postValue']) {

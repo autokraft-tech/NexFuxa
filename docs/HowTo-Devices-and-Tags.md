@@ -37,4 +37,7 @@ Here is the read script which returns the array element
 Here is the write script returning the actual tag value
 
 ![image](https://github.com/user-attachments/assets/51cfad3f-9354-45e5-a0a5-206507d1ca93)
- 
+
+## PLC Tag Generator
+
+For ADS device model generation, saved tasks, versioned models, Preview/Apply and import/export, see the [PLC Tag Generator guide](../tools/plc-device-model/README.md#online-plc-tag-generator).

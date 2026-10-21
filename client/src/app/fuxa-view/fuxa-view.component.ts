@@ -30,7 +30,7 @@ import { HtmlSelectComponent } from '../gauges/controls/html-select/html-select.
 import { FuxaViewDialogComponent, FuxaViewDialogData } from './fuxa-view-dialog/fuxa-view-dialog.component';
 import { DialogPosition as DialogPosition, MatDialog as MatDialog } from '@angular/material/dialog';
 import { WebcamPlayerDialogComponent, WebcamPlayerDialogData } from '../gui-helpers/webcam-player/webcam-player-dialog/webcam-player-dialog.component';
-import { DevicesUtils, PlaceholderDevice, Tag } from '../_models/device';
+import { Device, DevicesUtils, PlaceholderDevice, Tag } from '../_models/device';
 import { LanguageService } from '../_services/language.service';
 import { EventUtils } from '../_helpers/event-utils';
 import { ViewRuntimeContext } from '../_helpers/view-runtime-context';
@@ -141,16 +141,21 @@ export class FuxaViewComponent implements OnInit, AfterViewInit, OnDestroy {
         this.loadVariableMapping();
         this.hmiService.onDeviceChanged.pipe(takeUntil(this.destroy$)).subscribe((event: any) => {
             if (event.status !== 'connect-ok') this.invalidatePrefixWidgets(event.id);
+            this.prefixWidgets.forEach(widget => this.updateSymbolContext(widget));
         });
         this.hmiService.onServerConnection$.pipe(takeUntil(this.destroy$)).subscribe(connected => {
             if (!connected) this.invalidatePrefixWidgets();
+            this.prefixWidgets.forEach(widget => this.updateSymbolContext(widget));
         });
     }
 
     private invalidatePrefixWidgets(deviceId?: string) {
         for (const widget of this.prefixWidgets) {
-            if (deviceId && widget.property.prefixBinding.deviceId !== deviceId) continue;
+            if (deviceId && widget.property.prefixBinding?.deviceId !== deviceId && !this.symbolDeviceIds(widget).includes(deviceId)) continue;
             const module: any = window[widget.property.scriptContent?.moduleId];
+            if (widget.property.svgContent?.includes('data-nexfuxa-valve-symbol')) {
+                module?.setContext?.({ connected: false, viewInstanceId: this.viewInstanceId });
+            }
             for (const variable of widget.property.varsToBind || []) {
                 if (widget.property.bindingProfile?.bindings[variable.originalName] === undefined) continue;
                 module?.putValue?.(variable.name, null);
@@ -158,6 +163,27 @@ export class FuxaViewComponent implements OnInit, AfterViewInit, OnDestroy {
                 if (this.hmiService.variables[variable.variableId]) this.hmiService.variables[variable.variableId].value = null;
             }
         }
+    }
+
+    private symbolDeviceIds(widget: GaugeSettings): string[] {
+        if (!widget.property.svgContent?.includes('data-nexfuxa-valve-symbol')) return [];
+        const ids = widget.property.varsToBind?.filter(variable =>
+            widget.property.bindingProfile?.bindings[variable.originalName] !== undefined).map(variable => variable.variableId) || [];
+        return (Object.values(this.projectService.getDevices()) as Device[]).filter(device =>
+            Object.values(device.tags || {}).some(tag => ids.includes(tag.id))).map(device => device.id);
+    }
+
+    private updateSymbolContext(widget: GaugeSettings) {
+        if (!widget.property.svgContent?.includes('data-nexfuxa-valve-symbol')) return;
+        const module: any = window[widget.property.scriptContent?.moduleId];
+        if (!module?.setContext) return;
+        const ids = widget.property.prefixBinding ? [widget.property.prefixBinding.deviceId] : this.symbolDeviceIds(widget);
+        const offline = !this.hmiService.onServerConnection$.value || ids.some(id => {
+            const device = this.projectService.getDeviceFromId(id);
+            const status = this.hmiService.deviceStatuses[id];
+            return device && (!device.enabled || status && status !== 'connect-ok');
+        });
+        module.setContext({ connected: !offline, viewInstanceId: this.viewInstanceId });
     }
 
     ngAfterViewInit() {
@@ -384,6 +410,10 @@ export class FuxaViewComponent implements OnInit, AfterViewInit, OnDestroy {
                     if (gauge) {
                         this.mapControls[key] = gauge;
                     }
+                    if (items[key].property?.svgContent?.includes('data-nexfuxa-valve-symbol')) {
+                        if (!this.prefixWidgets.includes(items[key])) this.prefixWidgets.push(items[key]);
+                        this.updateSymbolContext(items[key]);
+                    }
                     // bind mouse/key events, signals in gage will be subscribe for notify changes in backend
                     this.gaugesManager.bindGauge(gauge, this.viewInstanceId, items[key], sourceTags,
                         (gaToBindMouseEvents) => {
@@ -478,7 +508,7 @@ export class FuxaViewComponent implements OnInit, AfterViewInit, OnDestroy {
                     for (let i = 0; i < gas.length; i++) {
                         let gaugeSetting = gas[i];
                         let gaugeStatus = this.getGaugeStatus(gaugeSetting);
-                        if (this.checkStatusValue(gaugeSetting.id, gaugeStatus, sig)) {
+                        if (this.checkStatusValue(gaugeSetting.id, gaugeStatus, sig) || gaugeSetting.property.svgContent?.includes('data-nexfuxa-valve-symbol')) {
                             let svgeles = this.getSvgElements(gaugeSetting.id);
                             for (let y = 0; y < svgeles.length; y++) {
                                 this.gaugesManager.processValue(gaugeSetting, svgeles[y], sig, gaugeStatus);
