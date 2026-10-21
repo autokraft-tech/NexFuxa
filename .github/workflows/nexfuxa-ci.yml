@@ -105,6 +105,12 @@ jobs:
         env:
           TMPDIR: ${{ runner.temp }}
         run: python test/faceplate-e2e.py
+      - name: Editor delete and history resource ownership regression
+        run: node --test test/editor-lifecycle.test.cjs
+      - name: Editor delete undo redo browser regression
+        env:
+          TMPDIR: ${{ runner.temp }}
+        run: python test/editor-lifecycle-e2e.py
       - name: Valve Symbol state and persistence regression
         run: node --test test/valve-symbol.test.cjs
       - name: Valve Symbol browser and editor regression
