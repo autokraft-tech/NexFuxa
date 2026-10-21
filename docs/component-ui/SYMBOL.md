@@ -1,6 +1,6 @@
 # Symbol Specification — v1.0
 
-**[冻结规范]** 一份声明式模板、一份设备几何、一个有限状态profile，三种纯展示布局。旧 `NexPlc_Valve.svg` 及旧Faceplate保持原状；设计冻结，尚未接入运行时。
+**[冻结规范]** 一份声明式模板、一份设备几何、一个有限状态profile，三种纯展示布局。旧 `NexPlc_Valve.svg` 及旧Faceplate保持原状；设计语义保持冻结；当前已交付的只读Valve Symbol及尚未实现能力见[实施边界](README.md#implementation-status)。
 
 ## 1. 图形来源与分层
 
