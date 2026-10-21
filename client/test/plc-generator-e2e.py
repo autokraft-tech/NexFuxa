@@ -1,5 +1,6 @@
 """Actual Angular Dialog + real API + temporary SQLite. No existing project/PLC."""
 import json
+import os
 from pathlib import Path
 import socket
 import subprocess
@@ -31,9 +32,48 @@ def api(request, url, path, data=None):
     return response.json()
 
 
+def check_device_dialogs(browser, url):
+    # Only plugin availability is simulated; render the real Angular configuration dialog.
+    # Cancel without saving or starting a connection to any industrial device.
+    context = browser.new_context()
+
+    def available_plugins(route):
+        response = route.fetch()
+        plugins = response.json()
+        entries = plugins.values() if isinstance(plugins, dict) else plugins
+        for plugin in entries:
+            if plugin.get("type") in ("GenericEthernetIP", "ADSclient"):
+                plugin["current"] = "fixture"
+        route.fulfill(response=response, json=plugins)
+
+    context.route("**/api/plugins", available_plugins)
+    page = context.new_page()
+    before = page.request.get(url + "/api/project").json()["devices"]
+    page.goto(url + "/device")
+    page.wait_for_load_state("networkidle")
+    notice = page.locator("app-section-message-dialog")
+    if notice.count():
+        notice.locator(".dialog-close-btn").click()
+    page.locator("app-device > button.fab-add").click()
+    dialog = page.locator("app-device-property")
+    selector = dialog.locator("mat-select").first
+    selector.click()
+    page.get_by_role("option", name="ADSclient", exact=True).click()
+    expect(dialog.locator(".content")).to_be_visible()
+    selector.click()
+    page.get_by_role("option", name="GenericEthernetIP", exact=True).click()
+    expect(dialog.locator("#generic-enip-address")).to_be_visible()
+    expect(dialog.locator(".generic-enip-routing")).to_be_visible()
+    dialog.locator(".dialog-close-btn").click()
+    assert page.request.get(url + "/api/project").json()["devices"] == before
+    context.close()
+    print("E2E ADS and Generic EtherNet/IP configuration dialogs passed (mock plugin availability; no device writes)")
+
+
 def run_browser(url):
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
+        check_device_dialogs(browser, url)
         request = p.request.new_context()
         initial = api(request, url, "/configurations")
         tasks = [dict(schemaVersion=2, id="task_" + str(i), name="Task " + str(i), deviceId=DEVICE,
@@ -179,6 +219,8 @@ def main():
         work = root / "_appdata"
         work.mkdir()
         settings = "const settings = require(" + json.dumps(str(ROOT / "server/settings.default.js")) + "); settings.uiHost = '127.0.0.1'; settings.nodeRedEnabled = false; module.exports = settings;"
+        if os.environ.get("FUXA_TEST_CLIENT_DIST"):
+            settings += "settings.httpStatic = " + json.dumps(os.environ["FUXA_TEST_CLIENT_DIST"]) + ";"
         (work / "settings.js").write_text(settings, encoding="utf-8")
         subprocess.run(["node", str(ROOT / "server/test/plc-device-models/persistence.child.cjs"), "seed", str(work)], check=True, cwd=ROOT)
         with socket.socket() as sock:
